@@ -1,0 +1,668 @@
+'use client';
+
+import Head from 'next/head';
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { routeBank, type RouteId, type RouteScene } from '../route_bank';
+import { useRouter } from 'next/navigation';
+
+/** Minimal Pannellum types (only what we use) */
+interface PannellumViewer {
+  destroy?: () => void;
+  resize?: () => void;
+}
+type PannellumApi = {
+  viewer: (el: HTMLElement, opts: Record<string, unknown>) => PannellumViewer;
+};
+type PannellumWindow = Window & { pannellum?: PannellumApi };
+
+type HotSpot = {
+  pitch: number;
+  yaw: number;
+  type: 'info';
+  createTooltipFunc: (div: HTMLElement) => void;
+  clickHandlerFunc?: () => void;
+};
+
+export default function StudentHub360Page() {
+  const [panoReady, setPanoReady] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // navigation states
+  const [routeMode, setRouteMode] = useState(false);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [showHelp, setShowHelp] = useState(true);
+  const [lastMove, setLastMove] = useState<'forward' | 'back' | null>(null);
+
+  const [nextPanelCollapsed, setNextPanelCollapsed] = useState(true);
+
+  const viewerRef = useRef<PannellumViewer | null>(null);
+  const paneRef = useRef<HTMLDivElement>(null);
+
+  const [routeKey, setRouteKey] = useState<RouteId>('lobby-shub');
+  const currentRouteDef = routeBank[routeKey];
+  const ROUTE: RouteScene[] = currentRouteDef.scenes;
+  const nextOptionsCount = (currentRouteDef.nextRouteIds ?? []).length; 
+  const router = useRouter();
+
+  const PANO = '/images360/StudentHub2.jpg';
+
+  const guidanceText = useMemo(() => {
+    // not started yet
+    if (!routeMode) return 'Tap “Navigate here” to start guided 360° route.';
+
+    const scene = ROUTE[currentIdx];
+
+    // 1) if this scene has a custom instruction, use it
+    if (scene.instruction) {
+      return scene.instruction;
+    }
+
+    // 2) if this is the last scene and no custom text, say arrived
+    if (currentIdx === ROUTE.length - 1) {
+      return 'You have reached the destination.';
+    }
+
+    // 3) otherwise give a generic forward instruction
+    return 'Look for the red arrow in front and click it to move forward.';
+  }, [routeMode, currentIdx, ROUTE]);
+
+  // preload
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setPanoReady(true);
+    img.onerror = () => setErrorMsg('❌ Could not load panorama image.');
+    img.src = PANO;
+  }, []);
+
+  // load pannellum (default viewer)
+  useEffect(() => {
+    const w = window as PannellumWindow;
+    if (w.pannellum) {
+      initViewerDefault();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+    script.async = true;
+    script.onload = () => initViewerDefault();
+    script.onerror = () => setErrorMsg('⚠ Failed to load Pannellum from CDN.');
+    document.body.appendChild(script);
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
+    document.head.appendChild(link);
+
+    return () => viewerRef.current?.destroy?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const initViewerDefault = () => {
+    const w = window as PannellumWindow;
+    if (!paneRef.current || !w.pannellum) return;
+
+    try {
+      viewerRef.current?.destroy?.();
+    } catch {
+      /* noop */
+    }
+
+    viewerRef.current = w.pannellum.viewer(paneRef.current, {
+      type: 'equirectangular',
+      panorama: PANO,
+      autoLoad: true,
+      showZoomCtrl: true,
+      showFullscreenCtrl: true,
+      compass: true,
+      autoRotate: 1,
+      hfov: 100,
+      minHfov: 60,
+      maxHfov: 120,
+      backgroundColor: [11, 16, 32],
+    });
+  };
+
+  // UPDATED: accept move direction
+  const initViewerForIndex = (
+    idx: number,
+    moveDir: 'forward' | 'back' = 'forward'
+  ) => {
+    const w = window as PannellumWindow;
+    if (!paneRef.current || !w.pannellum) return;
+    const scene = ROUTE[idx];
+
+    try {
+      viewerRef.current?.destroy?.();
+    } catch {
+      /* noop */
+    }
+
+    // decide starting yaw
+    let startYaw = scene.initialYaw;
+    if (moveDir === 'back') {
+      if (scene.back) {
+        startYaw = scene.back.yaw;
+      } else {
+        startYaw = (scene.initialYaw + 180) % 360;
+      }
+    }
+
+    const hotSpots: HotSpot[] = [];
+
+    if (scene.forward && idx < ROUTE.length - 1) {
+      hotSpots.push({
+        pitch: scene.forward.pitch,
+        yaw: scene.forward.yaw,
+        type: 'info',
+        createTooltipFunc: (hotSpotDiv: HTMLElement) => {
+          hotSpotDiv.style.background = 'transparent';
+          hotSpotDiv.style.border = 'none';
+          hotSpotDiv.style.width = 'auto';
+          hotSpotDiv.style.height = 'auto';
+          hotSpotDiv.innerHTML = `
+            <div class="swin-forward-btn">
+              <svg viewBox="0 0 24 24" class="swin-forward-icon" aria-hidden="true">
+                <path d="M12 17V7" stroke="currentColor" stroke-width="1.95" stroke-linecap="round"/>
+                <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          `;
+          hotSpotDiv.style.cursor = 'pointer';
+        },
+        clickHandlerFunc: () => handleNext(),
+      });
+    }
+
+    if (scene.back && idx > 0) {
+      hotSpots.push({
+        pitch: scene.back.pitch,
+        yaw: scene.back.yaw,
+        type: 'info',
+        createTooltipFunc: (div: HTMLElement) => {
+          const prevLabel =
+            typeof idx === 'number' && idx > 0 ? ROUTE[idx - 1].label : '';
+          div.style.background = 'transparent';
+          div.style.border = 'none';
+          div.style.width = 'auto';
+          div.style.height = 'auto';
+          div.innerHTML = `
+          <button
+            class="swin-back-vertical pro"
+            aria-label="Go back"
+            title="Go back"
+            type="button"
+            ${idx === 0 ? 'disabled' : ''}
+          >
+            <span class="swin-back-circle">
+              <svg viewBox="0 0 24 24" class="swin-back-icon" aria-hidden="true">
+                <path d="M12 17V7" stroke="currentColor" stroke-width="1.95" stroke-linecap="round"/>
+                <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="swin-back-label">Back</span>
+          </button>
+        `;
+          div.style.cursor = idx > 0 ? 'pointer' : 'default';
+        },
+        clickHandlerFunc: () => handlePrev(),
+      });
+    }
+
+    // STUDENT HUB AREA INFO (no navigation, just info text)
+    // SERVICE DESK HOTSPOT (for Lobby A 12)
+    if (scene.id === 12) {
+      hotSpots.push({
+        pitch: -4,
+        yaw: 105,
+        type: 'info',
+        createTooltipFunc: (div: HTMLElement) => {
+          div.style.background = 'transparent';
+          div.style.border = 'none';
+          div.style.width = 'auto';
+          div.style.height = 'auto';
+
+          div.innerHTML = `
+            <div class="swin-back-vertical">
+              <div class="swin-forward-btn">
+                <svg viewBox="0 0 32 32" class="swin-forward-icon arrow-up" style="color: #dc2626;">
+                  <path d="M6 16h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="M18 10l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="swin-back-label" style="color: #dc2626; font-size: 11px; font-weight: 600; white-space: nowrap; margin-top: 4px;">Service Desk</div>
+            </div>
+          `;
+          div.style.cursor = 'pointer';
+        },
+        clickHandlerFunc: () => handleToServiceDesk(),
+      });
+    }
+
+    // SERVICE DESK - arrow to Lobby A 14
+    if (scene.id === 13) {
+      // Arrow to Lobby A 14
+      hotSpots.push({
+        pitch: 0,
+        yaw: 180, // Adjust yaw as needed for proper positioning
+        type: 'info',
+        createTooltipFunc: (div: HTMLElement) => {
+          div.style.background = 'transparent';
+          div.style.border = 'none';
+          div.style.width = 'auto';
+          div.style.height = 'auto';
+
+          div.innerHTML = `
+            <div class="swin-forward-btn">
+              <svg viewBox="0 0 32 32" class="swin-forward-icon arrow-up">
+                <path d="M6 16h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M18 10l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          `;
+          div.style.cursor = 'pointer';
+        },
+        clickHandlerFunc: () => {
+          const lobby14Idx = ROUTE.findIndex((s) => s.id === 14);
+          if (lobby14Idx !== -1) {
+            setLastMove('forward');
+            setCurrentIdx(lobby14Idx);
+          }
+        },
+      });
+      
+      // Back arrow to Lobby A 12
+      hotSpots.push({
+        pitch: -4,
+        yaw: 90,
+        type: 'info',
+        createTooltipFunc: (div: HTMLElement) => {
+          div.style.background = 'transparent';
+          div.style.border = 'none';
+          div.style.width = 'auto';
+          div.style.height = 'auto';
+
+          div.innerHTML = `
+            <div class="swin-back-vertical">
+              <div class="swin-back-circle">
+                <svg viewBox="0 0 24 24" class="swin-back-icon">
+                  <path d="M12 17V7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                  <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+              <div class="swin-back-label">Back</div>
+            </div>
+          `;
+          div.style.cursor = 'pointer';
+        },
+        clickHandlerFunc: () => {
+          const lobby12Idx = ROUTE.findIndex((s) => s.id === 12);
+          if (lobby12Idx !== -1) {
+            setLastMove('back');
+            setCurrentIdx(lobby12Idx);
+          }
+        },
+      });
+    }
+
+    // STUDENT HUB AREA INFO (no navigation, just info text)
+    if (scene.id === 26) {
+      hotSpots.push({
+        pitch: -15, // Moved lower to avoid overlap with back arrow (was 0)
+        yaw: 195,
+        type: 'info',
+        createTooltipFunc: (div: HTMLElement) => {
+          div.style.background = 'transparent';
+          div.style.border = 'none';
+          div.style.width = 'auto';
+          div.style.height = 'auto';
+          div.style.pointerEvents = 'none';
+
+          div.innerHTML = `
+            <div style="background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.3); text-align: center;">
+              <div style="color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap;">You reached student hub area, place to chill</div>
+            </div>
+          `;
+        },
+      });
+    }
+
+    viewerRef.current = w.pannellum.viewer(paneRef.current, {
+      type: 'equirectangular',
+      panorama: scene.image,
+      autoLoad: true,
+      yaw: startYaw, // use computed yaw
+      showZoomCtrl: true,
+      showFullscreenCtrl: true,
+      compass: false,
+      autoRotate: 0,
+      hfov: 100,
+      minHfov: 60,
+      maxHfov: 120,
+      backgroundColor: [11, 16, 32],
+      hotSpots,
+    });
+  };
+
+  // update viewer when route changes
+  useEffect(() => {
+    if (routeMode) {
+      // if lastMove is null (first time), treat as forward
+      initViewerForIndex(currentIdx, lastMove ?? 'forward');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIdx, routeMode, lastMove]);
+
+  const handleStartRoute = () => {
+    setRouteMode(true);
+    setCurrentIdx(0);
+    setLastMove('forward');
+    setNextPanelCollapsed(true); // collapsed by default like MPH
+  };
+
+  const handleExitRoute = () => {
+    setRouteMode(false);
+    setNextPanelCollapsed(true);
+    setTimeout(() => initViewerDefault(), 300);
+  };
+
+  const handleNext = () => {
+    setLastMove('forward');
+    setCurrentIdx((i) => Math.min(i + 1, ROUTE.length - 1));
+  };
+
+  const handlePrev = () => {
+    setLastMove('back');
+    setCurrentIdx((i) => Math.max(i - 1, 0));
+  };
+
+  const handleToServiceDesk = () => {
+    setLastMove('forward');
+    const serviceDeskIdx = ROUTE.findIndex((s) => s.id === 13);
+    if (serviceDeskIdx !== -1) {
+      setCurrentIdx(serviceDeskIdx);
+    }
+  };
+
+  const progressPercent = ((currentIdx + 1) / ROUTE.length) * 100;
+
+  return (
+    <>
+      <Head>
+        <title>Student Hub Route • 360° View</title>
+      </Head>
+
+      <main className="flex flex-col h-auto">
+        <div className="w-full mx-auto px-2 md:px-4 flex-1">
+          {/* Header */}
+          <header className="flex items-center gap-3 p-3 mb-4 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200">
+            <Link
+              href="/navigate"
+              aria-label="Back"
+              className="grid place-items-center w-10 h-10 border border-slate-300 rounded-xl bg-white text-slate-900 hover:bg-slate-100 transition"
+            >
+              ←
+            </Link>
+            <div>
+              <h1 className="text-lg font-extrabold text-slate-900">Student Hub</h1>
+              <p className="text-sm text-slate-500 mt-0.5">
+                360° route: Lobby A → Student Hub Area
+              </p>
+            </div>
+          </header>
+
+          {/* Viewer */}
+          <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden">
+            <div className="relative w-full h-[58vh] md:h-auto md:aspect-[20/9] bg-black">
+              <div
+                ref={paneRef}
+                className={`absolute inset-0 z-0 transition-opacity duration-500 ${
+                  panoReady ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+
+              {!panoReady && !errorMsg && (
+                <div className="absolute inset-0 grid place-items-center text-slate-300 font-semibold z-10">
+                  Loading 360° viewer…
+                </div>
+              )}
+              {errorMsg && (
+                <div className="absolute inset-0 grid place-items-center text-red-200 font-semibold z-10">
+                  {errorMsg}
+                </div>
+              )}
+
+              {/* pre-start instructions */}
+              {!routeMode && (
+                <div className="absolute top-3 right-3 z-20 max-w-xs swin-intro-card">
+                  <p className="swin-intro-title">How to use</p>
+                  <ul className="swin-intro-list">
+                    <li>1. Look around the 360° view.</li>
+                    <li>2. Click “Navigate here”.</li>
+                    <li>3. Follow the arrow to next point.</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* TOP-LEFT HUD */}
+              {routeMode && (
+                <div className="absolute top-1 left-9 z-20">
+                  <div className="bg-black/55 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1.5 text-white min-w-[160px] md:min-w-[210px]">
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-wide text-slate-200/80 mb-0.5">
+                      You are here
+                    </p>
+                    <p className="text-xs md:text-sm font-semibold line-clamp-1">
+                      {ROUTE[currentIdx].label}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Step instruction */}
+              {routeMode && (
+                <div
+                  className="
+                    absolute bottom-3
+                    left-1/2 -translate-x-1/2    /* mobile: center horizontally */
+                    sm:left-3 sm:translate-x-0   /* ≥640px: back to bottom-left */
+                    z-20 swin-step-box
+                  "
+                >
+                  <p className="swin-step-label">Next instruction</p>
+                  <p className="swin-step-text">{guidanceText}</p>
+                  <p className="swin-step-meta">
+                    Step {currentIdx + 1} of {ROUTE.length}
+                  </p>
+                </div>
+              )}
+
+              {/* TOP-CENTER guidance */}
+              {routeMode && (
+                <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-4 z-20">
+                  <div className="bg-white/90 backdrop-blur-md text-slate-900 rounded-full px-4 py-1.5 text-sm shadow-lg border border-white/70">
+                    Follow the arrow to the next point.
+                  </div>
+                </div>
+              )}
+
+              {/* Start vs controls */}
+              {!routeMode ? (
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 flex flex-col gap-3 items-center">
+                  <button
+                    onClick={handleStartRoute}
+                    className="px-6 py-2 rounded-full font-semibold bg-red-600 text-white shadow-lg hover:bg-red-700 active:scale-95 transition"
+                  >
+                    Navigate here
+                  </button>
+                  <p className="hidden md:block text-xs text-white/80 bg-black/30 rounded-full px-3 py-1">
+                    We will guide you through the MPH
+                  </p>
+                </div>
+              ) : (
+                <div
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-2
+                          bg-white/10 backdrop-blur-md px-3 py-2 rounded-full shadow-lg
+                          border border-white/20 z-20"
+                >
+                  <button
+                    onClick={handlePrev}
+                    disabled={currentIdx === 0}
+                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-black/40 text-white text-lg disabled:opacity-30"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    disabled={currentIdx === ROUTE.length - 1}
+                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-red-600 text-white text-lg disabled:opacity-30"
+                  >
+                    →
+                  </button>
+                  <button
+                    onClick={handleExitRoute}
+                    className="text-[11px] md:text-xs text-black/80 hover:text-white px-1 md:px-2"
+                  >
+                    Exit
+                  </button>
+                </div>
+              )}
+
+              {/* Next route chooser when user reaches the end */}
+              {routeMode &&
+                currentIdx === ROUTE.length - 1 &&
+                !nextPanelCollapsed && (
+                  <div className="swin-next-panel">
+                    <div className="swin-next-header">
+                      <div className="swin-next-pill">Next destination</div>
+                      <button
+                        type="button"
+                        className="swin-next-close"
+                        aria-label="Hide next destinations"
+                        onClick={() => setNextPanelCollapsed(true)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="swin-next-options">
+                      {(currentRouteDef.nextRouteIds ?? []).map((nextId) => {
+                        const nextDef = routeBank[nextId];
+                        return (
+                          <button
+                            key={nextId}
+                            onClick={() => {
+                              setRouteKey(nextId);
+                              setCurrentIdx(0);
+                              setLastMove('forward');
+                              setNextPanelCollapsed(true);
+                            }}
+                            className="swin-next-option"
+                          >
+                            <div className="swin-next-option-main">
+                              <span className="swin-next-option-label">
+                                Continue route
+                              </span>
+                              <span className="swin-next-option-title">
+                                {nextDef.title}
+                              </span>
+                            </div>
+                            <span
+                              className="swin-next-option-icon"
+                              aria-hidden="true"
+                            >
+                              →
+                            </span>
+                          </button>
+                        );
+                      })}
+
+                      <button
+                        onClick={() => {
+                          setRouteMode(false);
+                          setNextPanelCollapsed(true);
+                          router.push('/navigate');
+                        }}
+                        className="swin-next-finish"
+                      >
+                        <span className="swin-next-finish-main">
+                          Finish here
+                          <span className="swin-next-finish-sub">
+                            Return to the navigation main page
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              {/* Collapsed “Next destinations” floating button (like MPH) */}
+              {routeMode &&
+                currentIdx === ROUTE.length - 1 &&
+                nextPanelCollapsed && (
+                  <button
+                    type="button"
+                    className="swin-next-toggle-btn"
+                    onClick={() => setNextPanelCollapsed(false)}
+                    aria-label="Show next destinations"
+                    aria-expanded="false"
+                  >
+                    <div className="swin-next-toggle-left">
+                      <div className="swin-next-toggle-main">
+                        <span className="swin-next-toggle-title">
+                          Next destinations
+                        </span>
+                        {nextOptionsCount > 0 && (
+                          <span className="swin-next-toggle-badge">
+                            {nextOptionsCount}
+                          </span>
+                        )}
+                      </div>
+                      <span className="swin-next-toggle-meta">
+                        Tap to continue route or finish
+                      </span>
+                    </div>
+                    <span
+                      className="swin-next-toggle-chevron"
+                      aria-hidden="true"
+                    >
+                      ▲
+                    </span>
+                  </button>
+                )}
+            </div>
+
+            {/* Bottom bar */}
+            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/90 text-slate-300 text-xs border-t border-white/10 z-10">
+              <span className="truncate">
+                {routeMode ? ROUTE[currentIdx].label : 'Student Hub View'}
+              </span>
+              {routeMode ? (
+                <div className="flex items-center gap-2">
+                  <span className="md:hidden text-[10px] text-slate-200/80 truncate max-w-[95px]">
+                    {guidanceText}
+                  </span>
+                  <div className="w-20 md:w-28 bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-1.5 bg-red-600 transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                  <span className="hidden md:inline">
+                    {currentIdx + 1}/{ROUTE.length}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </section>
+
+          <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
+            🖱 Click + drag to look around • 🔍 Scroll to zoom
+            <br />
+            📍 Tap the arrows or hotspots to move
+          </p>
+        </div>
+      </main>
+    </>
+  );
+}

@@ -1,0 +1,20 @@
+{
+  "project": ["tsconfig.json"],
+  "entry": [
+    "next.config.{js,mjs,ts}",
+    "middleware.{js,ts}",
+    "src/middleware.{js,ts}",
+
+    "src/app/**/{page,layout,template,loading,error,not-found}.tsx",
+    "src/app/**/route.{ts,tsx}",
+    "src/app/**/manifest.ts"
+  ],
+  "ignore": [
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/*.stories.*",
+    "**/*.d.ts",
+    ".next/**",
+    "node_modules/**"
+  ]
+}

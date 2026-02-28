@@ -1,0 +1,38 @@
+[
+  {
+    "id": "adm-main",
+    "location": "ADM Building, Level 2",
+    "name": "Main Entrance - ADM Building",
+    "distance": "45m",
+    "direction": "Head straight, then turn left near the stairwell",
+    "estimatedTime": "1 minute",
+    "status": "Open"
+  },
+  {
+    "id": "library-east",
+    "location": "Library, Ground Floor",
+    "name": "East Exit - Library",
+    "distance": "25m",
+    "direction": "Walk straight to the corridor, turn right at the corner",
+    "estimatedTime": "1 minute",
+    "status": "Open"
+  },
+  {
+    "id": "student-centre-b",
+    "location": "Student Centre, Level 3",
+    "name": "Stairwell B - Emergency Exit",
+    "distance": "30m",
+    "direction": "Take the stairs down, exit through the red door",
+    "estimatedTime": "2 minutes",
+    "status": "Open"
+  },
+  {
+    "id": "eng-west",
+    "location": "Engineering Block, Level 1",
+    "name": "West Exit - Engineering",
+    "distance": "40m",
+    "direction": "Follow the hallway past the lab, exit through the steel door",
+    "estimatedTime": "2 minutes",
+    "status": "Closed"
+  }
+]

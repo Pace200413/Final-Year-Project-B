@@ -1,0 +1,43 @@
+{
+  "emergencyLabel": "Emergency 999",
+  "emergencyTel": "123892183721",
+  "exitNavLabel": "Go to Exit Navigation",
+  "exitNavUrl": "/exit-navigation",
+  "title": "Security & Emergency",
+  "subtitle": "Campus emergency resources, contacts, and guidance.",
+  "alertText": "Stay calm during emergencies. Follow instructions from campus security and use the nearest safe exit.",
+  "exitGuide": {
+    "locationText": "Your location will appear here.",
+    "nearestExitText": "Nearest exit will be suggested automatically.",
+    "linkText": "Open Exit Navigation →",
+    "linkHref": "/exit-navigation"
+  },
+  "contacts": [
+    {
+      "name": "Campus Security",
+      "phone": "082260607"
+    },
+    {
+      "name": "Emergency Servicesds",
+      "phone": "99999"
+    },
+    {
+      "name": "Health Clinic",
+      "phone": "082260620"
+    }
+  ],
+  "bottomCards": [
+    {
+      "title": "Safety Protocols",
+      "description": "Know what to do in fire, medical, and personal safety situations.",
+      "href": "/safety",
+      "linkText": "View protocols"
+    },
+    {
+      "title": "Exit Navigation",
+      "description": "Find the nearest exit and view status in real time.",
+      "href": "/exit-navigation",
+      "linkText": "Open navigation"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Swinburne App",
+  "short_name": "Swinburne",
+  "description": "Campus navigation, events, and support for students & visitors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D42A30",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}
+

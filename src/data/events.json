@@ -1,0 +1,263 @@
+[
+  {
+    "id": "orientation-7-things",
+    "title": "Orientation: 7 things before starting",
+    "category": "Orientation",
+    "date": "2025-02-10T09:00:00+08:00",
+    "endDate": "2025-02-10T10:00:00+08:00",
+    "venue": {
+      "building": "Advanced Technologies Centre",
+      "level": "Ground Floor",
+      "room": "ATC101 Lecture Theatre"
+    },
+    "organizer": "Student Engagement",
+    "images": {
+      "thumbnail": "/images/events/o-week.png"
+    },
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "isPublished": true
+  },
+  {
+    "id": "library-research-workshop",
+    "title": "Library & Research Resources Workshop",
+    "category": "Workshop",
+    "date": "2025-02-11T10:00:00+08:00",
+    "endDate": "2025-02-11T12:00:00+08:00",
+    "venue": {
+      "building": "George Swinburne Library",
+      "level": "Level 2",
+      "room": "Training Room B"
+    },
+    "organizer": "Library Services",
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "link",
+      "url": "https://example.com/register"
+    },
+    "isPublished": true
+  },
+  {
+    "id": "student-clubs-expo",
+    "title": "Student Clubs & Societies Expo",
+    "category": "Club",
+    "date": "2025-02-12T11:00:00+08:00",
+    "endDate": "2025-02-12T14:00:00+08:00",
+    "venue": {
+      "building": "Student Hub",
+      "level": "Ground Floor",
+      "room": "Main Atrium"
+    },
+    "organizer": "Student Association",
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "isPublished": true
+  },
+  {
+    "id": "ai-ml-getting-started",
+    "title": "AI & Machine Learning: Getting Started",
+    "category": "Workshop",
+    "date": "2025-02-15T14:00:00+08:00",
+    "endDate": "2025-02-15T16:00:00+08:00",
+    "venue": {
+      "building": "Advanced Manufacturing & Design Centre",
+      "level": "Level 3",
+      "room": "AMDC301 Computer Lab"
+    },
+    "organizer": "Faculty of Science, Computing and Engineering",
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "link",
+      "url": "https://example.com/aiml"
+    },
+    "isPublished": true
+  },
+  {
+    "id": "ssd",
+    "title": "ssd",
+    "category": "Workshop",
+    "date": "2025-11-02T03:32:01.381Z",
+    "endDate": "2025-11-02T04:32:01.381Z",
+    "venue": {
+      "building": "",
+      "level": "",
+      "room": ""
+    },
+    "lat": 1.5533,
+    "lng": 110.3549,
+    "organizer": "",
+    "description": "",
+    "tags": [],
+    "images": {},
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "isPublished": true,
+    "createdAt": "2025-11-02T03:32:02.940Z",
+    "updatedAt": "2025-11-02T03:32:02.940Z"
+  },
+  {
+    "id": "ssd-mijy",
+    "title": "ssd",
+    "category": "Workshop",
+    "date": "2025-11-02T03:55:00.617Z",
+    "endDate": "2025-11-02T04:55:00.617Z",
+    "venue": {
+      "building": "",
+      "level": "",
+      "room": ""
+    },
+    "lat": 1.5533,
+    "lng": 110.3549,
+    "organizer": "",
+    "description": "",
+    "tags": [],
+    "images": {},
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "isPublished": true,
+    "createdAt": "2025-11-02T03:55:02.169Z",
+    "updatedAt": "2025-11-02T03:55:02.169Z"
+  },
+  {
+    "id": "trial-event",
+    "title": "Trial Event",
+    "category": "Workshop",
+    "date": "2025-11-02T04:34:22.284Z",
+    "endDate": "2025-11-02T05:34:22.284Z",
+    "venue": {
+      "building": "A002 Lecture Hall",
+      "level": "",
+      "room": ""
+    },
+    "lat": 0,
+    "lng": 0,
+    "organizer": "",
+    "description": "",
+    "images": {},
+    "tags": [],
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "accessibility": [],
+    "isPublished": true,
+    "createdAt": "2025-11-02T04:34:22.298Z",
+    "updatedAt": "2025-11-02T04:34:22.298Z"
+  },
+  {
+    "id": "trial-event-3prt",
+    "title": "Trial Event",
+    "category": "Workshop",
+    "date": "2025-11-02T04:34:25.994Z",
+    "endDate": "2025-11-02T05:34:25.994Z",
+    "venue": {
+      "building": "A002 Lecture Hall",
+      "level": "",
+      "room": ""
+    },
+    "lat": 0,
+    "lng": 0,
+    "organizer": "",
+    "description": "",
+    "images": {},
+    "tags": [],
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "accessibility": [],
+    "isPublished": true,
+    "createdAt": "2025-11-02T04:34:26.017Z",
+    "updatedAt": "2025-11-02T04:34:26.017Z"
+  },
+  {
+    "id": "trial-event-wos8",
+    "title": "Trial Event",
+    "category": "Workshop",
+    "date": "2025-11-02T04:34:26.762Z",
+    "endDate": "2025-11-02T05:34:26.762Z",
+    "venue": {
+      "building": "A002 Lecture Hall",
+      "level": "",
+      "room": ""
+    },
+    "lat": 0,
+    "lng": 0,
+    "organizer": "",
+    "description": "",
+    "images": {},
+    "tags": [],
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "accessibility": [],
+    "isPublished": false,
+    "createdAt": "2025-11-02T04:34:26.784Z",
+    "updatedAt": "2025-11-02T04:47:48.315Z"
+  },
+  {
+    "id": "dsdsfd",
+    "title": "dsdsfd",
+    "category": "Workshop",
+    "date": "2025-11-02T04:36:55.308Z",
+    "endDate": "2025-11-02T05:36:55.308Z",
+    "venue": {
+      "building": "fdsfdsf",
+      "level": "dsfds",
+      "room": ""
+    },
+    "lat": 1.5533,
+    "lng": 110.3549,
+    "organizer": "sfds",
+    "description": "dfs",
+    "images": {
+      "hero": "df"
+    },
+    "tags": [
+      "dfs"
+    ],
+    "capacity": 0,
+    "pricing": {
+      "type": "free"
+    },
+    "registration": {
+      "type": "none"
+    },
+    "accessibility": [],
+    "isPublished": true,
+    "createdAt": "2025-11-02T04:37:01.553Z",
+    "updatedAt": "2025-11-02T04:37:01.553Z"
+  }
+]

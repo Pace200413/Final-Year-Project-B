@@ -1,0 +1,18 @@
+[
+  {
+    "id": "orientation-briefing",
+    "title": "Orientation Briefing",
+    "category": "Orientation",
+    "date": "2026-02-24T14:35:51.488Z",
+    "endDate": "2026-02-24T15:35:51.488Z",
+    "venue": {
+      "building": "Student Centre"
+    },
+    "description": "Welcome session and campus tour.",
+    "images": {
+      "thumbnail": "",
+      "hero": ""
+    },
+    "isPublished": true
+  }
+]
