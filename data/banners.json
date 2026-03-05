@@ -1,0 +1,13 @@
+[
+  {
+    "id": "power-maintenance",
+    "title": "Power maintenance",
+    "message": "Scheduled power maintenance tonight 10pm–12am. Some services may be unavailable.",
+    "startAt": "2026-03-02T19:16:19.364Z",
+    "endAt": "2026-03-03T01:16:19.364Z",
+    "campuses": [
+      "Swinburne Sarawak"
+    ],
+    "active": true
+  }
+]

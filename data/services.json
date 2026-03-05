@@ -1,0 +1,22 @@
+[
+  {
+    "id": "wifi-network",
+    "name": "Wi-Fi / Network",
+    "owner": "IT Helpdesk",
+    "status": "Operational",
+    "dependencies": [],
+    "incidentsOpen": 0,
+    "updatedAt": "2026-03-02T20:16:19.358Z",
+    "sla": "8×5"
+  },
+  {
+    "id": "student-portal",
+    "name": "Student Portal",
+    "owner": "IT Helpdesk",
+    "status": "Degraded",
+    "dependencies": [],
+    "incidentsOpen": 1,
+    "updatedAt": "2026-03-02T20:16:19.358Z",
+    "sla": "24×7"
+  }
+]

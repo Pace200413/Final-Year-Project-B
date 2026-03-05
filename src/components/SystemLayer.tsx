@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 import { useTheme } from "next-themes";
 import { getCookie, setCookie, deleteCookie } from "@/lib/client";
@@ -89,9 +90,10 @@ export function EmergencyBanner({
 ============================================================================= */
 
 export function EmergencyFAB({ phone }: { phone: string }) {
+  const tel = `tel:${phone.replace(/[^0-9]/g, "")}`;
   return (
     <a
-      href={`tel:${phone}`}
+      href={tel}
       className="fixed bottom-5 right-5 z-20 inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-rose-700 sm:hidden"
       aria-label="Call Campus Security now"
     >
@@ -101,65 +103,99 @@ export function EmergencyFAB({ phone }: { phone: string }) {
 }
 
 /* =============================================================================
-   ServiceStatusBar.tsx
+   ServiceStatusBar.tsx  ✅ UPDATED: compact chips (not big cards)
 ============================================================================= */
 
 export type StatusItem = {
   name: string;
   ok: boolean;
   href?: string;
-  tip?: string;
+  tip?: string; // optional label; default from ok
+  external?: boolean;
 };
 
-function Dot({ ok }: { ok: boolean }) {
-  return (
-    <span
-      className={`inline-block h-2 w-2 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`}
-    />
-  );
-}
+const CANVAS_URL = "https://www.swinburne.edu.my/canvas/";
+const STUDENT_PORTAL_URL = "https://sisportal-100380.campusnexus.cloud/CMCPortal/";
 
 export const STATUS_ITEMS: StatusItem[] = [
-  { name: "Wi-Fi", ok: true, href: "/support/wifi", tip: "Operational on campus" },
-  { name: "Canvas", ok: true, href: "/support/canvas-status", tip: "All systems operational" },
-  { name: "Student Portal", ok: true, href: "/support/student-portal", tip: "Operational" },
+  { name: "Canvas", ok: true, href: CANVAS_URL, tip: "Operational", external: true },
+  { name: "Student Portal", ok: true, href: STUDENT_PORTAL_URL, tip: "Operational", external: true },
 ];
+
+function Dot({ ok }: { ok: boolean }) {
+  return <span aria-hidden className={`h-2 w-2 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />;
+}
+
+function isExternalUrl(href: string) {
+  return /^https?:\/\//i.test(href);
+}
 
 export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[] }) {
   return (
-    <div className="maxw container-px">
-      <div className="rounded-2xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200/70">
-        <ul className="flex flex-wrap items-center gap-2">
-          {items.map((s) => {
-            const content = (
-              <span
-                title={s.tip ?? (s.ok ? "Operational" : "Issue reported")}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-white to-slate-50
-                           px-3 py-1 text-xs text-slate-700 ring-1 ring-slate-200/70 hover:ring-slate-300 transition"
-              >
-                <Dot ok={s.ok} />
-                <span className="font-medium">{s.name}</span>
-                <span
-                  className={`ml-1 rounded-full px-1.5 py-0.5 ${
-                    s.ok
-                      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                      : "bg-amber-50 text-amber-800 ring-1 ring-amber-200"
-                  }`}
-                >
-                  {s.ok ? "Operational" : "Issue"}
-                </span>
-              </span>
-            );
+    <section aria-label="Service status">
+      <div className="grid grid-cols-2 gap-2">
+        {items.map((it, idx) => {
+          const statusText = it.tip ?? (it.ok ? "Operational" : "Degraded");
+          const href = it.href;
+          const external = !!href && (it.external || /^https?:\/\//i.test(href));
 
+          const chip =
+            "rounded-2xl px-3 py-2 bg-white/75 ring-1 ring-slate-200/70 " +
+            "shadow-[0_10px_22px_rgba(15,23,42,.06)] supports-[backdrop-filter]:backdrop-blur-xl " +
+            "transition hover:bg-white/90 hover:ring-slate-300 " +
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2";
+
+          const content = (
+            <div className="grid gap-0.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <Dot ok={it.ok} />
+                <div className="min-w-0 text-[13px] font-semibold text-slate-900 leading-tight whitespace-normal">
+                  {it.name}
+                </div>
+                {external ? (
+                  <span className="ml-auto text-[11px] font-semibold text-slate-400" aria-hidden>
+                    ↗
+                  </span>
+                ) : null}
+              </div>
+
+              <div className="pl-4 text-[11px] text-slate-500 leading-none truncate">
+                {statusText}
+              </div>
+            </div>
+          );
+
+          if (!href) {
             return (
-              <li key={s.name}>
-                {s.href ? <a href={s.href}>{content}</a> : content}
-              </li>
+              <div key={`${it.name}-${idx}`} className={chip} aria-label={`${it.name} ${statusText}`}>
+                {content}
+              </div>
             );
-          })}
-        </ul>
+          }
+
+          if (external) {
+            return (
+              <a
+                key={`${it.name}-${idx}`}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={chip}
+                aria-label={`${it.name} ${statusText} (opens in new tab)`}
+              >
+                {content}
+              </a>
+            );
+          }
+
+          return (
+            <Link key={`${it.name}-${idx}`} href={href} className={chip} aria-label={`${it.name} ${statusText}`}>
+              {content}
+            </Link>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -303,7 +339,9 @@ export function DevSwitches() {
     const auth = getCookie("auth") === "1";
     setSignedIn(auth);
 
-    const rolesCsv = (getCookie("roles") ?? "").split(",").map((s) => s.trim().toLowerCase());
+    const rolesCsv = (getCookie("roles") ?? "")
+      .split(",")
+      .map((s) => s.trim().toLowerCase());
     const next: Record<Role, boolean> = { student: false, staff: false, admin: false };
     rolesCsv.forEach((r) => {
       if (r === "student" || r === "staff" || r === "admin") next[r] = true;
@@ -433,7 +471,9 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       aria-pressed={checked}
       role="switch"
     >
-      <span className={`block h-5 w-5 translate-x-0.5 rounded-full bg-white transition ${checked ? "translate-x-[22px]" : ""}`} />
+      <span
+        className={`block h-5 w-5 translate-x-0.5 rounded-full bg-white transition ${checked ? "translate-x-[22px]" : ""}`}
+      />
     </button>
   );
 }

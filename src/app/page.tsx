@@ -1,17 +1,15 @@
+// src/app/page.tsx
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import Link from "next/link";
-import {FeatureBanner} from "@/components/MobileShell";
-import {SearchBar} from "@/components/SupportUI";
-import {PinnedShortcuts} from "@/components/MobileShell";
-import {ServiceStatusBar} from "@/components/SystemLayer";
-import {TileCard} from "@/components/SupportUI";
+
+import { MiniEvents, ChatLauncher } from "@/components/MobileShell";
 import type { EventItem } from "@/components/MobileShell";
-import {MiniEvents} from "@/components/MobileShell";
-import {ChatLauncher} from "@/components/MobileShell";
+import { SearchBar, TileCard } from "@/components/SupportUI";
+import { ServiceStatusBar } from "@/components/SystemLayer";
 
 import {
   PhoneIcon,
@@ -33,70 +31,226 @@ const EVENTS: EventItem[] = [
 ];
 
 /* ---------- Layout helpers ---------- */
-type SectionProps = { id?: string; title: string; children: ReactNode };
+type SectionProps = { id?: string; title: string; subtitle?: string; children: ReactNode };
 
 const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
 
-const Section = ({ id, title, children }: SectionProps) => (
+const Section = ({ id, title, subtitle, children }: SectionProps) => (
   <section id={id} className={`${CONTAINER} mt-8 scroll-mt-24`}>
-    <h3 className="mb-3 text-base font-semibold">{title}</h3>
+    <div className="mb-3">
+      <h2 className="text-base font-semibold">{title}</h2>
+      {subtitle ? <p className="mt-1 text-xs text-slate-500">{subtitle}</p> : null}
+    </div>
     {children}
   </section>
 );
 
-const GRID = "grid grid-cols-2 gap-3 sm:gap-4";
+const GRID_2 = "grid grid-cols-2 gap-3 sm:gap-4";
+const GRID_4 = "grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4";
+
 const Wrap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="min-w-0 w-full">{children}</div>
 );
 
-export default function Page() {
-  // Quick keys: "/" focuses search, "g" + key jumps to sections
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (e.defaultPrevented || tag === "INPUT" || tag === "TEXTAREA") return;
+function TopHeroNavigation() {
+  return (
+    <div className="relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_26px_80px_rgba(0,0,0,.22)]">
+      {/* Base: red → deep red → near-black */}
+      <div
+        aria-hidden
+        className="absolute inset-0
+          [background:radial-gradient(120%_140%_at_16%_10%,#ff7a7a_0%,#D42A30_30%,#8D1116_62%,#07070A_100%)]"
+      />
 
+      {/* Big triangle (top-left glass) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.28]
+          [clip-path:polygon(0%_0%,62%_0%,0%_72%)]
+          [background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(255,255,255,0))]
+          [-webkit-clip-path:polygon(0%_0%,62%_0%,0%_72%)]"
+      />
+
+      {/* Big triangle (bottom-right dark) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.35]
+          [clip-path:polygon(100%_100%,40%_100%,100%_38%)]
+          [background:linear-gradient(315deg,rgba(0,0,0,.85),rgba(0,0,0,0))]
+          [-webkit-clip-path:polygon(100%_100%,40%_100%,100%_38%)]"
+      />
+
+      {/* Apple-like gloss highlight */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-85
+          [background:radial-gradient(circle_at_18%_12%,rgba(255,255,255,.28),transparent_46%)]"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-65
+          [background:linear-gradient(180deg,rgba(255,255,255,.12),transparent_42%)]"
+      />
+
+      {/* Thin diagonal line (very subtle “designed” detail) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.12]
+          [background:linear-gradient(135deg,transparent_0%,transparent_46%,rgba(255,255,255,.55)_50%,transparent_54%,transparent_100%)]"
+      />
+
+      {/* Vignette for depth */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-80
+          [background:radial-gradient(120%_120%_at_50%_120%,rgba(0,0,0,.55),transparent_56%)]"
+      />
+
+      {/* Inner glass border + inset depth */}
+      <div aria-hidden className="absolute inset-0 rounded-3xl ring-1 ring-white/18" />
+      <div
+        aria-hidden
+        className="absolute inset-0 rounded-3xl
+          shadow-[inset_0_1px_0_rgba(255,255,255,.18),inset_0_-14px_34px_rgba(0,0,0,.18)]"
+      />
+
+      <div className="relative p-5 sm:p-6 text-white">
+        {/* Glass pill (works on iOS/Android; blur only when supported) */}
+        <div
+          className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-[11px] font-semibold ring-1 ring-white/18
+                     supports-[backdrop-filter]:backdrop-blur-xl"
+        >
+          <span className="h-2 w-2 rounded-full bg-emerald-300" aria-hidden />
+          Campus Navigation
+        </div>
+
+        <h1 className="mt-3 text-[24px] sm:text-[28px] font-semibold tracking-tight leading-tight">
+          Find your way in seconds.
+        </h1>
+
+        <p className="mt-1.5 max-w-[52ch] text-[13.5px] text-white/85">
+          Turn-by-turn directions, building maps, and accessible routes — designed to feel like a real campus product.
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2.5">
+          {/* Primary: white pill */}
+          <Link
+            href="/navigate"
+            className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-[#B0171E]
+                       shadow-[0_14px_34px_rgba(0,0,0,.22)] ring-1 ring-white/70
+                       hover:bg-white/95 active:scale-[0.99]
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#8D1116]"
+          >
+            Start navigation →
+          </Link>
+
+          {/* Secondary: glass (blur only when supported) */}
+          <Link
+            href="/navigate/map"
+            className="relative inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-white
+                       bg-white/10 ring-1 ring-white/22
+                       supports-[backdrop-filter]:backdrop-blur-xl
+                       shadow-[0_12px_26px_rgba(0,0,0,.16)]
+                       hover:bg-white/14 active:scale-[0.99]
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#8D1116]"
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-2xl
+                         [background:linear-gradient(180deg,rgba(255,255,255,.18),transparent_55%)]"
+            />
+            <span className="relative">Open maps</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Page() {
+  useEffect(() => {
+    const isTypingTarget = (el: HTMLElement | null) => {
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+    };
+
+    const handler = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+
+      // don’t hijack browser/system shortcuts
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // don’t hijack typing fields
+      if (e.defaultPrevented || isTypingTarget(el)) return;
+
+      // "/" focuses search
       if (e.key === "/") {
-        const input = document.querySelector(
-          'input[type="search"], input[role="searchbox"]'
-        ) as HTMLInputElement | null;
+        const input = document.querySelector('input[type="search"], input[role="searchbox"]') as
+          | HTMLInputElement
+          | null;
         if (input) {
           e.preventDefault();
           input.focus();
         }
+        return;
       }
 
+      // "g" then key = quick jump
       if (e.key.toLowerCase() === "g") {
-        const once = (ev: KeyboardEvent) => {
-          const map: Record<string, string> = {
-            n: "#navigation",
-            e: "#emergency",
-            s: "#support-events",
-            a: "#academics",
-            t: "#student-tools",
-            u: "#events", // upcoming events (bottom)
-            d: "/admin",
-          };
+        const map: Record<string, string> = {
+          n: "#navigation",
+          e: "#emergency",
+          s: "#support-events",
+          a: "#academics",
+          t: "#student-tools",
+          u: "#events",
+          d: "/admin",
+        };
+
+        let alive = true;
+        let timeoutId: number | null = null;
+
+        const cleanup = () => {
+          if (!alive) return;
+          alive = false;
+          window.removeEventListener("keydown", sub, true);
+          if (timeoutId !== null) window.clearTimeout(timeoutId);
+        };
+
+        const sub = (ev: KeyboardEvent) => {
+          const t = ev.target as HTMLElement | null;
+          if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+          if (isTypingTarget(t)) return;
+
           const target = map[ev.key.toLowerCase()];
-          if (!target) return;
+          if (!target) return; // allow a second try within the timeout
+          ev.preventDefault();
+
           if (target.startsWith("#")) {
             document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-          } else if (IS_STAFF_LINK) {
-            window.location.assign(target);
+            cleanup();
+            return;
           }
+
+          if (IS_STAFF_LINK) window.location.assign(target);
+          cleanup();
         };
-        window.addEventListener("keydown", once, { once: true, capture: true });
+
+        window.addEventListener("keydown", sub, true);
+        timeoutId = window.setTimeout(cleanup, 1200);
       }
     };
+
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
   return (
-    <div className="min-h-screen selection:bg-slate-900/90 selection:text-white">
+    <div className="min-h-screen selection:bg-slate-900/90 selection:text-white pb-[calc(env(safe-area-inset-bottom)+84px)]">
       {/* Hero */}
       <div className={`${CONTAINER} mt-0`}>
-        <FeatureBanner />
+        <TopHeroNavigation />
       </div>
 
       {/* Search */}
@@ -104,13 +258,12 @@ export default function Page() {
         <SearchBar />
       </div>
 
-      {/* Utility row */}
-      <PinnedShortcuts />
-      <ServiceStatusBar />
+      {/* ✅ Quick shortcuts removed */}
+      <div className={`${CONTAINER} mt-3`}>
+        <ServiceStatusBar />
+      </div>
 
-      {/* ===== PRIORITY ORDER STARTS HERE ===== */}
-
-      {/* 1) Campus Navigation (MAIN) */}
+      {/* 1) Campus Navigation (MAIN) — DO NOT TOUCH */}
       <Section id="navigation" title="Campus Navigation">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <TileCard
@@ -133,12 +286,15 @@ export default function Page() {
         </div>
       </Section>
 
-
       {/* 2) Emergency & Safety */}
-      <Section id="emergency" title="Emergency & Safety">
-        <div className={GRID}>
+      <Section
+        id="emergency"
+        title="Emergency & Safety"
+        subtitle="Security contacts, evacuation routes, and safety guidance."
+      >
+        <div className={GRID_4}>
           <Wrap>
-            <TileCard href="/emergency/security-contact" title="Security Contact" icon={<PhoneIcon />} tone="red" />
+            <TileCard href="/security-contact" title="Security Contact" icon={<PhoneIcon />} tone="red" />
           </Wrap>
           <Wrap>
             <TileCard href="/exit-navigation" title="Exit Navigation" icon={<CompassIcon />} tone="red" />
@@ -153,8 +309,8 @@ export default function Page() {
       </Section>
 
       {/* 3) Support & Events */}
-      <Section id="support-events" title="Support & Events">
-        <div className={GRID}>
+      <Section id="support-events" title="Support & Events" subtitle="Get help fast and see what’s happening on campus.">
+        <div className={GRID_2}>
           <Wrap>
             <TileCard href="/support" title="Live Support" icon={<ChatIcon />} />
           </Wrap>
@@ -165,8 +321,8 @@ export default function Page() {
       </Section>
 
       {/* 4) Academics */}
-      <Section id="academics" title="Academics">
-        <div className={GRID}>
+      <Section id="academics" title="Academics" subtitle="Core student links for classes and study.">
+        <div className={GRID_2}>
           <Wrap>
             <TileCard href="/timetable" title="Timetable" icon={<CalendarIcon />} />
           </Wrap>
@@ -176,9 +332,9 @@ export default function Page() {
         </div>
       </Section>
 
-      {/* 5) Student Tools (Canvas & Student Portal) */}
-      <Section id="student-tools" title="Student Tools">
-        <div className={GRID}>
+      {/* 5) Student Tools */}
+      <Section id="student-tools" title="Student Tools" subtitle="Canvas, student portal, and essential systems.">
+        <div className={GRID_2}>
           <Wrap>
             <TileCard
               href="https://www.swinburne.edu.my/canvas/"
@@ -217,14 +373,12 @@ export default function Page() {
         </div>
       </Section>
 
-      {/* 6) Upcoming events (moved to bottom) */}
-      <Section id="events" title="Upcoming events">
+      {/* 6) Upcoming events */}
+      <Section id="events" title="Upcoming events" subtitle="A quick glance at what’s next.">
         <div className="min-h-[96px]">
           <MiniEvents items={EVENTS} limit={2} showHeading={false} showSeeAll={false} />
         </div>
       </Section>
-
-      {/* ===== PRIORITY ORDER ENDS HERE ===== */}
 
       <footer className={`${CONTAINER} my-12 text-xs text-slate-500`}>
         © Swinburne 2025 · Privacy · We respectfully acknowledge the Wurundjeri People…
