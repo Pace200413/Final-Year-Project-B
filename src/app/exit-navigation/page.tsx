@@ -405,14 +405,16 @@ export default function ExitNavigationPage() {
   const nearestExitKey = NEAREST_BY_LOCATION[activeLocation] ?? "MAIN_A";
   const nearestExit = exits.find((e) => e.key === nearestExitKey) ?? exits[0];
   const [selectedExit, setSelectedExit] = useState<ExitInfo | null>(nearestExit);
+  const selectedExitKey = selectedExit?.key ?? nearestExitKey;
 
   const activeRoute: RouteScene[] = useMemo(() => {
-    const exitKey = (selectedExit?.key ?? nearestExit.key) as string;
     const originMap = ROUTE_MATRIX[activeLocation] ?? {};
-    return originMap[exitKey] ?? DEFAULT_ROUTE;
-  }, [activeLocation, selectedExit, nearestExit]);
+    return originMap[selectedExitKey] ?? DEFAULT_ROUTE;
+  }, [activeLocation, selectedExitKey]);
 
-  const defaultPanorama = activeRoute[0]?.image ?? "/images360/lobby_c1.jpg";
+  const defaultPanorama = useMemo(() => {
+    return activeRoute[0]?.image ?? "/images360/lobby_c1.jpg";
+  }, [activeRoute]);
 
   /* ------------------- Helpers ------------------- */
   const paneRef = useRef<HTMLDivElement>(null);
@@ -425,6 +427,15 @@ export default function ExitNavigationPage() {
       i.onerror = () => resolve(false);
       i.src = src;
     });
+
+  useEffect(() => {
+    console.log("[route effect] routeMode:", routeMode, "idx:", currentIdx);
+    console.log("[route effect] activeRoute ref changed. len:", activeRoute.length);
+
+    if (routeMode && libReady) {
+      void initViewerForIndex(activeRoute, currentIdx);
+    }
+  }, [routeMode, currentIdx, activeRoute, libReady]);
 
   /* ------------------- Load Pannellum once ------------------- */
   useEffect(() => {
@@ -450,6 +461,7 @@ export default function ExitNavigationPage() {
     };
   }, []);
 
+  
   /* ------------------- Preload + show default ------------------- */
   useEffect(() => {
     let cancelled = false;
@@ -786,6 +798,8 @@ export default function ExitNavigationPage() {
           {/* 360° Viewer Section */}
           <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-inner overflow-hidden">
             {/* Viewer area */}
+
+            {/* Here got error and problem */}
             <div className="relative w-full aspect-[9/14] sm:aspect-[4/3] md:aspect-[16/9] bg-black">
               <div
                 ref={paneRef}
