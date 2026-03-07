@@ -468,4 +468,8 @@ export default function SafetyPage() {
       <SafetyPageContent />
     </Suspense>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3423624 (Fix safety page Suspense wrapper)
