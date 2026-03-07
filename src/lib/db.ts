@@ -5,7 +5,7 @@ import { readFile, writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import type { CampusEvent, EventCategory, SupportRequest } from "@/lib/types";
+import type { AppProfile, CampusEvent, EventCategory, SupportRequest } from "@/lib/types";
 export type { SupportRequest } from "@/lib/types"; // ✅ so `type SupportRequest` can be imported from "@/lib/db"
 
 /* ------------------------------------------------------------------ */
@@ -182,3 +182,92 @@ declare global {
 }
 
 export const store = (globalThis.__APP_STORE__ ??= { requests: [] as SupportRequest[] });
+
+export async function getProfileByAuthUserId(
+  authUserId: string
+): Promise<AppProfile | null> {
+  const { data, error } = await supabaseAdmin()
+    .from("profiles")
+    .select("*")
+    .eq("auth_user_id", authUserId)
+    .maybeSingle()
+    .overrideTypes<AppProfile | null, { merge: false }>();
+
+  if (error) throw new Error(`Failed to load profile: ${error.message}`);
+  return data as AppProfile | null;
+}
+
+export async function upsertProfile(input: {
+  authUserId: string;
+  email: string;
+  fullName?: string | null;
+  avatarUrl?: string | null;
+}): Promise<AppProfile> {
+  const { data, error } = await supabaseAdmin()
+    .from("profiles")
+    .upsert(
+      {
+        auth_user_id: input.authUserId,
+        email: input.email,
+        full_name: input.fullName ?? null,
+        avatar_url: input.avatarUrl ?? null,
+      },
+      { onConflict: "auth_user_id" }
+    )
+    .select("*")
+    .single()
+    .overrideTypes<AppProfile, { merge: false }>();
+
+  if (error) throw new Error(`Failed to upsert profile: ${error.message}`);
+  return data as AppProfile;
+}
+
+export async function getProfileByEmail(email: string): Promise<AppProfile | null> {
+  const { data, error } = await supabaseAdmin()
+    .from("profiles")
+    .select("*")
+    .eq("email", email)
+    .maybeSingle()
+    .overrideTypes<AppProfile | null, { merge: false }>();
+
+  if (error) throw new Error(`Failed to load profile by email: ${error.message}`);
+  return data as AppProfile | null;
+}
+
+export async function resolveOrCreateProfile(input: {
+  authUserId: string;
+  email: string;
+  fullName?: string | null;
+  avatarUrl?: string | null;
+}): Promise<AppProfile> {
+  const existingByAuthUserId = await getProfileByAuthUserId(input.authUserId);
+  if (existingByAuthUserId) return existingByAuthUserId;
+
+  const existingByEmail = await getProfileByEmail(input.email);
+  if (existingByEmail) {
+    const { data, error } = await supabaseAdmin()
+      .from("profiles")
+      .update({
+        auth_user_id: input.authUserId,
+        full_name: existingByEmail.full_name ?? input.fullName ?? null,
+        avatar_url: existingByEmail.avatar_url ?? input.avatarUrl ?? null,
+      })
+      .eq("email", input.email)
+      .select("*")
+      .single()
+      .overrideTypes<AppProfile, { merge: false }>();
+
+    if (error) {
+      throw new Error(`Failed to reconcile profile by email: ${error.message}`);
+    }
+
+    return data as AppProfile;
+  }
+
+  return await upsertProfile({
+    authUserId: input.authUserId,
+    email: input.email,
+    fullName: input.fullName,
+    avatarUrl: input.avatarUrl,
+  });
+}

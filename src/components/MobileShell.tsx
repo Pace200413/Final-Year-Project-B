@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type ComponentType } from "react";
 import dynamic from "next/dynamic";
-
+import { signOut } from "next-auth/react";
 const AssistantChat = dynamic(() => import("./AssistantChat"), { ssr: false });
 
 /* =============================================================================
@@ -188,30 +188,57 @@ export function MiniEvents({
    ProfileMenu.tsx (merged)
 ============================================================================= */
 
-function useIsAdmin() {
-  return useMemo(() => {
-    if (process.env.NEXT_PUBLIC_IS_ADMIN === "1") return true;
-    const c = typeof document !== "undefined" ? document.cookie : "";
-    const role = c.split("; ").find((x) => x.startsWith("role="))?.split("=")[1];
-    return role === "admin";
-  }, []);
-}
-
 type ProfileMenuProps = {
   children?: ReactNode;
   className?: string;
   srLabel?: string;
 };
 
-export function ProfileMenu({ children, className = "", srLabel = "Open account menu" }: ProfileMenuProps) {
+type MeResponse = {
+  authenticated: boolean;
+  isAdmin: boolean;
+  name: string | null;
+  email: string | null;
+};
+
+export function ProfileMenu({
+  children,
+  className = "",
+  srLabel = "Open account menu",
+}: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
-  const isAdmin = useIsAdmin();
+  const [isAdmin, setIsAdmin] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMe() {
+      try {
+        const res = await fetch("/api/me", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const data = (await res.json()) as MeResponse;
+        if (!cancelled) {
+          setIsAdmin(Boolean(data.isAdmin));
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    loadMe();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
+
     function onClick(e: MouseEvent) {
       if (!open) return;
       const t = e.target as Node;
@@ -220,8 +247,10 @@ export function ProfileMenu({ children, className = "", srLabel = "Open account 
         if (m && !m.contains(t)) setOpen(false);
       }
     }
+
     window.addEventListener("keydown", onKey);
     window.addEventListener("mousedown", onClick);
+
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("mousedown", onClick);
@@ -229,15 +258,18 @@ export function ProfileMenu({ children, className = "", srLabel = "Open account 
   }, [open]);
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         ref={btnRef}
+        type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`grid h-10 w-10 place-content-center rounded-full ${className}`}
+        className={`relative grid h-11 w-11 shrink-0 place-content-center rounded-full touch-manipulation select-none transition
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D42A30]/40 ${className}`}
       >
         <span className="sr-only">{srLabel}</span>
+        <span aria-hidden className="absolute -inset-2 rounded-full" />
         {children ?? <span aria-hidden>👤</span>}
       </button>
 
@@ -245,35 +277,52 @@ export function ProfileMenu({ children, className = "", srLabel = "Open account 
         <div
           id="profile-menu"
           role="menu"
-          className="absolute right-0 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
+          className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
         >
           <div className="px-3 py-2 text-xs text-slate-500">Account</div>
 
-          <Link href="/profile" className="block px-3 py-2 text-sm hover:bg-slate-50" role="menuitem">
+          <Link
+            href="/profile"
+            className="block px-3 py-2 text-sm hover:bg-slate-50"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
             Profile
           </Link>
-          <Link href="/settings" className="block px-3 py-2 text-sm hover:bg-slate-50" role="menuitem">
+
+          <Link
+            href="/settings"
+            className="block px-3 py-2 text-sm hover:bg-slate-50"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
             Settings
           </Link>
 
-          {isAdmin && (
+          {isAdmin ? (
             <>
               <div className="my-1 border-t border-slate-200" />
               <Link
                 href="/admin"
                 className="block px-3 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50"
                 role="menuitem"
+                onClick={() => setOpen(false)}
               >
                 Admin Console
               </Link>
             </>
-          )}
+          ) : null}
 
           <div className="my-1 border-t border-slate-200" />
+
           <button
-            disabled
-            className="block w-full cursor-not-allowed px-3 py-2 text-left text-sm text-slate-400"
+            type="button"
+            className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
             role="menuitem"
+            onClick={async () => {
+              setOpen(false);
+              await signOut({ callbackUrl: "/login" });
+            }}
           >
             Sign out
           </button>
@@ -294,7 +343,7 @@ export function Header() {
     <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200/80 dark:border-slate-700/80 shadow-sm">
       <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
 
-      <div className="maxw container-px h-16 flex items-center justify-between">
+      <div className="maxw container-px h-16 flex items-center justify-between gap-3">
         <Brand />
 
         <nav aria-label="Quick links" className="hidden md:flex items-center gap-2">
@@ -310,7 +359,7 @@ export function Header() {
           />
         </nav>
 
-        <ProfileMenu className="bg-slate-200 hover:bg-slate-300" srLabel="Open account menu">
+        <ProfileMenu className="bg-slate-200 hover:bg-slate-300 active:scale-[0.98] shadow-sm" srLabel="Open account menu">
           <span aria-hidden>👤</span>
         </ProfileMenu>
       </div>
