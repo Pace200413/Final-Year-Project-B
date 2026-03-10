@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   FaBoxOpen,
@@ -82,7 +82,6 @@ const ICONS: Record<string, ReactNode> = {
 };
 
 const TOPIC_ALIASES: Record<string, string> = {
-  // direct
   medical: "medical",
   fire: "fire-safety",
   "fire-safety": "fire-safety",
@@ -124,7 +123,21 @@ function TopicChip({
   );
 }
 
-export default function SafetyPage() {
+function SafetyPageFallback() {
+  return (
+    <SafetyPageShell>
+      <SafetyCard>
+        <PageTitleBlock
+          eyebrow={<Eyebrow>Safety Guidance</Eyebrow>}
+          title="What to do — step by step"
+          description="Loading safety guidance..."
+        />
+      </SafetyCard>
+    </SafetyPageShell>
+  );
+}
+
+function SafetyPageContent() {
   const searchParams = useSearchParams();
   const topicParam = (searchParams.get("topic") || "").trim().toLowerCase();
 
@@ -132,7 +145,6 @@ export default function SafetyPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  // ✅ fetch once
   useEffect(() => {
     let alive = true;
 
@@ -159,7 +171,6 @@ export default function SafetyPage() {
           sections,
         });
 
-        // default open
         setOpenId((prev) => prev ?? (sections[0]?.id ?? null));
       })
       .catch(() => {
@@ -172,7 +183,6 @@ export default function SafetyPage() {
     };
   }, []);
 
-  // ✅ deep-link support: /safety?topic=medical etc.
   useEffect(() => {
     if (!topicParam) return;
     if (!data.sections?.length) return;
@@ -184,7 +194,6 @@ export default function SafetyPage() {
 
     setOpenId(desired);
 
-    // gentle scroll into view (mobile-friendly)
     setTimeout(() => {
       const el = document.getElementById(`topic-${desired}`);
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -210,13 +219,11 @@ export default function SafetyPage() {
       map.get(group)!.push(section);
     }
 
-    // stable ordering
     const entries = Array.from(map.entries()).map(([group, sections]) => [
       group,
       sections.slice().sort((a, b) => a.title.localeCompare(b.title)),
     ]) as Array<[string, SafetySection[]]>;
 
-    // keep "General" first, others alphabetical
     entries.sort((a, b) => {
       if (a[0] === "General") return -1;
       if (b[0] === "General") return 1;
@@ -226,7 +233,6 @@ export default function SafetyPage() {
     return entries;
   }, [data.sections, q]);
 
-  // ✅ if filtering hides the open section, open the first visible one
   useEffect(() => {
     if (!q) return;
     const flat = groupedSections.flatMap(([, secs]) => secs);
@@ -234,8 +240,7 @@ export default function SafetyPage() {
 
     const stillVisible = openId && flat.some((s) => s.id === openId);
     if (!stillVisible) setOpenId(flat[0].id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, groupedSections]);
+  }, [q, groupedSections, openId]);
 
   const openTopic = (id: string) => {
     setOpenId(id);
@@ -287,7 +292,6 @@ export default function SafetyPage() {
             <MiniAction href={data.reportUrl} icon={<FaComments />} label="Get Help" />
           </div>
 
-          {/* Search */}
           <div className="mt-4">
             <label className="text-sm font-semibold text-slate-900">Search guidance</label>
             <div className="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
@@ -311,7 +315,6 @@ export default function SafetyPage() {
             </div>
           </div>
 
-          {/* Quick chooser */}
           <div className="mt-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-900">What’s happening?</p>
@@ -456,5 +459,13 @@ export default function SafetyPage() {
         </SmartLink>
       </SafetyCard>
     </SafetyPageShell>
+  );
+}
+
+export default function SafetyPage() {
+  return (
+    <Suspense fallback={<SafetyPageFallback />}>
+      <SafetyPageContent />
+    </Suspense>
   );
 }
