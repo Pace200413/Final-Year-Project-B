@@ -1,0 +1,37 @@
+[
+  {
+    "id": "research_general_contacts",
+    "title": "Research contact information",
+    "aliases": [
+      "research contact",
+      "grant enquiries",
+      "research degree enquiries",
+      "school of research contact",
+      "hdr admission",
+      "research grants",
+      "research enquiries",
+      "higher degree research"
+    ],
+    "category": "research",
+    "answer": "Research grant enquiries: Grants@swinburne.edu.my. Research degree course enquiries: hdradmission@swinburne.edu.my.",
+    "actions": [
+      { "type": "COPY_CONTACT", "label": "Copy Grants email", "value": "Grants@swinburne.edu.my" },
+      { "type": "COPY_CONTACT", "label": "Copy HDR email", "value": "hdradmission@swinburne.edu.my" }
+    ],
+    "sourceLabel": "School of Research"
+  },
+  {
+    "id": "research_office_location",
+    "title": "School of Research location",
+    "aliases": [
+      "school of research address",
+      "research office location",
+      "where is school of research",
+      "research office address"
+    ],
+    "category": "research",
+    "answer": "The School of Research is at Jalan Simpang Tiga, 93350 Kuching, Sarawak, Malaysia.",
+    "actions": [],
+    "sourceLabel": "School of Research"
+  }
+]

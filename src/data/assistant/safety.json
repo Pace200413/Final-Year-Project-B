@@ -1,0 +1,75 @@
+[
+  {
+    "id": "campus_security_contact",
+    "title": "Campus Security contact",
+    "aliases": [
+      "security number",
+      "campus security",
+      "emergency contact",
+      "urgent help",
+      "security phone",
+      "call security",
+      "police ambulance fire",
+      "999",
+      "emergency number",
+      "who to call emergency"
+    ],
+    "category": "safety",
+    "answer": "Campus security is available 24/7. Call 082-260991 for campus emergencies. For police, ambulance, or fire brigade dial 999.",
+    "actions": [
+      { "type": "CALL_SECURITY", "label": "Call Campus Security" },
+      { "type": "COPY_CONTACT", "label": "Copy Security number", "value": "082-260991" }
+    ],
+    "sourceLabel": "Campus Security"
+  },
+  {
+    "id": "red_phone_numbers",
+    "title": "Red Phone numbers",
+    "aliases": [
+      "red phone",
+      "campus services helpline",
+      "safer community helpline",
+      "3991",
+      "5001",
+      "5007",
+      "internal extension"
+    ],
+    "category": "safety",
+    "answer": "Red Phone numbers: 3991 for Campus Security, 5001 for Campus Services Unit Helpline, 5007 for Safer Community Helpline.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy Security number", "value": "082-260991" }],
+    "sourceLabel": "Campus Security"
+  },
+  {
+    "id": "smoke_free_campus",
+    "title": "Smoke-free campus",
+    "aliases": [
+      "smoking",
+      "vaping",
+      "can i smoke",
+      "e cigarette",
+      "smoke free campus",
+      "can i vape",
+      "smoking policy"
+    ],
+    "category": "safety",
+    "answer": "Smoking and vaping are not permitted on campus, including outdoor areas. Breaches may lead to discipline and state penalties.",
+    "actions": [],
+    "sourceLabel": "Campus Safety"
+  },
+  {
+    "id": "safety_tips",
+    "title": "Campus safety tips",
+    "aliases": [
+      "safety tips",
+      "campus safety",
+      "walk at night",
+      "parking safety",
+      "stay safe on campus",
+      "personal safety"
+    ],
+    "category": "safety",
+    "answer": "Stay alert, keep valuables with you, use well-lit areas, avoid isolated parking spots, and save the security number (082-260991) in your phone.",
+    "actions": [{ "type": "CALL_SECURITY", "label": "Call Campus Security" }],
+    "sourceLabel": "Campus Security"
+  }
+]

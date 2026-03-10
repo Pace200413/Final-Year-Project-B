@@ -1,0 +1,175 @@
+[
+  {
+    "id": "wifi_overview",
+    "title": "Campus Wi-Fi and eduroam",
+    "aliases": [
+      "wifi",
+      "wi fi",
+      "wi-fi",
+      "eduroam",
+      "campus wifi",
+      "connect wifi",
+      "how to connect wifi",
+      "how to connect eduroam",
+      "internet on campus"
+    ],
+    "category": "it",
+    "answer": "To connect to eduroam, use the geteduroam app on mobile or the official eduroam setup site on a laptop, then sign in with your student ID and birth date.",
+    "actions": [
+      {
+        "type": "OPEN_LINK",
+        "label": "Open eduroam setup site",
+        "value": "https://eduroam.org/geteduroam-get-connected-quickly-and-safely/"
+      }
+    ],
+    "sourceLabel": "IT & Wi-Fi"
+  },
+  {
+    "id": "wifi_eduroam_mobile",
+    "title": "Connect to eduroam on mobile",
+    "aliases": [
+      "eduroam mobile",
+      "mobile wifi",
+      "wifi on phone",
+      "wifi on mobile",
+      "connect wifi on phone",
+      "connect eduroam phone",
+      "android wifi",
+      "iphone wifi"
+    ],
+    "category": "it",
+    "answer": "On mobile, download the geteduroam app and sign in with your student ID and birth date.",
+    "actions": [],
+    "sourceLabel": "IT & Wi-Fi"
+  },
+  {
+    "id": "wifi_eduroam_laptop",
+    "title": "Connect to eduroam on laptop",
+    "aliases": [
+      "eduroam laptop",
+      "laptop wifi",
+      "wifi on laptop",
+      "wifi on macbook",
+      "wifi on windows",
+      "connect wifi on laptop",
+      "connect eduroam laptop"
+    ],
+    "category": "it",
+    "answer": "On a laptop, use the official eduroam setup site and sign in with your student ID and birth date.",
+    "actions": [
+      {
+        "type": "OPEN_LINK",
+        "label": "Open eduroam setup site",
+        "value": "https://eduroam.org/geteduroam-get-connected-quickly-and-safely/"
+      }
+    ],
+    "sourceLabel": "IT & Wi-Fi"
+  },
+  {
+    "id": "wifi_not_working",
+    "title": "Wi-Fi not working",
+    "aliases": [
+      "wifi not working",
+      "internet not working",
+      "cannot connect wifi",
+      "cant connect wifi",
+      "eduroam not working",
+      "wifi issue",
+      "wifi problem",
+      "no internet",
+      "network problem"
+    ],
+    "category": "it",
+    "answer": "If Wi-Fi is down campus-wide, announcements may be sent through Outlook. If the issue is only on your device, take your device to the Student Engagement ServiceDesk in G Block and they can help fix it.",
+    "actions": [
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open G Block",
+        "placeId": "gblock"
+      },
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy ServiceDesk email",
+        "value": "se-servicedesk@swinburne.edu.my"
+      }
+    ],
+    "sourceLabel": "IT & Wi-Fi"
+  },
+  {
+    "id": "canvas_login",
+    "title": "Canvas login",
+    "aliases": [
+      "canvas login",
+      "log in canvas",
+      "login canvas",
+      "canvas password",
+      "canvas access",
+      "lms login",
+      "canvas account"
+    ],
+    "category": "it",
+    "answer": "Use your student email and password to log in to Canvas.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy ServiceDesk email",
+        "value": "se-servicedesk@swinburne.edu.my"
+      }
+    ],
+    "sourceLabel": "Canvas"
+  },
+  {
+    "id": "student_portal_login",
+    "title": "Student Portal login",
+    "aliases": [
+      "student portal login",
+      "portal login",
+      "portal password",
+      "student portal access",
+      "portal access",
+      "student portal not working"
+    ],
+    "category": "it",
+    "answer": "Use your student email and password to access the Student Portal.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy ServiceDesk email",
+        "value": "se-servicedesk@swinburne.edu.my"
+      }
+    ],
+    "sourceLabel": "Student Portal"
+  },
+  {
+    "id": "student_engagement_servicedesk",
+    "title": "Student Engagement ServiceDesk",
+    "aliases": [
+      "student engagement servicedesk",
+      "student engagement service desk",
+      "service desk",
+      "servicedesk",
+      "it help desk",
+      "it support",
+      "it counter",
+      "g block service desk",
+      "lab access help",
+      "student id not working",
+      "open lab access issue"
+    ],
+    "category": "it",
+    "answer": "For device-level Wi-Fi issues, student ID access issues, or open lab access problems, go to the Student Engagement ServiceDesk in G Block. Hours are 9:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open G Block",
+        "placeId": "gblock"
+      },
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy ServiceDesk email",
+        "value": "se-servicedesk@swinburne.edu.my"
+      }
+    ],
+    "sourceLabel": "Student Engagement ServiceDesk"
+  }
+]

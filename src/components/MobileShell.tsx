@@ -455,113 +455,51 @@ const PINNED_ITEMS: PinnedItem[] = [
   },
 ];
 
-function accentFor(label: string) {
-  if (/navigate|maps/i.test(label)) return "red";
-  return "slate";
-}
-
 export function PinnedShortcuts() {
   return (
-    <div className="maxw container-px mt-3">
-      <div className="relative overflow-hidden rounded-2xl bg-white/75 backdrop-blur-xl ring-1 ring-slate-200/70 shadow-[0_10px_26px_rgba(15,23,42,.06)]">
-        {/* subtle red accent wash */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.55]
-                     [background:radial-gradient(circle_at_15%_20%,rgba(212,42,48,.10),transparent_45%)]"
-        />
-
-        <div className="relative px-3 py-2.5">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <div className="text-[11px] font-semibold text-slate-700">Quick shortcuts</div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700 ring-1 ring-red-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D42A30]" aria-hidden />
-              Start with Navigate
-            </div>
-          </div>
-
-          {/* prettier pills + snap scrolling */}
-          <div className="relative">
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pr-6 snap-x snap-mandatory">
-              {PINNED_ITEMS.map((it) => {
-                const accent = accentFor(it.label);
-                const external = !!it.external;
-
-                const outer =
-                  accent === "red"
-                    ? "bg-gradient-to-r from-[#D42A30]/35 via-[#ffd0d0]/35 to-[#D42A30]/20"
-                    : "bg-gradient-to-r from-slate-200 to-slate-100";
-
-                const iconBubble =
-                  accent === "red"
-                    ? "bg-gradient-to-br from-[#D42A30]/18 to-white ring-1 ring-[#D42A30]/18 text-[#B0171E]"
-                    : "bg-gradient-to-br from-slate-100 to-white ring-1 ring-slate-200 text-slate-700";
-
-                return (
-                  <Link
-                    key={it.label}
-                    href={it.href}
-                    target={external ? "_blank" : undefined}
-                    rel={external ? "noopener noreferrer" : undefined}
-                    className="shrink-0 snap-start"
-                    aria-label={it.label}
-                  >
-                    <div className={`rounded-full p-[1px] ${outer}`}>
-                      <div
-                        className={[
-                          "group inline-flex items-center gap-2 rounded-full px-3.5 py-2",
-                          "bg-white/90 hover:bg-white",
-                          "ring-1 ring-slate-200/60 shadow-sm",
-                          "hover:shadow-[0_10px_24px_rgba(15,23,42,.10)] hover:ring-slate-300/70",
-                          "active:scale-[0.99] transition",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2",
-                        ].join(" ")}
-                      >
-                        <span className={`grid h-8 w-8 place-items-center rounded-2xl ${iconBubble}`} aria-hidden>
-                          <span className="text-[15px]">{it.icon}</span>
-                        </span>
-
-                        <span className="text-[13px] font-semibold text-slate-900 whitespace-nowrap">
-                          {it.label}
-                        </span>
-
-                        {external ? (
-                          <span
-                            aria-hidden
-                            className="ml-0.5 text-[11px] font-semibold text-slate-400"
-                            title="Opens in new tab"
-                          >
-                            ↗
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* right fade (looks premium + hints scroll) */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute right-0 top-0 h-full w-10
-                         bg-gradient-to-l from-white/90 to-transparent"
-            />
-          </div>
-        </div>
+    <div className="maxw container-px mt-4">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+        {PINNED_ITEMS.map((it) => (
+          <Link
+            key={it.label}
+            href={it.href}
+            target={it.external ? "_blank" : undefined}
+            rel={it.external ? "noopener noreferrer" : undefined}
+            className="shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:border-[#D42A30] hover:text-[#D42A30] transition"
+          >
+            <span aria-hidden>{it.icon}</span>
+            {it.label}
+            {it.external && (
+              <span aria-hidden>
+                ↗
+              </span>
+            )}
+          </Link>
+        ))}
       </div>
     </div>
   );
 }
 
-/* =============================================================================
-   ChatLauncher.tsx (merged) — AssistantChat stays separate
-============================================================================= */
+/** Premium assistant launcher icon – compact, darker, more premium. */
+const AssistantLauncherIcon = () => (
+  <svg
+    className="h-[16px] w-[16px]"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.85"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+  </svg>
+);
 
 export function ChatLauncher() {
   const [open, setOpen] = useState(false);
 
-  const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
@@ -576,19 +514,21 @@ export function ChatLauncher() {
   return (
     <>
       <button
-        onClick={handleOpen}
-        className="fixed bottom-24 right-4 z-[60] group rounded-full shadow-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white px-4 py-3 backdrop-blur-md hover:from-blue-600 hover:to-purple-700 transition-all duration-200 hover:scale-105 hover:shadow-2xl"
+        onClick={() => setOpen(true)}
+        className="fixed z-[60] group inline-flex items-center gap-1.5 rounded-full border border-slate-900/10 bg-white/[0.78] px-2.5 py-1.5 text-slate-900 shadow-[0_22px_44px_rgba(2,6,23,0.34),0_8px_18px_rgba(2,6,23,0.22),inset_0_1px_0_rgba(255,255,255,0.62)] backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-900/15 hover:shadow-[0_26px_54px_rgba(2,6,23,0.40),0_10px_22px_rgba(2,6,23,0.26),inset_0_1px_0_rgba(255,255,255,0.68)] active:translate-y-[1px] active:shadow-[0_12px_26px_rgba(2,6,23,0.28),0_4px_10px_rgba(2,6,23,0.18)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D42A30]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         aria-label="Open Campus Assistant"
         style={{
-          bottom: "calc(env(safe-area-inset-bottom) + 5rem)",
-          right: "max(1rem, env(safe-area-inset-right))",
+          bottom: "calc(env(safe-area-inset-bottom) + 5.15rem)",
+          right: "max(1rem, env(safe-area-inset-right) + 0.5rem)",
         }}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🤖</span>
-          <span className="text-sm font-medium hidden sm:block">Assistant</span>
-        </div>
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300 animate-pulse" />
+        <span className="grid h-[29px] w-[29px] place-items-center rounded-full bg-slate-950 text-slate-50 shadow-[0_12px_24px_rgba(2,6,23,0.56)] ring-1 ring-white/10 transition-transform duration-200 group-hover:scale-[1.02]">
+          <AssistantLauncherIcon />
+        </span>
+
+        <span className="pr-0.5 text-[12px] font-semibold tracking-[0.02em] text-slate-900">
+          Assistant
+        </span>
       </button>
 
       {open && <AssistantChat onClose={handleClose} />}
@@ -601,7 +541,6 @@ export function ChatLauncher() {
 ============================================================================= */
 
 /* === tiny inline icons, no deps === */
-
 const C = "currentColor";
 const IconHome = (p: any) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}>
@@ -676,35 +615,18 @@ type Action = {
   href?: string;
   run?: () => void | Promise<void>;
 };
-
 const EMERGENCY = "082-260-607";
 const EXIT_NAV = "/exit-navigation";
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-
-  // ✅ Hide bottom nav for admin only; user pages unaffected.
-  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
-
   const [open, setOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [navDim, setNavDim] = useState(false);
 
-  // ✅ If entering admin while sheet is open, close everything.
   useEffect(() => {
-    if (!isAdminRoute) return;
-    setOpen(false);
-    setScanOpen(false);
-    setQuery("");
-    setNavDim(false);
-  }, [isAdminRoute]);
-
-  // Scroll lock (disabled on admin)
-  useEffect(() => {
-    if (isAdminRoute) return;
-
     const body = document.body as HTMLElement;
     const html = document.documentElement as HTMLElement;
     const scrollY = window.scrollY;
@@ -731,12 +653,9 @@ export function BottomNav() {
         window.scrollTo(0, scrollY);
       }
     };
-  }, [open, scanOpen, isAdminRoute]);
+  }, [open, scanOpen]);
 
-  // Nav dim on scroll (disabled on admin)
   useEffect(() => {
-    if (isAdminRoute) return;
-
     if (open || scanOpen) {
       setNavDim(false);
       return;
@@ -758,7 +677,7 @@ export function BottomNav() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [open, scanOpen, isAdminRoute]);
+  }, [open, scanOpen]);
 
   const tabs = [
     { label: "Home", href: "/", icon: <IconHome /> },
@@ -811,9 +730,6 @@ export function BottomNav() {
     recRef.current = rec;
     rec.start();
   };
-
-  // ✅ admin gets no bottom nav at all
-  if (isAdminRoute) return null;
 
   return (
     <>
