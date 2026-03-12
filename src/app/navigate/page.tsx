@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   FaMapMarkedAlt,
@@ -24,8 +24,8 @@ import {
 
 import type { IconType } from 'react-icons';
 import {SubpageLayout} from '@/components/SupportUI';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import type { Result } from '@zxing/library';
+import { getNavHrefForPlace } from '@/lib/navigation';
+import { NAV_DESTINATIONS } from '@/data/navigation-destinations';
 
 /* ================= Permissions helpers ================= */
 
@@ -357,11 +357,12 @@ function UploadQr({ onDone }: { onDone: () => void }) {
     if (!file) return;
     const url = URL.createObjectURL(file);
     try {
+      const { BrowserMultiFormatReader } = await import('@zxing/browser');
       const reader = new BrowserMultiFormatReader();
       const img = new Image();
       img.onload = async () => {
         try {
-          const res: Result = await reader.decodeFromImageElement(img);
+          const res = await reader.decodeFromImageElement(img);
           const text = res.getText();
           if (/^https?:\/\//i.test(text)) window.location.href = text;
           else router.push(`/maps?code=${encodeURIComponent(text)}`);
@@ -763,8 +764,8 @@ function ScanModal({
 }) {
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
+  const readerRef = useRef<unknown>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -784,6 +785,7 @@ function ScanModal({
 
     const run = async () => {
       try {
+        const { BrowserMultiFormatReader } = await import('@zxing/browser');
         const reader = new BrowserMultiFormatReader();
         readerRef.current = reader;
 
@@ -795,7 +797,7 @@ function ScanModal({
         const controls = await reader.decodeFromVideoDevice(
           backCamId,
           videoRef.current!,
-          (result: Result | null | undefined) => {
+          (result: { getText: () => string } | null | undefined) => {
             if (cancelled || !result) return;
             cancelled = true;
 
@@ -927,16 +929,7 @@ const isOpenNow = (h?: Hours) => {
 /* ================= Card data & components ================= */
 
 type CardItem = {
-  key:
-    | 'maps'
-    | 'dining'
-    | 'study'
-    | 'HQ'
-    | 'mph'
-    | 'studenthub'
-    | 'library'
-    | 'atrium'
-    | 'gblock'; 
+  key: string;
   title: string;
   href: string;
   icon: IconType;
@@ -946,88 +939,22 @@ type CardItem = {
   description?: string;
 };
 
-const CARDS: CardItem[] = [
-  {
-    key: 'maps',
-    title: 'Maps',
-    href: '/navigate/map',
-    icon: FaMapMarkedAlt,
-    hint: 'Swinburne Sarawak Map & 360 View',
-    description: 'Interactive map with red dots and 360° panoramas.',
-  },
-  {
-    key: 'mph',
-    title: 'Multi Purpose Hall',
-    href: '/navigate/mph',
-    icon: FaBuilding,
-    hint: 'Events & assemblies',
-    hours: { open: '07:00', close: '23:00' },
-    description: 'Venue bookings, exams hall, large events.',
-  },
-  {
-    key: 'atrium',
-    title: 'Borneo Atrium',
-    href: '/navigate/borneoatrium',
-    icon: FaUniversity,
-    hint: 'Event Places & Hangout',
-    description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.',
-  },
-  {
-    key: 'HQ',
-    title: 'Student HQ',
-    href: '/navigate/sHQ',
-    icon: FaInfoCircle,
-    hint: 'Help desk & services',
-    hours: { open: '08:00', close: '17:00' },
-    description: 'ID cards, enrolment support, fees & forms.',
-  },
-  {
-    key: 'library',
-    title: 'Library',
-    href: '/navigate/library',
-    icon: FaBookOpen,
-    hint: 'Resources & study zones',
-    hours: { open: '08:00', close: '21:30' },
-    description: 'Quiet zone, self-checkout, opening hours.',
-  },
-  {
-    key: 'study',
-    title: 'Junction & Study Spaces',
-    href: '/navigate/study',
-    icon: FaBook,
-    hint: 'Study places, group rooms',
-    hours: { open: '00:00', close: '24:00' },
-    description: 'Junction, charging area, discussion room.',
-  },
-  {
-    key: 'gblock',
-    title: 'G Block',
-    href: '/navigate/gblock',
-    icon: FaLaptopCode ,
-    hint: 'Student service & IT Department',
-    hours: { open: '08:00', close: '17:00' },
-    description: 'Student service desk, IT department offices and support rooms.',
-  },
-  {
-    key: 'studenthub',
-    title: 'Student Hub',
-    href: '/navigate/shub',
-    icon: FaUsers,
-    hint: 'Clubs & hangout space',
-    hours: { open: '07:00', close: '22:00' },
-    description: 'Clubs, lounge areas, activity sign-ups.',
-  },
-  {
-    key: 'dining',
-    title: 'Dining',
-    href: '/navigate/dining',
-    icon: FaUtensils,
-    hint: 'Having your breakfast and lunch here',
-    hours: { open: '07:00', close: '17:00' },
-    stallsCount: 12,
-    description: 'Ground floor (chicken rice, noodles)',
-  },
-];
+const CARD_UI: Record<string, { icon: IconType; hint: string; hours?: Hours; stallsCount?: number; description?: string }> = {
+  maps: { icon: FaMapMarkedAlt, hint: 'Swinburne Sarawak Map & 360 View', description: 'Interactive map with red dots and 360° panoramas.' },
+  mph: { icon: FaBuilding, hint: 'Events & assemblies', hours: { open: '07:00', close: '23:00' }, description: 'Venue bookings, exams hall, large events.' },
+  atrium: { icon: FaUniversity, hint: 'Event Places & Hangout', description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.' },
+  HQ: { icon: FaInfoCircle, hint: 'Help desk & services', hours: { open: '08:00', close: '17:00' }, description: 'ID cards, enrolment support, fees & forms.' },
+  library: { icon: FaBookOpen, hint: 'Resources & study zones', hours: { open: '08:00', close: '21:30' }, description: 'Quiet zone, self-checkout, opening hours.' },
+  study: { icon: FaBook, hint: 'Study places, group rooms', hours: { open: '00:00', close: '24:00' }, description: 'Junction, charging area, discussion room.' },
+  gblock: { icon: FaLaptopCode, hint: 'Student service & IT Department', hours: { open: '08:00', close: '17:00' }, description: 'Student service desk, IT department offices and support rooms.' },
+  studenthub: { icon: FaUsers, hint: 'Clubs & hangout space', hours: { open: '07:00', close: '22:00' }, description: 'Clubs, lounge areas, activity sign-ups.' },
+  dining: { icon: FaUtensils, hint: 'Having your breakfast and lunch here', hours: { open: '07:00', close: '17:00' }, stallsCount: 12, description: 'Ground floor (chicken rice, noodles)' },
+};
+
+const CARDS: CardItem[] = NAV_DESTINATIONS.map((d) => {
+  const ui = CARD_UI[d.key];
+  return { ...d, icon: ui?.icon ?? FaMapMarkedAlt, hint: ui?.hint ?? d.title, ...ui };
+});
 
 function TileCard({ card, active }: { card: CardItem; active: boolean }) {
   const open = isOpenNow(card.hours);
@@ -1097,7 +1024,9 @@ function TileCard({ card, active }: { card: CardItem; active: boolean }) {
 
 /* ================= Page ================= */
 
-export default function NavigatePage() {
+function NavigatePageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [q, setQ] = useState('');
   const [scanOpen, setScanOpen] = useState(false);
   const [scanHelp, setScanHelp] = useState<string | null>(null);
@@ -1106,7 +1035,14 @@ export default function NavigatePage() {
   const [qrMapOpen, setQrMapOpen] = useState(false);
   const [qrStartKey, setQrStartKey] = useState<QRLocationKey>('lobby');
 
-  const router = useRouter();
+  useEffect(() => {
+    const placeId = searchParams.get('place');
+    if (!placeId) return;
+    const href = getNavHrefForPlace(placeId);
+    if (href) {
+      router.replace(href);
+    }
+  }, [searchParams, router]);
 
   const onOpenScan = async () => {
     if (!hasCam()) {
@@ -1246,5 +1182,19 @@ export default function NavigatePage() {
         onClose={() => setQrMapOpen(false)}
       />
     </SubpageLayout>
+  );
+}
+
+export default function NavigatePage() {
+  return (
+    <Suspense fallback={
+      <SubpageLayout icon="" title="" description="">
+        <div className="col-span-full flex items-center justify-center py-16">
+          <p className="text-slate-500">Loading navigation…</p>
+        </div>
+      </SubpageLayout>
+    }>
+      <NavigatePageContent />
+    </Suspense>
   );
 }

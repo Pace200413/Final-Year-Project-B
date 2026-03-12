@@ -7,3 +7,5 @@ dist/
 .DS_Store
 coverage/
 public/.DS_Store
+.env.local
+*.tsbuildinfo

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "sic_contact",
+    "title": "Student Information Centre",
+    "aliases": [
+      "sic",
+      "student information centre",
+      "student information center",
+      "study enquiries",
+      "student help",
+      "registration help",
+      "transcript",
+      "letters",
+      "general enquiries"
+    ],
+    "category": "support",
+    "answer": "For registration, transcripts, letters, and general student enquiries, contact the Student Information Centre at sic@swinburne.edu.my. You can also visit Student HQ, open 8:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy SIC email",
+        "value": "sic@swinburne.edu.my"
+      },
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open Student HQ",
+        "placeId": "HQ"
+      }
+    ],
+    "sourceLabel": "Student Information Centre"
+  },
+  {
+    "id": "finance_treasury_contact",
+    "title": "Finance Treasury Services ServiceDesk",
+    "aliases": [
+      "finance treasury services servicedesk",
+      "finance treasury",
+      "treasury services",
+      "finance email",
+      "fee help email",
+      "treasury help",
+      "finance servicedesk"
+    ],
+    "category": "support",
+    "answer": "For finance, fee, instalment, and treasury matters, contact Finance Treasury Services ServiceDesk at fin-servicedesk@swinburne.edu.my. The counter is in Student HQ, open 8:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy Finance email",
+        "value": "fin-servicedesk@swinburne.edu.my"
+      },
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open Student HQ",
+        "placeId": "HQ"
+      }
+    ],
+    "sourceLabel": "Finance Treasury Services"
+  },
+  {
+    "id": "visa_insurance_contact",
+    "title": "Visa and Insurance contact",
+    "aliases": [
+      "visa and insurance",
+      "visa insurance",
+      "visa email",
+      "insurance email",
+      "international support email"
+    ],
+    "category": "support",
+    "answer": "For visa and insurance enquiries, contact Visa & Insurance at VisaInsurance@swinburne.edu.my. This counter is in Student HQ, open 8:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy Visa & Insurance email",
+        "value": "VisaInsurance@swinburne.edu.my"
+      },
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open Student HQ",
+        "placeId": "HQ"
+      }
+    ],
+    "sourceLabel": "Visa & Insurance"
+  },
+  {
+    "id": "insurance_unit_contact",
+    "title": "Insurance Unit contact",
+    "aliases": [
+      "insurance unit",
+      "insurance support",
+      "insurance contact",
+      "insurance email"
+    ],
+    "category": "support",
+    "answer": "For insurance-specific enquiries, contact the Insurance Unit at insurance@swinburne.edu.my. The counter is in Student HQ, open 8:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "COPY_CONTACT",
+        "label": "Copy Insurance email",
+        "value": "insurance@swinburne.edu.my"
+      },
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open Student HQ",
+        "placeId": "HQ"
+      }
+    ],
+    "sourceLabel": "Insurance Unit"
+  },
+  {
+    "id": "student_hq_overview",
+    "title": "Student HQ",
+    "aliases": [
+      "student hq",
+      "student headquarters",
+      "hq",
+      "where is student hq",
+      "student hq hours"
+    ],
+    "category": "support",
+    "answer": "Student HQ handles SIC, Finance Treasury, and Visa & Insurance counters. Student HQ is open 8:00 AM–5:00 PM.",
+    "actions": [
+      {
+        "type": "OPEN_NAVIGATION",
+        "label": "Open Student HQ",
+        "placeId": "HQ"
+      }
+    ],
+    "sourceLabel": "Student HQ"
+  }
+]

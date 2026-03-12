@@ -18,7 +18,7 @@ export const FAQS: FAQ[] = [
   },
   {
     q: "Who do I call in an emergency?",
-    a: "Call Campus Security on 082-260-607 (24/7). For life-threatening emergencies off-campus, dial 999.",
+    a: "Call Campus Security on 082-260991 (24/7). For life-threatening emergencies off-campus, dial 999.",
     tags: ["safety", "emergency", "security", "help"],
   },
   {

@@ -1,0 +1,140 @@
+[
+  {
+    "id": "visa_overview",
+    "title": "International student visa overview",
+    "aliases": [
+      "visa",
+      "international student",
+      "student pass",
+      "visa and international",
+      "international student services",
+      "student visa",
+      "emgs"
+    ],
+    "category": "visa",
+    "answer": "International students need a student pass (eVAL/VAL) via the university and EMGS. New students apply before entry; renewals require CGPA 2.0+, 80% attendance, and passport valid 18+ months. Contact ISS (iss@swinburne.edu.my) for applications and documents.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "new_student_visa",
+    "title": "New international student visa",
+    "aliases": [
+      "new student visa",
+      "student pass",
+      "eval",
+      "val",
+      "student visa application",
+      "tourist visa student",
+      "emgs",
+      "how to apply visa",
+      "student pass application",
+      "entering malaysia for study"
+    ],
+    "category": "visa",
+    "answer": "New international students must apply for a student pass through the university and EMGS, obtain eVAL/VAL, and should not enter Malaysia on a tourist visa for study.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "new_student_visa_documents",
+    "title": "Documents for student pass",
+    "aliases": [
+      "visa documents",
+      "documents for student pass",
+      "what documents for visa",
+      "passport validity visa",
+      "pre val medical",
+      "offer letter visa",
+      "visa application documents",
+      "required documents student pass"
+    ],
+    "category": "visa",
+    "answer": "Key documents: passport-size photo (white background), copies of all passport pages, passport valid at least 18 months, offer letter, academic records, pre-VAL medical report, plus country-specific documents if applicable.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "transfer_from_other_institution",
+    "title": "Transfer from another institution",
+    "aliases": [
+      "transfer from other university",
+      "release letter",
+      "change institution malaysia",
+      "transfer visa",
+      "cancel previous student pass",
+      "transfer student visa"
+    ],
+    "category": "visa",
+    "answer": "Transfer students inside Malaysia must cancel the previous institution's pass and obtain a Release Letter before applying for a new eVAL/VAL with Swinburne.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "renew_student_visa",
+    "title": "Student visa renewal",
+    "aliases": [
+      "renew visa",
+      "student visa renewal",
+      "renew student pass",
+      "visa expiring",
+      "attendance 80",
+      "cgpa 2.0 visa",
+      "visa renewal requirements"
+    ],
+    "category": "visa",
+    "answer": "Renew around 3 months before expiry. Requirements typically include CGPA above 2.00, attendance 80%+, valid insurance, current/upcoming enrolment, and passport valid at least 18 months.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "visa_renewal_submission",
+    "title": "Submit visa renewal",
+    "aliases": [
+      "visa renewal fee",
+      "where to renew visa",
+      "visa services counter",
+      "rm500 visa",
+      "renewal processing fee",
+      "email photo visa",
+      "submit passport renewal"
+    ],
+    "category": "visa",
+    "answer": "Submit your original passport to the Visa Services Counter, pay the RM500 renewal processing fee, and email the passport-sized photo to iss@swinburne.edu.my. Extra documents may be requested.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "lost_passport",
+    "title": "Lost or stolen passport",
+    "aliases": [
+      "lost passport",
+      "passport missing",
+      "replace passport",
+      "special pass",
+      "police report passport",
+      "passport renewal embassy",
+      "passport stolen"
+    ],
+    "category": "visa",
+    "answer": "Make a police report, report to Visa Services, prepare RM100 for a Special Pass, and contact your embassy for passport replacement.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "CALL_SECURITY", "label": "Call Campus Security" }],
+    "sourceLabel": "International Student Services"
+  },
+  {
+    "id": "visa_cancellation",
+    "title": "Visa cancellation",
+    "aliases": [
+      "cancel student visa",
+      "visa cancellation",
+      "withdraw and leave malaysia",
+      "transfer institution visa cancel",
+      "complete studies visa",
+      "cancel student pass"
+    ],
+    "category": "visa",
+    "answer": "Students who complete studies, withdraw, or transfer must properly cancel the current student pass and submit the required forms and passport at least 7 working days before departure.",
+    "actions": [{ "type": "COPY_CONTACT", "label": "Copy ISS email", "value": "iss@swinburne.edu.my" }, { "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "International Student Services"
+  }
+]

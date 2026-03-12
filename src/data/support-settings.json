@@ -1,7 +1,7 @@
 {
   "alert": {
     "text": "Need urgent help? Call Campus Security",
-    "phone": "082-260-607",
+    "phone": "082-260991",
     "cta": "Call now"
   },
   "status": [
@@ -76,7 +76,7 @@
       "category": "Safety",
       "hours": "24/7",
       "desc": "Emergencies & safety on campus.",
-      "phone": "082-260-607"
+      "phone": "082-260991"
     },
     {
       "slug": "student-wellbeing",
@@ -119,7 +119,7 @@
     },
     {
       "q": "Who do I call in an emergency?",
-      "a": "Dial Campus Security (082-260-607). For off-campus, use national emergency services.",
+      "a": "Dial Campus Security (082-260991). For off-campus, use national emergency services.",
       "tags": [
         "safety",
         "emergency",

@@ -26,7 +26,7 @@ export const SERVICES: Service[] = [
     category: "Safety",
     desc: "Emergencies & safety on campus.",
     hours: "24/7",
-    phone: "082-260-607", // will render tel:082260607
+    phone: "082-260991", // will render tel:082260607
   },
   {
     slug: "wellbeing", // if you don’t have a page, mailto will be used

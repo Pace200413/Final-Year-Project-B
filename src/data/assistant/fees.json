@@ -1,0 +1,157 @@
+[
+  {
+    "id": "fees_overview",
+    "title": "Fees & payments overview",
+    "aliases": [
+      "fees",
+      "payments",
+      "tuition fees",
+      "fees and payments",
+      "fee payment",
+      "how to pay fees",
+      "payment options",
+      "fee information"
+    ],
+    "category": "fees",
+    "answer": "Tuition and fees can be paid via the Student Portal (debit/credit card, JomPAY), bank transfer to CIMB, or at the Finance Cashier Counter (Student HQ, Block A). Check the Academic Calendar for due dates. For instalment plans or extensions, contact Treasury Services ServiceDesk.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "tuition_fee_due_date",
+    "title": "Tuition fee due date",
+    "aliases": [
+      "tuition due date",
+      "when is tuition due",
+      "when do i pay fees",
+      "fee deadline",
+      "payment deadline",
+      "tuition fees",
+      "due to pay tuition",
+      "when to pay my fees",
+      "semester fees due",
+      "pay tuition",
+      "fee due date",
+      "when are fees due"
+    ],
+    "category": "fees",
+    "answer": "Check the Academic Calendar or Important Dates in the Student Portal for the current due date. Late payment penalties may apply. Treasury Services ServiceDesk can help with extensions or instalment plan requests.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "late_payment_consequences",
+    "title": "Late payment consequences",
+    "aliases": [
+      "late payment penalty",
+      "what happens if i don't pay fees",
+      "unpaid tuition",
+      "fee penalty",
+      "late tuition payment",
+      "result blocked fees",
+      "deregistered fees",
+      "unpaid fees consequences",
+      "fee arrears"
+    ],
+    "category": "fees",
+    "answer": "Unpaid fees may lead to limited portal access, deregistration, withheld results or awards, penalties, and re-registration charges.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "instalment_payment_plan",
+    "title": "Instalment payment plan",
+    "aliases": [
+      "instalment plan",
+      "installment plan",
+      "tuition instalment",
+      "can't pay fees",
+      "financial assistance fees",
+      "delay payment",
+      "extend payment due date",
+      "fee payment plan",
+      "pay by instalment",
+      "payment plan",
+      "split payment"
+    ],
+    "category": "fees",
+    "answer": "Students who cannot settle fees by the due date may apply for a tuition fee instalment plan through Treasury Services ServiceDesk. Long semesters typically support 30% downpayment, 50% downpayment, or 10-month plans. Submit early to avoid late penalties.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "instalment_access_in_portal",
+    "title": "View instalment plan in portal",
+    "aliases": [
+      "where can i see my instalment plan",
+      "view instalment plan",
+      "payment plan in portal",
+      "student portal instalment",
+      "check instalment status"
+    ],
+    "category": "fees",
+    "answer": "Approved instalment payment plans can be viewed in the Student Portal.",
+    "actions": [],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "pay_fees_malaysian",
+    "title": "How Malaysian students pay fees",
+    "aliases": [
+      "how do i pay my fees",
+      "malaysian student fees",
+      "pay fees malaysia",
+      "portal payment",
+      "jompay",
+      "cimb transfer",
+      "bank transfer fees",
+      "cashier counter payment",
+      "pay fees locally",
+      "malaysian payment options"
+    ],
+    "category": "fees",
+    "answer": "Malaysian students can pay through the Student Portal (debit/credit card), JomPAY, direct bank-in or online transfer to CIMB, or at the Finance Cashier Counter.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "pay_fees_international",
+    "title": "How international students pay fees",
+    "aliases": [
+      "international student payment",
+      "pay from overseas",
+      "flywire",
+      "wire transfer",
+      "telegraphic transfer",
+      "swift code",
+      "international fees",
+      "how do i pay as international student",
+      "overseas payment",
+      "remittance"
+    ],
+    "category": "fees",
+    "answer": "International students can pay via the Student Portal, Flywire for overseas payments, telegraphic transfer, direct bank-in or online transfer, or at the Finance Cashier Counter if they have access to Malaysian banking. CIMB SWIFT: CIBBMYKL.",
+    "actions": [{ "type": "OPEN_SUPPORT", "label": "Open Support" }],
+    "sourceLabel": "Fees"
+  },
+  {
+    "id": "finance_cashier_counter",
+    "title": "Finance Cashier Counter",
+    "aliases": [
+      "cashier counter",
+      "finance counter",
+      "where is cashier",
+      "cashier opening hours",
+      "student hq payment",
+      "where to pay fees in person",
+      "block a cashier",
+      "finance office"
+    ],
+    "category": "fees",
+    "answer": "The Finance Cashier Counter is at Student HQ, Block A, Ground Floor. Hours: 8.30 am–5.00 pm Mon–Fri (Friday break 12.00 pm–2.00 pm). Closed weekends and public holidays.",
+    "actions": [
+      { "type": "OPEN_NAVIGATION", "label": "Open Student HQ", "placeId": "HQ" }
+    ],
+    "sourceLabel": "Fees"
+  }
+]
