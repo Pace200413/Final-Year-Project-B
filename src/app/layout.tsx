@@ -1,23 +1,18 @@
-// src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-import {Header} from "@/components/MobileShell";
-import {BottomNav} from "@/components/MobileShell";
-import {AppearanceClient} from "@/components/SystemLayer";
-import {ServiceWorkerRegistration} from "@/components/SystemLayer";
-import {ThemeTransition} from "@/components/SystemLayer";
-
+import { Header, BottomNav } from "@/components/MobileShell";
+import { AppearanceClient, ServiceWorkerRegistration } from "@/components/SystemLayer";
 import { ThemeProvider, LocaleProvider } from "@/lib/client";
-
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
-  /* ... exactly what you had ... */
+  title: "Swinburne App",
+  description: "Swinburne campus navigation and support app",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#F2F2F7",
   colorScheme: "light",
 };
 
@@ -25,26 +20,28 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-dvh bg-white text-slate-900 font-sans">
+    <html lang="en" className={inter.variable}>
+      <body className="min-h-dvh bg-[#F2F2F7] font-sans text-slate-900">
         <ThemeProvider>
           <LocaleProvider>
             <a
               href="#content"
-              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 bg-white text-slate-900 px-3 py-2 rounded-md shadow"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 rounded-md bg-white px-3 py-2 text-slate-900 shadow"
             >
               Skip to content
             </a>
 
             <Header />
 
-            <main id="content" className="maxw container-px py-6 pb-24 overscroll-y-contain">
+            <main
+              id="content"
+              className="maxw container-px overscroll-y-contain py-6 pb-[calc(env(safe-area-inset-bottom)+6.2rem)]"
+            >
               {children}
             </main>
 
             <BottomNav />
             <AppearanceClient />
-            <ThemeTransition />
             <ServiceWorkerRegistration />
           </LocaleProvider>
         </ThemeProvider>

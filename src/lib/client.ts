@@ -15,13 +15,13 @@ import {
   type ReactNode,
 } from "react";
 
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-
 /* ------------------------------------------------------------------ */
 /* SettingsStore                                                       */
 /* ------------------------------------------------------------------ */
-
-export type TextSize = "small" | "default" | "large";
+function normalizeTextSize(value: unknown): TextSize {
+  return value === "large" ? "large" : "default";
+}
+export type TextSize = "default" | "large";
 
 export interface SettingsState {
   textSize: TextSize;
@@ -36,18 +36,20 @@ export interface SettingsState {
   cacheSize: number;
 }
 
+const DEFAULT_SETTINGS_STATE: SettingsState = {
+  textSize: "default",
+  timeFormat: "12h",
+  dateFormat: "short",
+  temperatureUnit: "celsius",
+  eventReminders: false,
+  announcements: false,
+  reminderLeadTime: 30,
+  cacheSize: 0,
+};
+
 class SettingsStore {
   private listeners: Set<(state: SettingsState) => void> = new Set();
-  private state: SettingsState = {
-    textSize: "default",
-    timeFormat: "12h",
-    dateFormat: "short",
-    temperatureUnit: "celsius",
-    eventReminders: false,
-    announcements: false,
-    reminderLeadTime: 30,
-    cacheSize: 0,
-  };
+  private state: SettingsState = { ...DEFAULT_SETTINGS_STATE };
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -59,7 +61,15 @@ class SettingsStore {
   private loadFromStorage() {
     try {
       const stored = localStorage.getItem("swin-app-settings");
-      if (stored) this.state = { ...this.state, ...JSON.parse(stored) };
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored) as Partial<SettingsState>;
+
+      this.state = {
+        ...this.state,
+        ...parsed,
+        textSize: normalizeTextSize(parsed.textSize),
+      };
     } catch (e) {
       console.warn("Failed to load settings from storage:", e);
     }
@@ -75,13 +85,17 @@ class SettingsStore {
 
   private updateCacheSize() {
     try {
-      if (!("caches" in window)) return;
+      if (typeof window === "undefined" || !("caches" in window)) return;
+
       caches
         .keys()
         .then((keys) => Promise.all(keys.map((k) => caches.open(k).then((c) => c.keys()))))
         .then((reqs) => {
-          this.state.cacheSize = reqs.flat().length * 1000; // rough estimate
+          this.state.cacheSize = reqs.flat().length * 1000;
           this.notifyListeners();
+        })
+        .catch((e) => {
+          console.warn("Failed to calculate cache size:", e);
         });
     } catch (e) {
       console.warn("Failed to calculate cache size:", e);
@@ -89,7 +103,7 @@ class SettingsStore {
   }
 
   private notifyListeners() {
-    this.listeners.forEach((l) => l(this.state));
+    this.listeners.forEach((listener) => listener(this.getState()));
   }
 
   updateSettings(updates: Partial<SettingsState>) {
@@ -108,128 +122,13 @@ class SettingsStore {
   }
 
   reset() {
-    this.state = {
-      textSize: "default",
-      timeFormat: "12h",
-      dateFormat: "short",
-      temperatureUnit: "celsius",
-      eventReminders: false,
-      announcements: false,
-      reminderLeadTime: 30,
-      cacheSize: 0,
-    };
+    this.state = { ...DEFAULT_SETTINGS_STATE };
     this.saveToStorage();
     this.notifyListeners();
   }
 }
 
 export const settingsStore = new SettingsStore();
-
-/* ------------------------------------------------------------------ */
-/* ThemeStore (custom)                                                 */
-/* ------------------------------------------------------------------ */
-
-export type Theme = "light" | "dark" | "system";
-
-export interface ThemeState {
-  theme: Theme;
-  resolvedTheme: "light" | "dark";
-}
-
-class ThemeStore {
-  private listeners: Set<(state: ThemeState) => void> = new Set();
-  private state: ThemeState = { theme: "system", resolvedTheme: "light" };
-
-  private mediaQuery: MediaQueryList | null = null;
-  private mediaHandler: (() => void) | null = null;
-
-  constructor() {
-    if (typeof window !== "undefined") {
-      this.loadFromStorage();
-      this.updateResolvedTheme();
-      this.syncSystemListener();
-    }
-  }
-
-  private loadFromStorage() {
-    try {
-      const stored = localStorage.getItem("swin-app-theme");
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        this.state.theme = stored;
-      }
-    } catch (e) {
-      console.warn("Failed to load theme from storage:", e);
-    }
-  }
-
-  private saveToStorage(theme: Theme) {
-    try {
-      localStorage.setItem("swin-app-theme", theme);
-    } catch (e) {
-      console.warn("Failed to save theme to storage:", e);
-    }
-  }
-
-  private applyTheme() {
-    const html = document.documentElement;
-    html.classList.remove("light", "dark");
-    html.classList.add(this.state.resolvedTheme);
-  }
-
-  private updateResolvedTheme() {
-    if (this.state.theme === "system") {
-      this.state.resolvedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    } else {
-      this.state.resolvedTheme = this.state.theme;
-    }
-    this.applyTheme();
-  }
-
-  private syncSystemListener() {
-    // detach old listener if any
-    if (this.mediaQuery && this.mediaHandler) {
-      this.mediaQuery.removeEventListener("change", this.mediaHandler);
-    }
-
-    if (this.state.theme !== "system") {
-      this.mediaQuery = null;
-      this.mediaHandler = null;
-      return;
-    }
-
-    this.mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    this.mediaHandler = () => {
-      this.updateResolvedTheme();
-      this.notifyListeners();
-    };
-    this.mediaQuery.addEventListener("change", this.mediaHandler);
-  }
-
-  private notifyListeners() {
-    this.listeners.forEach((l) => l(this.state));
-  }
-
-  setTheme(theme: Theme) {
-    this.state.theme = theme;
-    this.saveToStorage(theme);
-    this.updateResolvedTheme();
-    this.syncSystemListener();
-    this.notifyListeners();
-  }
-
-  getState(): ThemeState {
-    return { ...this.state };
-  }
-
-  subscribe(listener: (state: ThemeState) => void) {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
-  }
-}
-
-export const themeStore = new ThemeStore();
 
 /* ------------------------------------------------------------------ */
 /* NotificationManager                                                 */
@@ -241,24 +140,35 @@ export interface NotificationSettings {
   reminderLeadTime: number;
 }
 
+const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  eventReminders: false,
+  announcements: false,
+  reminderLeadTime: 30,
+};
+
 class NotificationManager {
   private listeners: Set<(settings: NotificationSettings) => void> = new Set();
-  private settings: NotificationSettings = {
-    eventReminders: false,
-    announcements: false,
-    reminderLeadTime: 30,
-  };
+  private settings: NotificationSettings = { ...DEFAULT_NOTIFICATION_SETTINGS };
 
   constructor() {
-    if (typeof window !== "undefined") this.loadFromStorage();
+    if (typeof window !== "undefined") {
+      this.loadFromStorage();
+    }
   }
 
   private loadFromStorage() {
     try {
       const stored = localStorage.getItem("swin-app-notifications");
-      if (stored) this.settings = { ...this.settings, ...JSON.parse(stored) };
+      if (!stored) return;
+
+      const parsed = JSON.parse(stored) as Partial<NotificationSettings>;
+
+      this.settings = {
+        ...this.settings,
+        ...parsed,
+      };
     } catch (e) {
-      console.warn("Failed to load notification settings:", e);
+      console.warn("Failed to load notification settings from storage:", e);
     }
   }
 
@@ -271,22 +181,31 @@ class NotificationManager {
   }
 
   private notifyListeners() {
-    this.listeners.forEach((l) => l(this.settings));
+    this.listeners.forEach((listener) => listener(this.getSettings()));
   }
 
   async requestPermission(): Promise<NotificationPermission> {
-    if (!("Notification" in window)) throw new Error("Notifications not supported");
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      throw new Error("Notifications not supported");
+    }
+
     if (Notification.permission === "granted") return "granted";
     if (Notification.permission === "denied") return "denied";
-    return await Notification.requestPermission();
+    return Notification.requestPermission();
   }
 
   isSupported(): boolean {
-    return "Notification" in window && "serviceWorker" in navigator;
+    return (
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      "serviceWorker" in navigator
+    );
   }
 
   getPermission(): NotificationPermission {
-    if (!("Notification" in window)) return "denied";
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return "denied";
+    }
     return Notification.permission;
   }
 
@@ -305,15 +224,24 @@ class NotificationManager {
     return () => this.listeners.delete(listener);
   }
 
-  async scheduleEventReminder(event: { id: string; title: string; date: string; venue: string }) {
+  async scheduleEventReminder(event: {
+    id: string;
+    title: string;
+    date: string;
+    venue: string;
+  }) {
     if (!this.settings.eventReminders || this.getPermission() !== "granted") return;
 
     const eventDate = new Date(event.date);
-    const reminderTime = new Date(eventDate.getTime() - this.settings.reminderLeadTime * 60 * 1000);
+    const reminderTime = new Date(
+      eventDate.getTime() - this.settings.reminderLeadTime * 60 * 1000
+    );
     const now = new Date();
+
     if (reminderTime <= now) return;
 
     const timeout = reminderTime.getTime() - now.getTime();
+
     setTimeout(() => {
       if (this.getPermission() === "granted") {
         new Notification(`Event Reminder: ${event.title}`, {
@@ -369,16 +297,15 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
-export function showToast(message: string, duration: number = 2000): void {
+export function showToast(message: string, duration = 2000): void {
   const toast = document.createElement("div");
   toast.className =
-    "fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 bg-slate-900 text-white text-sm rounded-full shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2";
+    "fixed bottom-24 left-1/2 z-[100] -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm text-white shadow-lg backdrop-blur-sm";
   toast.textContent = message;
   document.body.appendChild(toast);
 
   setTimeout(() => {
-    toast.classList.add("animate-out", "fade-out", "slide-out-to-bottom-2");
-    setTimeout(() => document.body.removeChild(toast), 200);
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
   }, duration);
 }
 
@@ -389,16 +316,20 @@ export function showToast(message: string, duration: number = 2000): void {
 export function track(event: string, data: Record<string, unknown> = {}) {
   try {
     const body = JSON.stringify({ event, ts: Date.now(), ...data });
+
     if ("sendBeacon" in navigator) {
       const blob = new Blob([body], { type: "application/json" });
       navigator.sendBeacon("/api/analytics", blob);
-    } else {
-      fetch("/api/analytics", {
-        method: "POST",
-        body,
-        headers: { "Content-Type": "application/json" },
-      });
+      return;
     }
+
+    fetch("/api/analytics", {
+      method: "POST",
+      body,
+      headers: { "Content-Type": "application/json" },
+    }).catch(() => {
+      /* no-op */
+    });
   } catch {
     /* no-op */
   }
@@ -435,8 +366,11 @@ function loadGlobalBookmarks() {
     try {
       const raw = localStorage.getItem("bookmarks");
       if (raw) globalBookmarks = new Set(JSON.parse(raw) as string[]);
+    } catch {
+      /* no-op */
+    } finally {
       globalBookmarksLoaded = true;
-    } catch {}
+    }
   }
 }
 
@@ -444,12 +378,14 @@ function persistBookmarks() {
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem("bookmarks", JSON.stringify([...globalBookmarks]));
-    } catch {}
+    } catch {
+      /* no-op */
+    }
   }
 }
 
 function notifyBookmarkListeners() {
-  globalListeners.forEach((l) => l());
+  globalListeners.forEach((listener) => listener());
 }
 
 export function useBookmarks() {
@@ -517,14 +453,16 @@ function getInitialLocaleSettings(): LocaleSettings {
 
   try {
     const stored = localStorage.getItem("swin-app-locale-settings");
-    if (stored) return { ...defaultLocaleSettings, ...JSON.parse(stored) };
+    if (stored) {
+      return { ...defaultLocaleSettings, ...JSON.parse(stored) };
+    }
   } catch (error) {
     console.warn("Failed to load locale settings:", error);
   }
+
   return defaultLocaleSettings;
 }
 
-// Locale Provider
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<LocaleSettings>(defaultLocaleSettings);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -537,6 +475,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   const updateSettings = (updates: Partial<LocaleSettings>) => {
     const newSettings = { ...settings, ...updates };
     setSettings(newSettings);
+
     try {
       localStorage.setItem("swin-app-locale-settings", JSON.stringify(newSettings));
     } catch (error) {
@@ -557,17 +496,10 @@ export function useLocale() {
   return ctx;
 }
 
-// Theme Provider (next-themes)
+/* ------------------------------------------------------------------ */
+/* ThemeProvider compatibility shim                                    */
+/* ------------------------------------------------------------------ */
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  return createElement(
-    NextThemesProvider,
-    {
-      attribute: "class",
-      defaultTheme: "light",
-      enableSystem: true,
-      disableTransitionOnChange: true,
-      storageKey: "swin-app-theme",
-    },
-    children
-  );
+  return children;
 }

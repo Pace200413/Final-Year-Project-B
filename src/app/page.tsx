@@ -6,29 +6,23 @@ import Link from "next/link";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
-import { MiniEvents, ChatLauncher } from "@/components/MobileShell";
-import type { EventItem } from "@/components/MobileShell";
+import { ChatLauncher } from "@/components/MobileShell";
 import { SearchBar, TileCard } from "@/components/SupportUI";
 import { ServiceStatusBar } from "@/components/SystemLayer";
-
 import {
-  PhoneIcon,
-  ShieldIcon,
-  CompassIcon,
-  MapPinIcon,
-  ChatIcon,
-  CalendarIcon,
-  BookIcon,
-} from "@/components/MobileShell";
+  Phone,
+  Shield,
+  Compass,
+  Map as MapIcon,
+  LifeBuoy,
+  CalendarDays,
+  AlertTriangle,
+  BookOpen,
+  Clock3
+} from "lucide-react";
 
 /* ---------- Dev-only: subtle staff access ---------- */
 const IS_STAFF_LINK = process.env.NODE_ENV !== "production";
-
-/* ---------- Data ---------- */
-const EVENTS: EventItem[] = [
-  { date: "10 Feb", title: "Orientation: 7 things before starting", location: "A002 Lecture Hall" },
-  { date: "5 Mar", title: "AI Student Meetup", location: "Innovation Hub" },
-];
 
 /* ---------- Layout helpers ---------- */
 type SectionProps = { id?: string; title: string; subtitle?: string; children: ReactNode };
@@ -48,21 +42,19 @@ const Section = ({ id, title, subtitle, children }: SectionProps) => (
 const GRID_2 = "grid grid-cols-2 gap-3 sm:gap-4";
 const GRID_4 = "grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4";
 
-const Wrap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const Wrap = ({ children }: { children: ReactNode }) => (
   <div className="min-w-0 w-full">{children}</div>
 );
 
 function TopHeroNavigation() {
   return (
     <div className="relative overflow-hidden rounded-3xl ring-1 ring-black/5 shadow-[0_26px_80px_rgba(0,0,0,.22)]">
-      {/* Base: red → deep red → near-black */}
       <div
         aria-hidden
         className="absolute inset-0
           [background:radial-gradient(120%_140%_at_16%_10%,#ff7a7a_0%,#D42A30_30%,#8D1116_62%,#07070A_100%)]"
       />
 
-      {/* Big triangle (top-left glass) */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.28]
@@ -71,7 +63,6 @@ function TopHeroNavigation() {
           [-webkit-clip-path:polygon(0%_0%,62%_0%,0%_72%)]"
       />
 
-      {/* Big triangle (bottom-right dark) */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.35]
@@ -80,7 +71,6 @@ function TopHeroNavigation() {
           [-webkit-clip-path:polygon(100%_100%,40%_100%,100%_38%)]"
       />
 
-      {/* Apple-like gloss highlight */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-85
@@ -92,21 +82,18 @@ function TopHeroNavigation() {
           [background:linear-gradient(180deg,rgba(255,255,255,.12),transparent_42%)]"
       />
 
-      {/* Thin diagonal line (very subtle “designed” detail) */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-[0.12]
           [background:linear-gradient(135deg,transparent_0%,transparent_46%,rgba(255,255,255,.55)_50%,transparent_54%,transparent_100%)]"
       />
 
-      {/* Vignette for depth */}
       <div
         aria-hidden
         className="absolute inset-0 opacity-80
           [background:radial-gradient(120%_120%_at_50%_120%,rgba(0,0,0,.55),transparent_56%)]"
       />
 
-      {/* Inner glass border + inset depth */}
       <div aria-hidden className="absolute inset-0 rounded-3xl ring-1 ring-white/18" />
       <div
         aria-hidden
@@ -115,7 +102,6 @@ function TopHeroNavigation() {
       />
 
       <div className="relative p-5 sm:p-6 text-white">
-        {/* Glass pill (works on iOS/Android; blur only when supported) */}
         <div
           className="inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-[11px] font-semibold ring-1 ring-white/18
                      supports-[backdrop-filter]:backdrop-blur-xl"
@@ -133,7 +119,6 @@ function TopHeroNavigation() {
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-2.5">
-          {/* Primary: white pill */}
           <Link
             href="/navigate"
             className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-semibold text-[#B0171E]
@@ -144,7 +129,6 @@ function TopHeroNavigation() {
             Start navigation →
           </Link>
 
-          {/* Secondary: glass (blur only when supported) */}
           <Link
             href="/navigate/map"
             className="relative inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold text-white
@@ -178,13 +162,9 @@ export default function Page() {
     const handler = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
 
-      // don’t hijack browser/system shortcuts
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-
-      // don’t hijack typing fields
       if (e.defaultPrevented || isTypingTarget(el)) return;
 
-      // "/" focuses search
       if (e.key === "/") {
         const input = document.querySelector('input[type="search"], input[role="searchbox"]') as
           | HTMLInputElement
@@ -196,7 +176,6 @@ export default function Page() {
         return;
       }
 
-      // "g" then key = quick jump
       if (e.key.toLowerCase() === "g") {
         const map: Record<string, string> = {
           n: "#navigation",
@@ -204,7 +183,6 @@ export default function Page() {
           s: "#support-events",
           a: "#academics",
           t: "#student-tools",
-          u: "#events",
           d: "/admin",
         };
 
@@ -224,7 +202,8 @@ export default function Page() {
           if (isTypingTarget(t)) return;
 
           const target = map[ev.key.toLowerCase()];
-          if (!target) return; // allow a second try within the timeout
+          if (!target) return;
+
           ev.preventDefault();
 
           if (target.startsWith("#")) {
@@ -247,152 +226,128 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="min-h-screen selection:bg-slate-900/90 selection:text-white pb-[calc(env(safe-area-inset-bottom)+84px)]">
-      {/* Hero */}
+    <div className="min-h-screen pb-3 selection:bg-slate-900/90 selection:text-white">
       <div className={`${CONTAINER} mt-0`}>
         <TopHeroNavigation />
       </div>
 
-      {/* Search */}
       <div className={`${CONTAINER} mt-4`}>
         <SearchBar />
       </div>
 
-      {/* ✅ Quick shortcuts removed */}
       <div className={`${CONTAINER} mt-3`}>
         <ServiceStatusBar />
       </div>
 
-      {/* 1) Campus Navigation (MAIN) — DO NOT TOUCH */}
       <Section id="navigation" title="Campus Navigation">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <TileCard
-            href="/navigate"
-            title="Navigate"
-            subtitle="Turn-by-turn campus directions and accessible routes"
-            icon={<CompassIcon />}
-            variant="spotlight"
-            badge="Start here"
-            status="open"
-          />
-          <TileCard
-            href="/navigate/map"
-            title="Maps"
-            subtitle="Browse buildings, labs, lecture halls and facilities"
-            icon={<MapPinIcon />}
-            variant="spotlight"
-            badge="Updated"
-          />
-        </div>
-      </Section>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+    <TileCard
+      href="/navigate"
+      title="Navigate"
+      subtitle="Fast turn-by-turn campus directions and accessible routes"
+      icon={<Compass className="h-5 w-5" />}
+      variant="spotlight"
+      badge="Start here"
+      status="open"
+    />
+    <TileCard
+      href="/navigate/map"
+      title="Maps"
+      subtitle="Buildings, lecture halls, labs and campus facilities"
+      icon={<MapIcon className="h-5 w-5" />}
+      variant="spotlight"
+      badge="Latest map"
+      status="updated"
+    />
+  </div>
+</Section>
 
-      {/* 2) Emergency & Safety */}
-      <Section
-        id="emergency"
-        title="Emergency & Safety"
-        subtitle="Security contacts, evacuation routes, and safety guidance."
-      >
-        <div className={GRID_4}>
-          <Wrap>
-            <TileCard href="/security-contact" title="Security Contact" icon={<PhoneIcon />} tone="red" />
-          </Wrap>
-          <Wrap>
-            <TileCard href="/exit-navigation" title="Exit Navigation" icon={<CompassIcon />} tone="red" />
-          </Wrap>
-          <Wrap>
-            <TileCard href="/safety" title="Staying Safe" icon={<ShieldIcon />} tone="red" />
-          </Wrap>
-          <Wrap>
-            <TileCard href="/emergency" title="Emergency Hub" icon={<ShieldIcon />} tone="red" />
-          </Wrap>
-        </div>
-      </Section>
+<Section
+  id="emergency"
+  title="Emergency & Safety"
+  subtitle="Security contacts, evacuation routes, and safety guidance."
+>
+  <div className={GRID_4}>
+    <Wrap>
+      <TileCard
+        href="/security-contact"
+        title="Security Contact"
+        icon={<Phone className="h-5 w-5" />}
+        tone="red"
+      />
+    </Wrap>
+    <Wrap>
+      <TileCard
+        href="/exit-navigation"
+        title="Exit Navigation"
+        icon={<Compass className="h-5 w-5" />}
+        tone="red"
+      />
+    </Wrap>
+    <Wrap>
+      <TileCard
+        href="/safety"
+        title="Staying Safe"
+        icon={<Shield className="h-5 w-5" />}
+        tone="red"
+      />
+    </Wrap>
+    <Wrap>
+      <TileCard
+        href="/emergency"
+        title="Emergency Hub"
+        icon={<AlertTriangle className="h-5 w-5" />}
+        tone="red"
+      />
+    </Wrap>
+  </div>
+</Section>
 
-      {/* 3) Support & Events */}
-      <Section id="support-events" title="Support & Events" subtitle="Get help fast and see what’s happening on campus.">
-        <div className={GRID_2}>
-          <Wrap>
-            <TileCard href="/support" title="Live Support" icon={<ChatIcon />} />
-          </Wrap>
-          <Wrap>
-            <TileCard href="/events" title="Events" icon={<CalendarIcon />} />
-          </Wrap>
-        </div>
-      </Section>
+<Section
+  id="support-events"
+  title="Support & Events"
+  subtitle="Get help fast and see what’s happening on campus."
+>
+  <div className={GRID_2}>
+    <Wrap>
+      <TileCard
+        href="/support"
+        title="Live Support"
+        icon={<LifeBuoy className="h-5 w-5" />}
+      />
+    </Wrap>
+    <Wrap>
+      <TileCard
+        href="/events"
+        title="Events"
+        icon={<CalendarDays className="h-5 w-5" />}
+      />
+    </Wrap>
+  </div>
+</Section>
 
-      {/* 4) Academics */}
-      <Section id="academics" title="Academics" subtitle="Core student links for classes and study.">
-        <div className={GRID_2}>
-          <Wrap>
-            <TileCard href="/timetable" title="Timetable" icon={<CalendarIcon />} />
-          </Wrap>
-          <Wrap>
-            <TileCard href="/library" title="Library" icon={<BookIcon />} />
-          </Wrap>
-        </div>
-      </Section>
-
-      {/* 5) Student Tools */}
-      <Section id="student-tools" title="Student Tools" subtitle="Canvas, student portal, and essential systems.">
-        <div className={GRID_2}>
-          <Wrap>
-            <TileCard
-              href="https://www.swinburne.edu.my/canvas/"
-              title="Canvas"
-              icon={
-                <Image
-                  src="/images/canvas-logo.png"
-                  alt="Canvas"
-                  width={24}
-                  height={24}
-                  className="h-6 w-6 object-contain"
-                />
-              }
-              iconVariant="image"
-              external
-            />
-          </Wrap>
-
-          <Wrap>
-            <TileCard
-              href="https://login.microsoftonline.com/3f639a9b-27c8-4403-82b1-ebfb88052d15/wsfed?wa=wsignin1.0&wtrealm=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&wctx=rm%3d0%26id%3dpassive%26ru%3dsecure%2fstudent%2fstuportal.aspx&wreply=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&AppType=Portal&Role=STUDENT"
-              title="Student Portal"
-              icon={
-                <Image
-                  src="/images/swinburne-student_portal.png"
-                  alt="Student Portal"
-                  width={24}
-                  height={24}
-                  className="h-6 w-6 object-contain"
-                />
-              }
-              iconVariant="image"
-              external
-            />
-          </Wrap>
-        </div>
-      </Section>
-
-      {/* 6) Upcoming events */}
-      <Section id="events" title="Upcoming events" subtitle="A quick glance at what’s next.">
-        <div className="min-h-[96px]">
-          <MiniEvents items={EVENTS} limit={2} showHeading={false} showSeeAll={false} />
-        </div>
-      </Section>
-
-      <footer className={`${CONTAINER} my-12 text-xs text-slate-500`}>
-        © Swinburne 2025 · Privacy · We respectfully acknowledge the Wurundjeri People…
-        {IS_STAFF_LINK && (
-          <Link
-            href="/admin"
-            className="ml-3 underline decoration-dotted hover:text-slate-600"
-            aria-label="Staff console"
-          >
-            Staff console
-          </Link>
-        )}
-      </footer>
-
+<Section
+  id="academics"
+  title="Study & Library"
+  subtitle="Access your timetable and reserve discussion rooms."
+>
+  <div className={GRID_2}>
+    <Wrap>
+      <TileCard
+        href="/timetable"
+        title="Timetable"
+        icon={<Clock3 className="h-5 w-5" />}
+      />
+    </Wrap>
+    <Wrap>
+      <TileCard
+        href="/book-a-room"
+        title="Book a Room"
+        icon={<BookOpen className="h-5 w-5" />}
+      />
+    </Wrap>
+  </div>
+</Section>
       <ChatLauncher />
     </div>
   );

@@ -51,6 +51,41 @@ const QUICK_START_CHIPS: {
 
 const SECURITY_PHONE = "082-260991";
 
+function AssistantGlyph({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+    </svg>
+  );
+}
+
+function AssistantAvatar({ size = "md" }: { size?: "sm" | "md" }) {
+  const small = size === "sm";
+
+  return (
+    <span
+      className={[
+        "flex items-center justify-center ring-1 bg-[#D42A30]/10 text-[#D42A30] ring-[#D42A30]/15",
+        small
+          ? "h-5 w-5 rounded-[10px] shadow-[0_6px_14px_rgba(212,42,48,.12)]"
+          : "h-10 w-10 rounded-2xl shadow-[0_10px_24px_rgba(212,42,48,.14)]",
+      ].join(" ")}
+      aria-hidden
+    >
+      <AssistantGlyph className={small ? "h-2.5 w-2.5" : "h-5 w-5"} />
+    </span>
+  );
+}
+
 function isGreetingReply(text: string): boolean {
   const t = text.toLowerCase();
   return (
@@ -124,15 +159,14 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
   const dragStartYRef = useRef(0);
   const currentDragOffsetRef = useRef(0);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const handleRef = useRef<HTMLDivElement>(null);
 
   function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isTyping]);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -342,12 +376,11 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
   return (
     <>
       <div
-        className="fixed inset-0 z-[100] flex flex-col items-stretch chat-overlay"
+        className="fixed inset-0 z-[100] flex items-end justify-center chat-overlay"
         style={{
-          paddingTop: "env(safe-area-inset-top)",
-          paddingBottom: "env(safe-area-inset-bottom)",
+          paddingTop: "max(env(safe-area-inset-top), 0.5rem)",
+          paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)",
           height: "100dvh",
-          minHeight: "100vh",
           overflow: "hidden",
           overscrollBehavior: "none",
         }}
@@ -356,25 +389,28 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
       >
         <div
           ref={sheetRef}
-          className="relative flex-1 flex flex-col min-h-0 w-full max-w-2xl mx-auto px-4 sm:px-6 pointer-events-auto"
+          className="relative w-full max-w-2xl px-3 sm:px-6 pointer-events-auto"
           style={{
-            paddingTop: "0.75rem",
-            paddingBottom: 0,
             transform: dragOffset > 0 ? `translateY(${dragOffset}px)` : "translateY(0)",
             transition: isDragging
               ? "none"
               : "transform 0.35s cubic-bezier(0.22, 0.8, 0.3, 1)",
           }}
         >
-          <div className="chat-sheet flex flex-1 flex-col min-h-0 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(15,23,42,0.24)] backdrop-blur-xl">
+          <div
+            className="chat-sheet flex flex-col overflow-hidden rounded-[30px] border border-slate-200/80 bg-white/95 shadow-[0_18px_45px_rgba(15,23,42,0.24)] backdrop-blur-xl"
+            style={{
+              height: "min(88dvh, 920px)",
+              maxHeight: "min(88dvh, 920px)",
+            }}
+          >
             <div
-              ref={handleRef}
               className="flex-shrink-0 flex justify-center pt-3 pb-2.5 cursor-grab active:cursor-grabbing"
               onTouchStart={handleDragStart}
               onMouseDown={handleDragStart}
             >
               <div
-                className="h-1 w-10 rounded-full bg-slate-300/80 shadow-[0_1px_0_rgba(255,255,255,0.85)]"
+                className="h-1.5 w-14 rounded-full bg-slate-300/80 shadow-[0_1px_0_rgba(255,255,255,0.85)]"
                 aria-hidden
               />
             </div>
@@ -382,20 +418,7 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
             <header className="flex-shrink-0 border-b border-slate-100/80 bg-white/95 px-4 pb-4 sm:px-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-[0_10px_30px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/70">
-                    <svg
-                      className="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.75"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden
-                    >
-                      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                    </svg>
-                  </div>
+                  <AssistantAvatar />
 
                   <div className="min-w-0">
                     <h2
@@ -494,20 +517,7 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
                       ) : (
                         <div className="flex max-w-[92%] flex-col gap-2">
                           <div className="flex items-center gap-2 pl-0.5">
-                            <div className="flex h-5 w-5 items-center justify-center rounded-[10px] bg-slate-900 text-white shadow-[0_8px_18px_rgba(15,23,42,0.4)] ring-1 ring-slate-800/80">
-                              <svg
-                                className="w-2.5 h-2.5"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden
-                              >
-                                <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                              </svg>
-                            </div>
+                            <AssistantAvatar size="sm" />
                             <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">
                               Assistant
                             </span>
@@ -781,27 +791,17 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
                   >
                     <div className="flex max-w-[92%] flex-col gap-2">
                       <div className="flex items-center gap-2 pl-0.5">
-                        <div className="flex h-5 w-5 items-center justify-center rounded-md bg-slate-800 text-white">
-                          <svg
-                            className="w-2.5 h-2.5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                          </svg>
-                        </div>
+                        <AssistantAvatar size="sm" />
                         <span className="text-[11px] font-medium text-slate-500">
                           Assistant
                         </span>
                       </div>
 
-                      <div className="rounded-2xl rounded-bl-md border border-slate-200/80 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                      <div className="rounded-2xl rounded-bl-xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <div className="flex items-center gap-1.5" aria-label="Thinking">
-                          <span className="typing-bar h-2 w-4 rounded-full bg-slate-200" />
-                          <span className="typing-bar h-2 w-4 rounded-full bg-slate-200" />
-                          <span className="typing-bar h-2 w-4 rounded-full bg-slate-200" />
+                          <span className="typing-bar h-2.5 w-4 rounded-full bg-[#D42A30]/35" />
+                          <span className="typing-bar h-2.5 w-4 rounded-full bg-[#D42A30]/35" />
+                          <span className="typing-bar h-2.5 w-4 rounded-full bg-[#D42A30]/35" />
                         </div>
                       </div>
                     </div>
@@ -813,9 +813,9 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
 
               <form
                 onSubmit={handleSubmit}
-                className="chat-composer flex-shrink-0 flex gap-2 border-t border-slate-100/80 bg-white/95 px-4 py-3 sm:px-5 touch-manipulation z-10"
+                className="chat-composer flex-shrink-0 flex gap-2 border-t border-slate-100/80 bg-white/98 px-4 py-3 sm:px-5 touch-manipulation z-10"
                 style={{
-                  paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+                  paddingBottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.4rem))",
                 }}
               >
                 <input
@@ -823,7 +823,7 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask a question…"
-                  className="chat-input flex-1 min-w-0 rounded-full border border-slate-200/80 bg-slate-50/90 px-4 py-3 min-h-[44px] leading-normal text-slate-900 placeholder:text-slate-500 focus:bg-white focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#D42A30]/55 focus:ring-offset-1 focus:ring-offset-white touch-manipulation"
+                  className="chat-input flex-1 min-w-0 rounded-full border border-slate-200/80 bg-slate-50/90 px-4 py-3 min-h-[48px] leading-normal text-slate-900 placeholder:text-slate-500 focus:bg-white focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#D42A30]/55 focus:ring-offset-1 focus:ring-offset-white touch-manipulation"
                   style={{ fontSize: "16px" }}
                   disabled={isTyping}
                   aria-label="Message"
@@ -834,7 +834,7 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
                 <button
                   type="submit"
                   disabled={isTyping || !inputValue.trim()}
-                  className="chat-send flex-shrink-0 rounded-full bg-slate-950 px-4 py-3 min-h-[44px] leading-normal font-semibold text-slate-50 shadow-[0_16px_32px_rgba(15,23,42,0.6)] transition-all hover:bg-slate-900 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D42A30]/65 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
+                  className="chat-send flex-shrink-0 rounded-full bg-slate-950 px-4 py-3 min-h-[48px] leading-normal font-semibold text-slate-50 shadow-[0_16px_32px_rgba(15,23,42,0.6)] transition-all hover:bg-slate-900 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D42A30]/65 focus-visible:ring-offset-1 focus-visible:ring-offset-white"
                   style={{ fontSize: "16px" }}
                 >
                   Send
@@ -851,34 +851,43 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
           backdrop-filter: blur(18px);
           touch-action: manipulation;
         }
+
         .chat-sheet {
           animation: chatSheetIn 0.4s cubic-bezier(0.21, 0.85, 0.3, 1) both;
           transform-origin: bottom center;
         }
+
         .chat-input {
           -webkit-appearance: none;
           appearance: none;
         }
+
         .chat-input::placeholder {
           font-size: 16px;
         }
+
         .chat-scroll {
           -webkit-overflow-scrolling: touch;
           overflow-anchor: auto;
         }
+
         .chat-scroll::-webkit-scrollbar {
           width: 6px;
         }
+
         .chat-scroll::-webkit-scrollbar-track {
           background: transparent;
         }
+
         .chat-scroll::-webkit-scrollbar-thumb {
           background-color: rgba(148, 163, 184, 0.4);
           border-radius: 999px;
         }
+
         .message-enter {
           animation: chatMessageIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
+
         @keyframes chatSheetIn {
           0% {
             opacity: 0;
@@ -893,6 +902,7 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
             transform: translateY(0) scale(1);
           }
         }
+
         @keyframes chatMessageIn {
           from {
             opacity: 0;
@@ -903,18 +913,22 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
             transform: translateY(0);
           }
         }
+
         .typing-bar {
           animation: typingBar 1.1s ease-in-out infinite;
         }
+
         .typing-bar:nth-child(2) {
           animation-delay: 0.15s;
         }
+
         .typing-bar:nth-child(3) {
           animation-delay: 0.3s;
         }
+
         @keyframes typingBar {
           0%, 100% {
-            opacity: 0.4;
+            opacity: 0.35;
             transform: scaleY(0.7);
           }
           50% {
@@ -922,6 +936,14 @@ export default function AssistantChat({ onClose }: AssistantChatProps) {
             transform: scaleY(1);
           }
         }
+
+        @media (max-width: 640px) {
+          .chat-sheet {
+            height: min(86dvh, 860px) !important;
+            max-height: min(86dvh, 860px) !important;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .message-enter {
             animation: none;

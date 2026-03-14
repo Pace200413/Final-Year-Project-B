@@ -4,25 +4,35 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-type NavItem = { label: string; href: string; emoji: string };
+type NavItem = {
+  label: string;
+  href: string;
+  emoji: string;
+};
 
 const NAV: NavItem[] = [
-  { label: "Overview",        href: "/admin",                 emoji: "🏠" },
+  { label: "Overview", href: "/admin", emoji: "🏠" },
   { label: "Exit Navigation", href: "/admin/exit-navigation", emoji: "🚪" },
-  { label: "Safety",          href: "/admin/safety",          emoji: "🛡️" },
-  { label: "Security",        href: "/admin/security",        emoji: "🚨" },
-  { label: "Support",         href: "/admin/support",         emoji: "🛟" },
-  { label: "Events",          href: "/admin/events",          emoji: "📅" },
-  { label: "Banners",         href: "/admin/banners",         emoji: "📣" },
-  { label: "Services",        href: "/admin/services",        emoji: "🗂️" },
-  { label: "Incidents",       href: "/admin/incidents",       emoji: "🚦" },
- 
+  { label: "Safety", href: "/admin/safety", emoji: "🛡️" },
+  { label: "Emergency", href: "/admin/emergency", emoji: "🚨" },
+  { label: "Support", href: "/admin/support", emoji: "🛟" },
+  { label: "Security Contact", href: "/admin/security-contact", emoji: "📞" },
+  { label: "Events", href: "/admin/events", emoji: "📅" },
+  { label: "Banners", href: "/admin/banners", emoji: "📣" },
+  { label: "Services", href: "/admin/services", emoji: "🗂️" },
+  { label: "Incidents", href: "/admin/incidents", emoji: "🚦" },
 ];
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
 
   return (
     <div className="min-h-screen">
@@ -36,13 +46,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           >
             ☰
           </button>
+
           <div className="flex items-center gap-2">
             <span className="rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
               ADMIN
             </span>
             <h1 className="text-sm font-semibold">Console</h1>
           </div>
-          <Link href="/profile" className="text-sm underline">Profile</Link>
+
+          <Link href="/profile" className="text-sm underline">
+            Profile
+          </Link>
         </div>
       </header>
 
@@ -64,6 +78,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               ✕
             </button>
           </div>
+
           <nav className="grid gap-1">
             {NAV.map((n) => (
               <Link
@@ -73,7 +88,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 className={`rounded-xl px-3 py-2 text-sm transition ${
                   isActive(n.href)
                     ? "bg-slate-900 text-white"
-                    : "hover:bg-slate-50 border border-slate-200"
+                    : "border border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 <span className="mr-2">{n.emoji}</span>

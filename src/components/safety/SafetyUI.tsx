@@ -223,8 +223,10 @@ export function SectionTitle({
 }) {
   return (
     <div className={className}>
-      <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-      {subtitle ? <p className="mt-1 text-sm text-slate-600">{subtitle}</p> : null}
+      <h2 className="text-[17px] font-semibold tracking-tight text-slate-900">
+        {title}
+      </h2>
+      {subtitle ? <p className="mt-1.5 text-sm leading-6 text-slate-600">{subtitle}</p> : null}
     </div>
   );
 }
@@ -281,12 +283,18 @@ export function InfoRow({
   right?: ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-4 px-5 py-4">
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        <p className="mt-1 text-sm leading-6 text-slate-600">{text}</p>
+    <div className="px-5 py-4">
+      <div className="min-w-0 max-w-2xl">
+        <h3 className="text-[15px] font-semibold tracking-tight text-slate-900 sm:text-base">
+          {title}
+        </h3>
+
+        <p className="mt-2 text-[15px] leading-7 text-slate-600">
+          {text}
+        </p>
+
+        {right ? <div className="mt-4">{right}</div> : null}
       </div>
-      {right ? <div className="shrink-0">{right}</div> : null}
     </div>
   );
 }

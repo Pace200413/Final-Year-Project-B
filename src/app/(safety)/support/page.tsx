@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mail, X } from "lucide-react";
 import { FaDoorOpen, FaPhoneAlt, FaShieldAlt } from "react-icons/fa";
@@ -17,40 +17,62 @@ import {
   SmartLink,
   toTelHref,
 } from "@/components/safety/SafetyUI";
+import {
+  DEFAULT_SUPPORT_PAGE_CONTENT,
+  type SupportPageContent,
+} from "@/lib/support-page";
 
-type Settings = {
-  alert: { text: string; phone: string; cta: string };
-  status: { name: string; ok: boolean; href?: string }[];
-  shortcuts: { label: string; cat?: string; q?: string }[];
-  services: Service[];
-  faqs: { q: string; a: string; tags?: string[] }[]; // still in payload, but we don't show it
-};
+const API = "/api/support-page";
 
 export default function SupportPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [content, setContent] = useState<SupportPageContent>(DEFAULT_SUPPORT_PAGE_CONTENT);
+  const bcRef = useRef<BroadcastChannel | null>(null);
+
+  const load = async () => {
+    try {
+      const r = await fetch(API, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const json = await r.json();
+      setContent(json.content ?? DEFAULT_SUPPORT_PAGE_CONTENT);
+    } catch {
+      setContent(DEFAULT_SUPPORT_PAGE_CONTENT);
+    }
+  };
 
   useEffect(() => {
-    fetch("/api/support/settings", { cache: "no-store" })
-      .then((r) => r.json())
-      .then(setSettings)
-      .catch(() => setSettings(null));
+    load();
+
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      bcRef.current = new BroadcastChannel("support-page-content");
+      bcRef.current.onmessage = (msg) => {
+        if (msg?.data?.type === "updated") load();
+      };
+    }
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "support-page:updated") load();
+    };
+
+    window.addEventListener("storage", onStorage);
+
+    return () => {
+      try {
+        bcRef.current?.close();
+      } catch {}
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const jumpToServices = () => {
     setDrawerOpen(false);
     setTimeout(() => {
-      document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("services")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }, 60);
   };
-
-  if (!settings) {
-    return (
-      <main className="min-h-screen bg-[#F7F8FA]">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">Loading…</div>
-      </main>
-    );
-  }
 
   return (
     <SafetyPageShell
@@ -59,22 +81,22 @@ export default function SupportPage() {
           ariaLabel="Emergency quick actions"
           items={[
             {
-              label: "Call Security",
-              href: toTelHref(settings.alert.phone),
+              label: content.stripCallSecurityLabel,
+              href: toTelHref(content.alertPhone),
               icon: <FaPhoneAlt />,
               tone: "red",
               ariaLabel: "Call campus security",
             },
             {
-              label: "Call 999",
+              label: content.stripCall999Label,
               href: "tel:999",
               icon: <FaShieldAlt />,
               tone: "dark",
               ariaLabel: "Call emergency services 999",
             },
             {
-              label: "Find Exit",
-              href: "/exit-navigation",
+              label: content.stripFindExitLabel,
+              href: content.exitNavUrl,
               icon: <FaDoorOpen />,
               tone: "light",
               ariaLabel: "Open exit navigation",
@@ -83,34 +105,34 @@ export default function SupportPage() {
         />
       }
     >
-      {/* Header (clear + calm) */}
       <SafetyCard>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <PageTitleBlock
-              eyebrow={<Eyebrow>Safety Hub</Eyebrow>}
-              title="Get Help / Report"
-              description="Use this page for non-urgent help and service contacts. If it’s urgent, call Security or 999."
+              eyebrow={<Eyebrow>{content.eyebrow}</Eyebrow>}
+              title={content.title}
+              description={content.description}
             />
           </div>
 
           <SmartLink
-            href="/emergency"
+            href={content.backToHubHref}
             className="shrink-0 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
           >
-            Back to hub
+            {content.backToHubLabel}
           </SmartLink>
         </div>
 
         <div className="mt-4 space-y-4">
-          <EmergencyBanner variant="smart" phone={settings.alert.phone} showContext={false} />
-          <ServiceStatusBar items={settings.status} />
+          <EmergencyBanner
+            variant="smart"
+            phone={content.alertPhone}
+            showContext={false}
+          />
+          <ServiceStatusBar items={content.status} />
 
-          <InlineAlert tone="amber">
-            If there is immediate danger or emergency, call Security or 999 instead of submitting a request.
-          </InlineAlert>
+          <InlineAlert tone="amber">{content.inlineAlertText}</InlineAlert>
 
-          {/* Minimal actions only */}
           <div className="flex gap-2">
             <button
               type="button"
@@ -121,7 +143,7 @@ export default function SupportPage() {
               aria-controls="request-drawer"
             >
               <Mail className="h-4 w-4" />
-              Send request
+              {content.drawerButtonLabel}
             </button>
 
             <button
@@ -129,27 +151,30 @@ export default function SupportPage() {
               onClick={jumpToServices}
               className="inline-flex flex-1 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
             >
-              Browse services
+              {content.browseButtonLabel}
             </button>
           </div>
         </div>
       </SafetyCard>
 
-      {/* One single browse/search area (no duplicates) */}
       <SafetyCard id="services" className="mt-4 scroll-mt-24">
-        <h2 className="text-[15px] font-semibold text-slate-900">Browse services</h2>
+        <h2 className="text-[15px] font-semibold text-slate-900">
+          {content.browseTitle}
+        </h2>
         <p className="mt-1 text-sm text-slate-600">
-          Find the right department and contact method quickly.
+          {content.browseDescription}
         </p>
 
         <div className="mt-4">
-          <SupportDirectory services={settings.services} preset={{}} />
+          <SupportDirectory
+            services={content.services as Service[]}
+            preset={{}}
+          />
         </div>
       </SafetyCard>
 
-      <EmergencyFAB phone={settings.alert.phone} />
+      <EmergencyFAB phone={content.alertPhone} />
 
-      {/* Request drawer */}
       <AnimatePresence>
         {drawerOpen ? (
           <motion.div
@@ -158,13 +183,16 @@ export default function SupportPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setDrawerOpen(false)}
+            />
 
             <motion.aside
               id="request-drawer"
               role="dialog"
               aria-modal="true"
-              aria-label="Send a request"
+              aria-label={content.drawerTitle}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -173,9 +201,11 @@ export default function SupportPage() {
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="text-[15px] font-semibold text-slate-900">Send a request</h3>
+                  <h3 className="text-[15px] font-semibold text-slate-900">
+                    {content.drawerTitle}
+                  </h3>
                   <p className="mt-1 text-sm text-slate-500">
-                    Non-urgent support and after-hours requests.
+                    {content.drawerDescription}
                   </p>
                 </div>
 

@@ -1,72 +1,233 @@
 import { NextResponse } from "next/server";
-import { ensureFile, readJSON, writeJSON, slugify } from "@/lib/db";
-import type { CampusEvent } from "@/lib/types";
+import { auth } from "@/auth";
+import { supabaseAdmin } from "@/lib/db";
+import {
+  DEFAULT_EVENTS_PAGE_CONTENT,
+  contentToEventsPageRow,
+  diffEventsPageFields,
+  normalizeEventsPageContent,
+  rowToEventsPageContent,
+  sortCampusEvents,
+  stampEventsMetadata,
+  type EventsPageContent,
+  type EventsPageContentRow,
+} from "@/lib/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const FILE = "events.json";
+const ADMIN_ROLES = ["admin", "superadmin"];
 
-const SEED: CampusEvent[] = [
-  {
-    id: "orientation-briefing",
-    title: "Orientation Briefing",
-    category: "Orientation" as any,
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    endDate: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-    venue: { building: "Student Centre" } as any,
-    description: "Welcome session and campus tour.",
-    images: { thumbnail: "", hero: "" } as any,
-    isPublished: true as any,
-  } as any,
-];
+async function requireAdmin() {
+  const session = await auth();
+  const authUserId = session?.user?.id ?? null;
+  const email = session?.user?.email?.toLowerCase() ?? null;
 
-async function readAll(): Promise<CampusEvent[]> {
-  await ensureFile(FILE, SEED);
-  const items = await readJSON<CampusEvent[]>(FILE, []);
-  items.sort((a, b) => +new Date(a.date) - +new Date(b.date));
-  return items;
+  if (!authUserId && !email) return null;
+
+  const db = supabaseAdmin();
+
+  const byAuth = authUserId
+    ? await db
+        .from("profiles")
+        .select("auth_user_id, email, role")
+        .eq("auth_user_id", authUserId)
+        .maybeSingle()
+    : null;
+
+  if (byAuth?.error) {
+    throw new Error(`Failed to verify admin profile: ${byAuth.error.message}`);
+  }
+
+  const byEmail =
+    !byAuth?.data && email
+      ? await db
+          .from("profiles")
+          .select("auth_user_id, email, role")
+          .eq("email", email)
+          .maybeSingle()
+      : null;
+
+  if (byEmail?.error) {
+    throw new Error(`Failed to verify admin profile: ${byEmail.error.message}`);
+  }
+
+  const profile = byAuth?.data ?? byEmail?.data ?? null;
+  const role = String(profile?.role ?? "").toLowerCase();
+
+  if (!ADMIN_ROLES.includes(role)) return null;
+
+  return {
+    authUserId: String(profile?.auth_user_id ?? authUserId ?? ""),
+    email: String(profile?.email ?? email ?? ""),
+  };
 }
 
-async function writeAll(items: CampusEvent[]) {
-  await writeJSON(FILE, items);
+async function getOrCreateEventsPageRow() {
+  const db = supabaseAdmin();
+
+  const { data, error } = await db
+    .from("events_page_content")
+    .select("*")
+    .eq("id", "default")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to load events page content: ${error.message}`);
+  }
+
+  if (data) return data as EventsPageContentRow;
+
+  const { data: inserted, error: insertError } = await db
+    .from("events_page_content")
+    .insert({
+      id: "default",
+      ...contentToEventsPageRow(DEFAULT_EVENTS_PAGE_CONTENT),
+    })
+    .select("*")
+    .single();
+
+  if (insertError) {
+    throw new Error(`Failed to seed events page content: ${insertError.message}`);
+  }
+
+  return inserted as EventsPageContentRow;
 }
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const published = url.searchParams.get("published"); // "1" or "0" or null
+async function getAudit() {
+  const { data, error } = await supabaseAdmin()
+    .from("events_page_audit")
+    .select(
+      "id, changed_at, changed_fields, changed_by_auth_user_id, changed_by_email"
+    )
+    .eq("events_page_id", "default")
+    .order("changed_at", { ascending: false })
+    .limit(20);
 
-  let items = await readAll();
-  if (published === "1") items = items.filter((e) => e.isPublished !== false);
+  if (error) {
+    throw new Error(`Failed to load events audit: ${error.message}`);
+  }
 
-  return NextResponse.json({ items });
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    changedAt: row.changed_at,
+    changedFields: row.changed_fields ?? [],
+    changedByAuthUserId: row.changed_by_auth_user_id,
+    changedByEmail: row.changed_by_email,
+  }));
 }
 
-export async function POST(req: Request) {
-  const body = (await req.json().catch(() => null)) as Partial<CampusEvent> | null;
-  if (!body?.title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+export async function GET() {
+  try {
+    const actor = await requireAdmin();
+    if (!actor) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const items = await readAll();
+    const row = await getOrCreateEventsPageRow();
 
-  const base = slugify(String(body.id ?? body.title));
-  let id = base || `event-${Math.random().toString(36).slice(2, 8)}`;
-  if (items.some((e) => e.id === id)) id = `${id}-${Math.random().toString(36).slice(2, 6)}`;
+    return NextResponse.json({
+      content: rowToEventsPageContent(row),
+      audit: await getAudit(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to load events admin data",
+      },
+      { status: 500 }
+    );
+  }
+}
 
-  const nowIso = new Date().toISOString();
-  const startIso = body.date ? new Date(body.date).toISOString() : nowIso;
-  const endIso = body.endDate ? new Date(body.endDate).toISOString() : startIso;
+export async function PATCH(req: Request) {
+  try {
+    const actor = await requireAdmin();
+    if (!actor) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const rec: CampusEvent = {
-    ...(body as any),
-    id,
-    title: String(body.title),
-    date: startIso,
-    endDate: endIso,
-    venue: (body.venue as any) ?? { building: "" },
-    isPublished: body.isPublished !== false,
-  } as any;
+    const patch = (await req.json()) as Partial<EventsPageContent>;
+    const currentRow = await getOrCreateEventsPageRow();
+    const before = rowToEventsPageContent(currentRow);
 
-  items.push(rec);
-  await writeAll(items);
-  return NextResponse.json({ ok: true, item: rec });
+    const afterDraft = normalizeEventsPageContent({
+      ...before,
+      ...patch,
+      events: patch.events ?? before.events,
+    });
+
+    const sortedDraft: EventsPageContent = {
+      ...afterDraft,
+      events: sortCampusEvents(afterDraft.events),
+    };
+
+    const changedFields = diffEventsPageFields(before, sortedDraft);
+
+    if (changedFields.length === 0) {
+      return NextResponse.json({
+        ok: true,
+        content: sortedDraft,
+        changedFields: [],
+        audit: await getAudit(),
+      });
+    }
+
+    const now = new Date().toISOString();
+
+    const after: EventsPageContent = {
+      ...sortedDraft,
+      events: stampEventsMetadata(before.events, sortedDraft.events, now),
+    };
+
+    const { error: updateError } = await supabaseAdmin()
+      .from("events_page_content")
+      .upsert({
+        id: "default",
+        ...contentToEventsPageRow(after),
+        updated_at: now,
+        updated_by_auth_user_id: actor.authUserId,
+        updated_by_email: actor.email,
+      });
+
+    if (updateError) {
+      throw new Error(`Failed to update events page content: ${updateError.message}`);
+    }
+
+    const { error: auditError } = await supabaseAdmin()
+      .from("events_page_audit")
+      .insert({
+        events_page_id: "default",
+        changed_at: now,
+        changed_by_auth_user_id: actor.authUserId,
+        changed_by_email: actor.email,
+        changed_fields: changedFields,
+        before_state: before,
+        after_state: after,
+      });
+
+    if (auditError) {
+      throw new Error(`Failed to write events audit: ${auditError.message}`);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      content: after,
+      changedFields,
+      audit: await getAudit(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to update events page content",
+      },
+      { status: 500 }
+    );
+  }
 }

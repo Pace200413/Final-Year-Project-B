@@ -25,22 +25,14 @@ import {
   SmartLink,
   toTelHref,
 } from "@/components/safety/SafetyUI";
+import {
+  DEFAULT_EMERGENCY_CONTENT,
+  type EmergencyContent,
+  type EmergencyMoreHelpCard,
+  type EmergencyQuickTile,
+} from "@/lib/emergency";
 
-type SecuritySettings = {
-  emergencyLabel: string; // shown inside the big call card
-  emergencyTel: string;   // campus security number
-  exitNavLabel: string;
-  exitNavUrl: string;
-};
-
-const API = "/api/admin/security-settings";
-
-const FALLBACK: SecuritySettings = {
-  emergencyLabel: "Campus Security",
-  emergencyTel: "082260607",
-  exitNavLabel: "Exit Navigation",
-  exitNavUrl: "/exit-navigation",
-};
+const API = "/api/emergency";
 
 function QuickTile({
   href,
@@ -71,8 +63,36 @@ function QuickTile({
   );
 }
 
+function quickTileIcon(icon: EmergencyQuickTile["icon"]) {
+  switch (icon) {
+    case "userShield":
+      return <FaUserShield />;
+    case "firstAid":
+      return <FaFirstAid />;
+    case "fireExtinguisher":
+      return <FaFireExtinguisher />;
+    case "comments":
+    default:
+      return <FaComments />;
+  }
+}
+
+function moreHelpIcon(icon: EmergencyMoreHelpCard["icon"]) {
+  switch (icon) {
+    case "shield":
+      return <FaShieldAlt />;
+    case "fireExtinguisher":
+      return <FaFireExtinguisher />;
+    case "door":
+      return <FaDoorOpen />;
+    case "comments":
+    default:
+      return <FaComments />;
+  }
+}
+
 export default function EmergencyPage() {
-  const [cfg, setCfg] = useState<SecuritySettings>(FALLBACK);
+  const [content, setContent] = useState<EmergencyContent>(DEFAULT_EMERGENCY_CONTENT);
   const bcRef = useRef<BroadcastChannel | null>(null);
 
   const load = async () => {
@@ -80,10 +100,9 @@ export default function EmergencyPage() {
       const res = await fetch(API, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      const s = (json.settings ?? json) as Partial<SecuritySettings>;
-      setCfg({ ...FALLBACK, ...s });
+      setContent(json.content ?? DEFAULT_EMERGENCY_CONTENT);
     } catch {
-      setCfg(FALLBACK);
+      setContent(DEFAULT_EMERGENCY_CONTENT);
     }
   };
 
@@ -91,14 +110,14 @@ export default function EmergencyPage() {
     load();
 
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("security-settings");
+      bcRef.current = new BroadcastChannel("emergency-content");
       bcRef.current.onmessage = (m) => {
         if (m?.data?.type === "updated") load();
       };
     }
 
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "security-settings:updated") load();
+      if (e.key === "emergency:updated") load();
     };
 
     window.addEventListener("storage", onStorage);
@@ -118,22 +137,22 @@ export default function EmergencyPage() {
           ariaLabel="Emergency quick actions"
           items={[
             {
-              label: "Call Security",
-              href: toTelHref(cfg.emergencyTel),
+              label: content.stripCallSecurityLabel,
+              href: toTelHref(content.emergencyTel),
               icon: <FaPhoneAlt />,
               tone: "red",
-              ariaLabel: "Call campus security",
+              ariaLabel: `Call ${content.emergencyLabel}`,
             },
             {
-              label: "Call 999",
+              label: content.stripCall999Label,
               href: "tel:999",
               icon: <FaShieldAlt />,
               tone: "dark",
               ariaLabel: "Call emergency services 999",
             },
             {
-              label: "Find Exit",
-              href: cfg.exitNavUrl,
+              label: content.stripFindExitLabel,
+              href: content.exitNavUrl,
               icon: <FaDoorOpen />,
               tone: "light",
               ariaLabel: "Open exit navigation",
@@ -142,36 +161,33 @@ export default function EmergencyPage() {
         />
       }
     >
-      {/* HERO */}
       <SafetyCard>
         <PageTitleBlock
-          eyebrow={<Eyebrow>Safety Hub</Eyebrow>}
-          title="Get help fast"
-          description="If it’s urgent: call security or 999 first. Then use exit navigation if you need to evacuate."
+          eyebrow={<Eyebrow>{content.eyebrow}</Eyebrow>}
+          title={content.heroTitle}
+          description={content.heroDescription}
         >
           <div className="grid grid-cols-1 gap-3">
-            {/* Big Call Security */}
             <a
-              href={toTelHref(cfg.emergencyTel)}
+              href={toTelHref(content.emergencyTel)}
               className="inline-flex items-center justify-between rounded-2xl px-4 py-4 text-white shadow-sm transition active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
               style={{ backgroundColor: SAFETY_RED }}
-              aria-label={`Call ${cfg.emergencyLabel || "Campus Security"}`}
+              aria-label={`Call ${content.emergencyLabel}`}
             >
               <div className="flex items-center gap-3">
                 <div className="rounded-xl bg-white/15 p-2">
                   <FaPhoneAlt />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">{cfg.emergencyLabel || "Campus Security"}</div>
-                  <div className="text-xs text-red-100">Immediate help on campus</div>
+                  <div className="text-sm font-semibold">{content.emergencyLabel}</div>
+                  <div className="text-xs text-red-100">{content.emergencySubtitle}</div>
                 </div>
               </div>
               <span className="text-sm opacity-80">→</span>
             </a>
 
-            {/* Big Find Exit */}
             <a
-              href={cfg.exitNavUrl}
+              href={content.exitNavUrl}
               className="inline-flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-4 text-white shadow-sm transition active:scale-[0.995] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
               aria-label="Open exit navigation"
             >
@@ -180,19 +196,18 @@ export default function EmergencyPage() {
                   <FaDoorOpen />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">{cfg.exitNavLabel || "Exit Navigation"}</div>
-                  <div className="text-xs text-slate-300">Use during evacuation</div>
+                  <div className="text-sm font-semibold">{content.exitNavLabel}</div>
+                  <div className="text-xs text-slate-300">{content.exitNavSubtitle}</div>
                 </div>
               </div>
               <span className="text-sm opacity-80">→</span>
             </a>
 
-            {/* Small secondary link */}
             <SmartLink
-              href="/security-contact"
-              className="text-center text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2 rounded-lg py-2"
+              href={content.secondaryLinkHref}
+              className="rounded-lg py-2 text-center text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
             >
-              Need more numbers? Open Emergency Contacts
+              {content.secondaryLinkLabel}
             </SmartLink>
           </div>
 
@@ -200,102 +215,67 @@ export default function EmergencyPage() {
             <InlineAlert tone="red">
               <div className="flex items-start gap-3">
                 <FaExclamationTriangle className="mt-0.5 shrink-0 text-red-600" />
-                <span>
-                  If there is immediate danger, injury, smoke, fire, or a serious security concern:
-                  <b> call first</b> and move to a safer location.
-                </span>
+                <span>{content.alertText}</span>
               </div>
             </InlineAlert>
           </div>
         </PageTitleBlock>
       </SafetyCard>
 
-      {/* WHAT'S HAPPENING (mobile clarity win) */}
       <div className="mt-5">
         <SectionTitle
-          title="What’s happening?"
-          subtitle="Pick the closest situation. We’ll take you to the right place."
+          title={content.quickSectionTitle}
+          subtitle={content.quickSectionSubtitle}
         />
 
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <QuickTile
-            href="/security-contact"
-            icon={<FaUserShield />}
-            title="I feel unsafe"
-            subtitle="Suspicious person, harassment, threats, after-hours concerns."
-          />
-          <QuickTile
-            href="/safety"
-            icon={<FaFirstAid />}
-            title="Medical / injury"
-            subtitle="First aid guidance and what to do before help arrives."
-          />
-          <QuickTile
-            href="/safety"
-            icon={<FaFireExtinguisher />}
-            title="Fire / smoke"
-            subtitle="Evacuate safely, use exits, and follow fire guidance."
-          />
-          <QuickTile
-            href="/support"
-            icon={<FaComments />}
-            title="Non-urgent help / report"
-            subtitle="Report issues, request help, browse FAQs and services."
-          />
+          {content.quickTiles.map((item, idx) => (
+            <QuickTile
+              key={`${item.title}-${idx}`}
+              href={item.href}
+              icon={quickTileIcon(item.icon)}
+              title={item.title}
+              subtitle={item.subtitle}
+            />
+          ))}
         </div>
       </div>
 
-      {/* MORE NAV (kept but renamed + de-duplicated) */}
       <div className="mt-5">
-        <SectionTitle title="More help & info" subtitle="Other useful pages in the Safety Hub." />
+        <SectionTitle
+          title={content.moreHelpTitle}
+          subtitle={content.moreHelpSubtitle}
+        />
 
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ActionLinkCard
-            href="/security-contact"
-            icon={<FaShieldAlt />}
-            title="Emergency Contacts"
-            description="More campus and public emergency numbers in one place."
-          />
-          <ActionLinkCard
-            href="/safety"
-            icon={<FaFireExtinguisher />}
-            title="What to do"
-            description="Fire, medical, weather, labs, personal safety, and more."
-          />
-          <ActionLinkCard
-            href="/support"
-            icon={<FaComments />}
-            title="Get Help / Report"
-            description="Non-urgent support, reporting, and FAQs."
-          />
-          <ActionLinkCard
-            href={cfg.exitNavUrl}
-            icon={<FaDoorOpen />}
-            title="Find Exit"
-            description="Open the nearest safe exit route from your location."
-          />
+          {content.moreHelpCards.map((item, idx) => (
+            <ActionLinkCard
+              key={`${item.title}-${idx}`}
+              href={item.href}
+              icon={moreHelpIcon(item.icon)}
+              title={item.title}
+              description={item.description}
+            />
+          ))}
         </div>
       </div>
 
-      {/* SIMPLE EXPLANATION */}
       <SafetyCard className="mt-5 overflow-hidden p-0">
         <div className="border-b border-slate-100 px-5 py-4">
-          <SectionTitle title="How to use this hub" subtitle="Simple order: action first, information second." />
+          <SectionTitle
+            title={content.howToTitle}
+            subtitle={content.howToSubtitle}
+          />
         </div>
 
         <div className="divide-y divide-slate-100">
-          <InfoRow
-            title="1) Call first"
-            text="For urgent situations, call Campus Security or 999 immediately."
-          />
-          <InfoRow
-            title="2) Exit if needed"
-            text="If the area is unsafe, use Find Exit to evacuate quickly."
-          />
-          <InfoRow
-            title="3) Get help / report"
-            text="For non-urgent issues, use Get Help / Report to contact services or submit requests."
-          />
+          {content.howToSteps.map((step, idx) => (
+            <InfoRow
+              key={`${step.title}-${idx}`}
+              title={step.title}
+              text={step.text}
+            />
+          ))}
         </div>
       </SafetyCard>
     </SafetyPageShell>

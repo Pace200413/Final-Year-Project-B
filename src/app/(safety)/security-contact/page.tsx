@@ -17,65 +17,17 @@ import {
   SAFETY_RED,
   toTelHref,
 } from "@/components/safety/SafetyUI";
+import {
+  DEFAULT_SECURITY_CONTACT_CONTENT,
+  type SecurityContactContent,
+} from "@/lib/security-contact";
 
-type SecuritySettings = {
-  emergencyLabel: string;
-  emergencyTel: string; // may be 999 or campus emergency — we will call Security from contacts[0] if available
-  exitNavLabel: string;
-  exitNavUrl: string;
-  title: string;
-  subtitle: string;
-  alertText: string;
-  exitGuide: {
-    locationText: string;
-    nearestExitText: string;
-    linkText: string;
-    linkHref: string;
-  };
-  contacts: { name: string; phone: string }[];
-  bottomCards: { title: string; description: string; href: string; linkText?: string }[];
-};
-
-const API = "/api/admin/security-settings";
-
-const FALLBACK: SecuritySettings = {
-  emergencyLabel: "Emergency",
-  emergencyTel: "999",
-  exitNavLabel: "Exit Navigation",
-  exitNavUrl: "/exit-navigation",
-  title: "Emergency Contacts",
-  subtitle: "Tap a contact to call. For urgent danger, call Security or 999 first.",
-  alertText:
-    "If there is immediate danger, injury, smoke, fire, or a serious security concern, call first and move to a safer location.",
-  exitGuide: {
-    locationText: "Your location will appear here.",
-    nearestExitText: "Nearest exit will be suggested automatically.",
-    linkText: "Find Exit",
-    linkHref: "/exit-navigation",
-  },
-  contacts: [
-    { name: "Campus Security", phone: "082-260-607" },
-    { name: "Emergency Services", phone: "999" },
-    { name: "Health Clinic", phone: "082-260-620" },
-  ],
-  bottomCards: [
-    {
-      title: "What to do",
-      description: "Step-by-step guidance for fire, medical, weather, personal safety, and more.",
-      href: "/safety",
-      linkText: "Open safety guidance",
-    },
-    {
-      title: "Get Help / Report",
-      description: "Non-urgent support, reporting, service contacts, and FAQs.",
-      href: "/support",
-      linkText: "Open support",
-    },
-  ],
-};
+const API = "/api/security-contact";
 
 export default function SecurityContactPage() {
-  const [s, setS] = useState<SecuritySettings>(FALLBACK);
+  const [content, setContent] = useState<SecurityContactContent>(
+    DEFAULT_SECURITY_CONTACT_CONTENT
+  );
   const [err, setErr] = useState<string | null>(null);
   const bcRef = useRef<BroadcastChannel | null>(null);
 
@@ -84,11 +36,11 @@ export default function SecurityContactPage() {
       const r = await fetch(API, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json();
-      setS({ ...FALLBACK, ...(j.settings ?? j) });
+      setContent(j.content ?? DEFAULT_SECURITY_CONTACT_CONTENT);
       setErr(null);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
-      setS(FALLBACK);
+      setContent(DEFAULT_SECURITY_CONTACT_CONTENT);
     }
   };
 
@@ -96,14 +48,14 @@ export default function SecurityContactPage() {
     load();
 
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("security-settings");
+      bcRef.current = new BroadcastChannel("security-contact-content");
       bcRef.current.onmessage = (msg) => {
         if (msg?.data?.type === "updated") load();
       };
     }
 
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "security-settings:updated") load();
+      if (e.key === "security-contact:updated") load();
     };
 
     window.addEventListener("storage", onStorage);
@@ -116,7 +68,10 @@ export default function SecurityContactPage() {
     };
   }, []);
 
-  const securityPhone = s.contacts?.[0]?.phone || s.emergencyTel;
+  const primaryPhone =
+    content.contacts.find((c) => c.isPrimary)?.phone ||
+    content.contacts[0]?.phone ||
+    "999";
 
   return (
     <SafetyPageShell
@@ -125,22 +80,22 @@ export default function SecurityContactPage() {
           ariaLabel="Emergency quick actions"
           items={[
             {
-              label: "Call Security",
-              href: toTelHref(securityPhone),
+              label: content.stripCallSecurityLabel,
+              href: toTelHref(primaryPhone),
               icon: <FaPhoneAlt />,
               tone: "red",
               ariaLabel: "Call campus security",
             },
             {
-              label: "Call 999",
+              label: content.stripCall999Label,
               href: "tel:999",
               icon: <FaShieldAlt />,
               tone: "dark",
               ariaLabel: "Call emergency services 999",
             },
             {
-              label: "Find Exit",
-              href: s.exitNavUrl,
+              label: content.stripFindExitLabel,
+              href: content.exitNavUrl,
               icon: <FaDoorOpen />,
               tone: "light",
               ariaLabel: "Open exit navigation",
@@ -152,23 +107,29 @@ export default function SecurityContactPage() {
       <SafetyCard>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <PageTitleBlock eyebrow={<Eyebrow>Safety Hub</Eyebrow>} title={s.title} description={s.subtitle} />
+            <PageTitleBlock
+              eyebrow={<Eyebrow>{content.eyebrow}</Eyebrow>}
+              title={content.title}
+              description={content.subtitle}
+            />
           </div>
 
           <SmartLink
-            href="/emergency"
+            href={content.backToHubHref}
             className="shrink-0 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
           >
-            Back to hub
+            {content.backToHubLabel}
           </SmartLink>
         </div>
 
         <div className="mt-4">
-          <InlineAlert tone="red">{s.alertText}</InlineAlert>
+          <InlineAlert tone="red">{content.alertText}</InlineAlert>
 
           {err ? (
             <div className="mt-3">
-              <InlineAlert tone="amber">Using fallback contact details because settings could not be loaded.</InlineAlert>
+              <InlineAlert tone="amber">
+                Using fallback contact details because settings could not be loaded.
+              </InlineAlert>
             </div>
           ) : null}
         </div>
@@ -176,43 +137,50 @@ export default function SecurityContactPage() {
 
       <SafetyCard className="mt-5 overflow-hidden p-0">
         <div className="border-b border-slate-100 px-5 py-4">
-          <SectionTitle title="In an emergency" subtitle="Do these 3 steps first." />
+          <SectionTitle title={content.stepsTitle} subtitle={content.stepsSubtitle} />
         </div>
 
         <div className="divide-y divide-slate-100">
-          <NumberStep number="1" title="Call first" text="Call Campus Security or 999 immediately if the situation is urgent." />
-          <NumberStep number="2" title="Move to safety" text="Leave the area if needed and use Find Exit to evacuate quickly." />
-          <NumberStep number="3" title="Follow instructions" text="Follow directions from campus staff, security, or emergency responders." />
+          {content.steps.map((step, idx) => (
+            <NumberStep
+              key={`${step.title}-${idx}`}
+              number={step.number}
+              title={step.title}
+              text={step.text}
+            />
+          ))}
         </div>
       </SafetyCard>
 
       <SafetyCard className="mt-5">
-        <SectionTitle title="Find Exit" subtitle="Use during evacuation if it’s safe to move." />
+        <SectionTitle title={content.exitTitle} subtitle={content.exitSubtitle} />
         <div className="mt-3 rounded-2xl bg-slate-50 p-4">
           <p className="text-sm text-slate-700">
-            <span className="font-medium text-slate-900">Your location:</span> {s.exitGuide.locationText}
+            <span className="font-medium text-slate-900">Your location:</span>{" "}
+            {content.exitLocationText}
           </p>
           <p className="mt-2 text-sm text-slate-700">
-            <span className="font-medium text-slate-900">Nearest exit:</span> {s.exitGuide.nearestExitText}
+            <span className="font-medium text-slate-900">Nearest exit:</span>{" "}
+            {content.exitNearestText}
           </p>
 
-          <a
-            href={s.exitGuide.linkHref}
+          <SmartLink
+            href={content.exitLinkHref}
             className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
           >
-            {s.exitGuide.linkText}
-          </a>
+            {content.exitLinkText}
+          </SmartLink>
         </div>
       </SafetyCard>
 
       <SafetyCard className="mt-5 overflow-hidden p-0">
         <div className="border-b border-slate-100 px-5 py-4">
-          <SectionTitle title="Contacts" subtitle="Tap a contact to call directly from mobile." />
+          <SectionTitle title={content.contactsTitle} subtitle={content.contactsSubtitle} />
         </div>
 
         <div className="divide-y divide-slate-100">
-          {s.contacts.map((c, i) => {
-            const isPrimary = i === 0;
+          {content.contacts.map((c, i) => {
+            const isPrimary = !!c.isPrimary;
 
             return (
               <div key={`${c.name}-${i}`} className="flex items-center gap-3 px-5 py-4">
@@ -246,13 +214,13 @@ export default function SecurityContactPage() {
       </SafetyCard>
 
       <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {s.bottomCards.map((b, idx) => (
+        {content.bottomCards.map((card, idx) => (
           <ActionLinkCard
-            key={`${b.title}-${idx}`}
-            href={b.href}
+            key={`${card.title}-${idx}`}
+            href={card.href}
             icon={idx === 0 ? <FaShieldAlt /> : <FaMapMarkedAlt />}
-            title={b.title}
-            description={b.description}
+            title={card.title}
+            description={card.description}
           />
         ))}
       </div>

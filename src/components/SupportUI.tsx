@@ -73,97 +73,99 @@ export function TileCard({
 
   // ── Spotlight (premium hero) — KEEP AS IS
   if (variant === "spotlight") {
-    const dot =
-      status === "closed"
-        ? "bg-amber-500"
-        : status === "updated"
-          ? "bg-sky-500"
-          : status
-            ? "bg-emerald-500"
-            : "";
+  const dot =
+    status === "closed"
+      ? "bg-amber-500"
+      : status === "updated"
+        ? "bg-sky-500"
+        : status
+          ? "bg-emerald-500"
+          : "";
 
-    return (
-      <Wrapper
-        {...wrapperProps}
-        className={[
-          "group relative isolate overflow-hidden rounded-2xl",
-          "ring-1 ring-slate-200/70 shadow-sm",
-          "bg-gradient-to-br from-white to-slate-50",
-          "transition hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-200",
-          className || "",
-        ].join(" ")}
-        aria-label={title}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-2xl p-[1px]
-                     [background:conic-gradient(from_140deg,#D42A30_0%,#ea6a6a_15%,#fecaca_35%,transparent_40%)]
-                     opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-[1px] rounded-[calc(theme(borderRadius.2xl)-1px)]
-                     bg-gradient-to-br from-white to-slate-50"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-2xl
-                     bg-[linear-gradient(to_right,rgba(2,6,23,.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(2,6,23,.06)_1px,transparent_1px)]
-                     bg-[size:20px_20px]"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#D42A30]/15 blur-2xl"
-        />
+  return (
+    <Wrapper
+      {...wrapperProps}
+      className={[
+        "group relative isolate overflow-hidden rounded-[28px]",
+        "border border-slate-200/80 bg-white",
+        "shadow-[0_16px_40px_rgba(15,23,42,.08)]",
+        "transition-all duration-300 hover:-translate-y-[1px] hover:shadow-[0_24px_56px_rgba(15,23,42,.12)]",
+        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-200",
+        className || "",
+      ].join(" ")}
+      aria-label={title}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0
+                   bg-[linear-gradient(to_right,rgba(15,23,42,.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,.05)_1px,transparent_1px)]
+                   bg-[size:26px_26px] opacity-70"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-[42%]
+                   bg-gradient-to-l from-[#D42A30]/10 via-[#D42A30]/4 to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-8 top-4 h-28 w-28 rounded-full bg-[#D42A30]/10 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px
+                   bg-gradient-to-r from-transparent via-[#D42A30]/30 to-transparent"
+      />
 
-        <div className="relative z-10 grid min-h-[116px] grid-cols-[auto_1fr_auto] items-center gap-4 p-6">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-slate-900 text-white ring-1 ring-slate-900/10 shadow-sm">
-            <span className="text-xl" aria-hidden>
-              {icon}
-            </span>
-          </div>
+      <div className="relative z-10 grid min-h-[108px] grid-cols-[auto_1fr_auto] items-center gap-3 p-5 sm:p-6">
+        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-900 text-white ring-1 ring-slate-900/10 shadow-[0_12px_26px_rgba(15,23,42,.16)]">
+          <span className="text-xl" aria-hidden>
+            {icon}
+          </span>
+        </div>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              {badge && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-red-100">
-                  {badge}
-                </span>
-              )}
-              {status && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-slate-600">
-                  <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
-                  {status === "updated"
-                    ? "Updated"
-                    : status === "closed"
-                      ? "Closed"
-                      : "Open"}
-                </span>
-              )}
-            </div>
-            <div className="mt-1 text-[22px] font-semibold tracking-tight text-slate-900">
-              {title}
-            </div>
-            {subtitle && (
-              <p className="mt-0.5 line-clamp-2 text-[13.5px] text-slate-600">
-                {subtitle}
-              </p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            {badge && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700 ring-1 ring-red-100">
+                {badge}
+              </span>
+            )}
+            {status && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600">
+                <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+                {status === "updated"
+                  ? "Updated"
+                  : status === "closed"
+                    ? "Closed"
+                    : "Open"}
+              </span>
             )}
           </div>
 
-          <div className="ml-2">
-            <div
-              className="grid h-9 w-9 place-items-center rounded-full bg-white ring-1 ring-slate-200 shadow-sm
-                         transition-transform duration-300 group-hover:translate-x-0.5"
-              aria-hidden
-            >
-              <span className="text-slate-700">→</span>
-            </div>
+          <div className="mt-1 text-[20px] font-semibold tracking-tight text-slate-900 sm:text-[22px]">
+            {title}
+          </div>
+
+          {subtitle && (
+            <p className="mt-1 max-w-[34ch] line-clamp-2 text-[13.5px] leading-6 text-slate-600">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        <div className="ml-1">
+          <div
+            className="grid h-11 w-11 place-items-center rounded-2xl bg-white/95 text-slate-700 ring-1 ring-slate-200 shadow-sm
+                       transition-all duration-300 group-hover:translate-x-1 group-hover:bg-slate-900 group-hover:text-white"
+            aria-hidden
+          >
+            →
           </div>
         </div>
-      </Wrapper>
-    );
-  }
+      </div>
+    </Wrapper>
+  );
+}
 
   // ── Default (centered, no arrows)
   const tile =

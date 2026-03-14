@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
-import { useTheme } from "next-themes";
 import { getCookie, setCookie, deleteCookie } from "@/lib/client";
 
 /* =============================================================================
@@ -11,10 +10,10 @@ import { getCookie, setCookie, deleteCookie } from "@/lib/client";
 ============================================================================= */
 
 type EmergencyBannerProps = {
-  phone: string; // e.g. "082-260-607"
-  context?: string; // e.g. "Security: 24/7"
-  variant?: "default" | "smart"; // "smart" = frosted look
-  showContext?: boolean; // allow hiding the chip to avoid duplication
+  phone: string;
+  context?: string;
+  variant?: "default" | "smart";
+  showContext?: boolean;
 };
 
 export function EmergencyBanner({
@@ -27,26 +26,24 @@ export function EmergencyBanner({
 
   if (variant === "smart") {
     return (
-      <div className="rounded-2xl bg-white/80 backdrop-blur-xl shadow-sm ring-1 ring-black/5 px-4 py-3">
+      <div className="rounded-2xl bg-white/80 px-4 py-3 shadow-sm ring-1 ring-black/5 backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <span aria-hidden>🚨</span>
           <p className="flex-1 text-sm text-rose-900">
             Need urgent help? Call Campus Security{" "}
-            <a className="underline font-semibold" href={tel}>
+            <a className="font-semibold underline" href={tel}>
               {phone}
             </a>
             .
           </p>
           {showContext && (
-            <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 px-2.5 py-1 text-xs">
+            <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700 ring-1 ring-emerald-200 md:inline-flex">
               <span className="inline-block size-1.5 rounded-full bg-current" /> {context}
             </span>
           )}
           <a
             href={tel}
-            className="hidden sm:inline-flex items-center gap-2 rounded-xl px-3 py-2 text-white
-                       bg-gradient-to-b from-rose-500 to-rose-600 shadow-sm ring-1 ring-rose-600/20
-                       hover:from-rose-500 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/40 transition"
+            className="hidden items-center gap-2 rounded-xl bg-gradient-to-b from-rose-500 to-rose-600 px-3 py-2 text-white shadow-sm ring-1 ring-rose-600/20 transition hover:from-rose-500 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:inline-flex"
           >
             <Phone className="h-4 w-4" />
             Call now
@@ -66,16 +63,14 @@ export function EmergencyBanner({
         <span aria-hidden>🚨</span>
         <p className="flex-1">
           Need urgent help? Call Campus Security{" "}
-          <a className="underline font-semibold" href={tel}>
+          <a className="font-semibold underline" href={tel}>
             {phone}
           </a>{" "}
           — available 24/7.
         </p>
         <a
           href={tel}
-          className="hidden sm:inline-flex items-center gap-2 rounded-xl px-3 py-2 text-white
-                     bg-gradient-to-b from-rose-500 to-rose-600 shadow-sm ring-1 ring-rose-600/20
-                     hover:from-rose-500 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/40 transition"
+          className="hidden items-center gap-2 rounded-xl bg-gradient-to-b from-rose-500 to-rose-600 px-3 py-2 text-white shadow-sm ring-1 ring-rose-600/20 transition hover:from-rose-500 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500/40 sm:inline-flex"
         >
           <Phone className="h-4 w-4" />
           Call now
@@ -103,14 +98,14 @@ export function EmergencyFAB({ phone }: { phone: string }) {
 }
 
 /* =============================================================================
-   ServiceStatusBar.tsx  ✅ UPDATED: compact chips (not big cards)
+   ServiceStatusBar.tsx
 ============================================================================= */
 
 export type StatusItem = {
   name: string;
   ok: boolean;
   href?: string;
-  tip?: string; // optional label; default from ok
+  tip?: string;
   external?: boolean;
 };
 
@@ -124,10 +119,6 @@ export const STATUS_ITEMS: StatusItem[] = [
 
 function Dot({ ok }: { ok: boolean }) {
   return <span aria-hidden className={`h-2 w-2 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />;
-}
-
-function isExternalUrl(href: string) {
-  return /^https?:\/\//i.test(href);
 }
 
 export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[] }) {
@@ -147,9 +138,9 @@ export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[
 
           const content = (
             <div className="grid gap-0.5">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 <Dot ok={it.ok} />
-                <div className="min-w-0 text-[13px] font-semibold text-slate-900 leading-tight whitespace-normal">
+                <div className="min-w-0 whitespace-normal text-[13px] font-semibold leading-tight text-slate-900">
                   {it.name}
                 </div>
                 {external ? (
@@ -159,7 +150,7 @@ export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[
                 ) : null}
               </div>
 
-              <div className="pl-4 text-[11px] text-slate-500 leading-none truncate">
+              <div className="truncate pl-4 text-[11px] leading-none text-slate-500">
                 {statusText}
               </div>
             </div>
@@ -221,104 +212,65 @@ export function ServiceWorkerRegistration() {
 }
 
 /* =============================================================================
-   ThemeTransition.tsx
-============================================================================= */
-
-export function ThemeTransition() {
-  const { resolvedTheme } = useTheme();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      document.documentElement.style.transition = "background-color 0.3s ease, color 0.3s ease";
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [resolvedTheme]);
-
-  return null;
-}
-
-/* =============================================================================
    AppearanceClient.tsx
 ============================================================================= */
 
-type ThemePref = "system" | "light" | "dark";
-type TextSize = "normal" | "large";
+type TextSize = "default" | "large";
 type Contrast = "normal" | "high";
 
-function resolveTheme(pref: ThemePref): "light" | "dark" {
-  if (pref === "system" && typeof window !== "undefined") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-  return pref === "system" ? "light" : pref;
-}
-
-function apply(theme: "light" | "dark", text: TextSize, contrast: Contrast) {
+function applyAppearance(text: TextSize, contrast: Contrast) {
   const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
+  root.classList.remove("dark");
   root.classList.toggle("a11y-text-large", text === "large");
   root.classList.toggle("a11y-contrast-high", contrast === "high");
+  root.style.colorScheme = "light";
 }
 
-function setThemeColorMeta(isDark: boolean) {
+function setThemeColorMeta() {
   let el = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null;
   if (!el) {
     el = document.createElement("meta");
     el.name = "theme-color";
     document.head.appendChild(el);
   }
-  el.content = isDark ? "#0b1220" : "#ffffff";
+  el.content = "#F2F2F7";
 }
 
-export function AppearanceClient(props?: { themePref?: ThemePref; textSize?: TextSize; contrast?: Contrast }) {
-  const { themePref, textSize, contrast } = props ?? {};
+export function AppearanceClient(props?: { textSize?: TextSize; contrast?: Contrast }) {
+  const { textSize, contrast } = props ?? {};
 
   useEffect(() => {
     const readAndApply = () => {
-      const effectiveThemePref =
-        themePref ??
-        ((localStorage.getItem("profile_theme") as ThemePref) ??
-          (localStorage.getItem("guest_theme") as ThemePref) ??
-          "system");
+      const rawText = textSize ?? localStorage.getItem("a11y_text");
+      const effectiveText: TextSize = rawText === "large" ? "large" : "default";
+      const effectiveContrast: Contrast =
+        contrast ?? ((localStorage.getItem("a11y_contrast") as Contrast) || "normal");
 
-      const effectiveText = (textSize ?? (localStorage.getItem("a11y_text") as TextSize) ?? "normal") as TextSize;
-      const effectiveContrast =
-        (contrast ?? (localStorage.getItem("a11y_contrast") as Contrast) ?? "normal") as Contrast;
-
-      const resolved = resolveTheme(effectiveThemePref);
-      apply(resolved, effectiveText, effectiveContrast);
-      setThemeColorMeta(resolved === "dark");
-
-      return { effectiveThemePref };
+      applyAppearance(effectiveText, effectiveContrast);
+      setThemeColorMeta();
     };
 
-    let { effectiveThemePref } = readAndApply();
+    readAndApply();
 
     const onStorage = (e: StorageEvent) => {
       if (!e.key) return;
-      if (["profile_theme", "guest_theme", "a11y_text", "a11y_contrast"].includes(e.key)) {
-        ({ effectiveThemePref } = readAndApply());
+      if (["a11y_text", "a11y_contrast"].includes(e.key)) {
+        readAndApply();
       }
     };
-    window.addEventListener("storage", onStorage);
 
-    const cleanups: Array<() => void> = [() => window.removeEventListener("storage", onStorage)];
-
-    const attachMatchMedia = () => {
-      if (effectiveThemePref !== "system") return;
-      const mq = window.matchMedia("(prefers-color-scheme: dark)");
-      const onChange = () => readAndApply();
-      mq.addEventListener?.("change", onChange);
-      mq.addListener?.(onChange); // Safari < 14
-      cleanups.push(() => {
-        mq.removeEventListener?.("change", onChange);
-        mq.removeListener?.(onChange);
-      });
+    const onAppearanceChange = () => {
+      readAndApply();
     };
-    attachMatchMedia();
 
-    return () => cleanups.forEach((fn) => fn());
-  }, [themePref, textSize, contrast]);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("app-appearance-change", onAppearanceChange);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("app-appearance-change", onAppearanceChange);
+    };
+  }, [textSize, contrast]);
 
   return null;
 }
@@ -342,6 +294,7 @@ export function DevSwitches() {
     const rolesCsv = (getCookie("roles") ?? "")
       .split(",")
       .map((s) => s.trim().toLowerCase());
+
     const next: Record<Role, boolean> = { student: false, staff: false, admin: false };
     rolesCsv.forEach((r) => {
       if (r === "student" || r === "staff" || r === "admin") next[r] = true;
@@ -361,10 +314,12 @@ export function DevSwitches() {
 
   const applyChanges = () => {
     const selected = (Object.keys(roles) as Role[]).filter((r) => roles[r]);
+
     if (signedIn && selected.length === 0) {
       alert("Pick at least one role when signed in.");
       return;
     }
+
     if (signedIn) setCookie("auth", "1");
     else deleteCookie("auth");
 
@@ -472,7 +427,9 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       role="switch"
     >
       <span
-        className={`block h-5 w-5 translate-x-0.5 rounded-full bg-white transition ${checked ? "translate-x-[22px]" : ""}`}
+        className={`block h-5 w-5 translate-x-0.5 rounded-full bg-white transition ${
+          checked ? "translate-x-[22px]" : ""
+        }`}
       />
     </button>
   );

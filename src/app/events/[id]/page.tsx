@@ -152,7 +152,12 @@ export default function EventDetails() {
     <main className="bg-slate-50/40 min-h-screen pb-[96px]">
       <section className="maxw container-px pt-2">
         <div className="relative h-40 sm:h-52 w-full overflow-hidden bg-slate-900 rounded-3xl shadow-sm">
-          <Image src={heroSrc} alt={ev.title} fill className="object-cover" priority />
+          <img
+            src={heroSrc}
+            alt={ev.title}
+            className="h-full w-full object-cover"
+            loading="eager"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/50 to-transparent" />
 
           <div className="absolute inset-x-0 top-0 flex items-start justify-between px-4 pt-4">

@@ -1,6 +1,9 @@
-// src/app/admin/(console)/layout.tsx
-import type { ReactNode } from "react";
+import AdminShell from "@/admin/layouts/AdminShell";
 
-export default function ConsoleLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+export default function AdminConsoleLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <AdminShell>{children}</AdminShell>;
 }

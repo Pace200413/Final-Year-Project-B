@@ -7,4 +7,5 @@ export function getNavHrefForPlace(destKey: string): string | null {
     (d) => d.key === key || d.key.toLowerCase() === key.toLowerCase()
   );
   return dest?.href ?? null;
+
 }

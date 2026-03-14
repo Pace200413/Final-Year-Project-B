@@ -3,6 +3,12 @@ import { auth } from "@/auth";
 import { resolveOrCreateProfile, supabaseAdmin } from "@/lib/db";
 import type { AppProfile } from "@/lib/types";
 
+function deriveStudentIdFromEmail(email?: string | null) {
+  const clean = email?.trim().toLowerCase() ?? "";
+  const match = clean.match(/^(\d+)@students\.swinburne\.edu\.my$/i);
+  return match?.[1] ?? "";
+}
+
 function prettifyNameFromEmail(email?: string | null) {
   if (!email) return "";
   const local = email.split("@")[0] ?? "";
@@ -91,23 +97,29 @@ export async function PATCH(req: Request) {
     avatarUrl: identity.session.user.image ?? null,
   });
 
-  const payload = {
-    auth_user_id: identity.authUserId,
-    email: profile.email || identity.email,
-    full_name: cleanText((body as Record<string, unknown>).fullName) || profile.full_name || identity.fullName,
-    avatar_url: profile.avatar_url ?? identity.session.user.image ?? null,
-    student_id: cleanText((body as Record<string, unknown>).studentId) || null,
-    faculty: cleanText((body as Record<string, unknown>).faculty) || null,
-    course: cleanText((body as Record<string, unknown>).course) || null,
-    year_label: cleanText((body as Record<string, unknown>).yearLabel) || null,
-    campus: cleanText((body as Record<string, unknown>).campus) || "Swinburne Sarawak",
-    role: profile.role || "student",
-  };
+    const derivedStudentId = deriveStudentIdFromEmail(identity.email);
+
+    const payload = {
+      auth_user_id: identity.authUserId,
+      email: profile.email || identity.email,
+      full_name:
+        cleanText((body as Record<string, unknown>).fullName) ||
+        profile.full_name ||
+        identity.fullName,
+      avatar_url: profile.avatar_url ?? identity.session.user.image ?? null,
+      student_id: profile.student_id || derivedStudentId || null,
+      faculty: cleanText((body as Record<string, unknown>).faculty) || null,
+      course: cleanText((body as Record<string, unknown>).course) || null,
+      year_label: cleanText((body as Record<string, unknown>).yearLabel) || null,
+      campus:
+        cleanText((body as Record<string, unknown>).campus) || "Swinburne Sarawak",
+      role: profile.role || "student",
+    };
 
   const { data, error } = await supabaseAdmin()
     .from("profiles")
     .update(payload)
-    .eq("email", identity.email)
+    .eq("auth_user_id", identity.authUserId)
     .select("*")
     .single()
     .overrideTypes<AppProfile, { merge: false }>();

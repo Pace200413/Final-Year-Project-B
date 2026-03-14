@@ -203,14 +203,17 @@ export async function upsertProfile(input: {
   fullName?: string | null;
   avatarUrl?: string | null;
 }): Promise<AppProfile> {
+  const derivedStudentId = deriveStudentIdFromEmail(input.email);
+
   const { data, error } = await supabaseAdmin()
     .from("profiles")
     .upsert(
       {
         auth_user_id: input.authUserId,
-        email: input.email,
+        email: input.email.trim().toLowerCase(),
         full_name: input.fullName ?? null,
         avatar_url: input.avatarUrl ?? null,
+        student_id: derivedStudentId,
       },
       { onConflict: "auth_user_id" }
     )
@@ -221,7 +224,6 @@ export async function upsertProfile(input: {
   if (error) throw new Error(`Failed to upsert profile: ${error.message}`);
   return data as AppProfile;
 }
-
 export async function getProfileByEmail(email: string): Promise<AppProfile | null> {
   const { data, error } = await supabaseAdmin()
     .from("profiles")
@@ -245,12 +247,15 @@ export async function resolveOrCreateProfile(input: {
 
   const existingByEmail = await getProfileByEmail(input.email);
   if (existingByEmail) {
+    const derivedStudentId = deriveStudentIdFromEmail(input.email);
+
     const { data, error } = await supabaseAdmin()
       .from("profiles")
       .update({
         auth_user_id: input.authUserId,
         full_name: existingByEmail.full_name ?? input.fullName ?? null,
         avatar_url: existingByEmail.avatar_url ?? input.avatarUrl ?? null,
+        student_id: existingByEmail.student_id ?? derivedStudentId,
       })
       .eq("email", input.email)
       .select("*")
@@ -270,4 +275,10 @@ export async function resolveOrCreateProfile(input: {
     fullName: input.fullName,
     avatarUrl: input.avatarUrl,
   });
+}
+
+function deriveStudentIdFromEmail(email?: string | null): string | null {
+  const clean = email?.trim().toLowerCase() ?? "";
+  const match = clean.match(/^(\d+)@students\.swinburne\.edu\.my$/i);
+  return match?.[1] ?? null;
 }

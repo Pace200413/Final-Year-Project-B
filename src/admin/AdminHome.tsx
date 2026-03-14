@@ -586,8 +586,8 @@ export function AdminHome() {
                   <Link className="chip" href="/admin/support">
                     Support directory
                   </Link>
-                  <Link className="chip" href="/admin/security">
-                    Security settings
+                  <Link className="chip" href="/admin/emergency">
+                    Emergency
                   </Link>
                 </div>
               </div>
