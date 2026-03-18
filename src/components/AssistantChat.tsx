@@ -6,15 +6,7 @@ import { useRouter } from "next/navigation";
 import { copyToClipboard, showToast } from "@/lib/client";
 import { formatTimeForDisplay } from "@/lib/utils";
 import { getNavHrefForPlace } from "@/lib/navigation";
-
-type Action =
-  | { type: "OPEN_SUPPORT"; label: string }
-  | { type: "OPEN_NAVIGATION"; label: string; placeId?: string }
-  | { type: "OPEN_ROUTE"; label: string; value: string }
-  | { type: "OPEN_LINK"; label: string; value: string }
-  | { type: "CALL_PHONE"; label: string; value: string }
-  | { type: "CALL_SECURITY"; label: string }
-  | { type: "COPY_CONTACT"; label: string; value: string };
+import type { Action } from "@/lib/assistant/types";
 
 interface Message {
   id: string;
@@ -126,7 +118,7 @@ function createWelcomeMessage(): Message {
 
 function buildHistory(
   messages: Message[],
-  maxTurns = 8
+  maxTurns = 6
 ): { role: "user" | "assistant"; content: string }[] {
   const out: { role: "user" | "assistant"; content: string }[] = [];
 
