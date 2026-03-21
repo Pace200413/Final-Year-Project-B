@@ -29,7 +29,7 @@ const BUILDING_INFO: Record<
     category: "student_facility",
     has360View: true,
     keywords: ["student hub", "Volleyball Court", "activity", "S Hub Sport Hall"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/shub1_pic.jpg",
     hours: "Mon - Sun, 9:00 AM - 10:00 PM",
   },
 
@@ -40,7 +40,7 @@ const BUILDING_INFO: Record<
     category: "student_facility",
     has360View: true,
     keywords: ["student hub", "hub", "Dancing Room", "Gaming Room"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/shub_pic.jpg",
     hours: "Mon - Sun, 9:00 AM - 10:00 PM",
   },
 
@@ -50,7 +50,7 @@ const BUILDING_INFO: Record<
       "Male accommodation building within the Swinburne Student Village.",
     category: "residential",
     has360View: false,
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/sv_inside_pic.jpg",
     hours: "-",
   },
 
@@ -61,7 +61,7 @@ const BUILDING_INFO: Record<
     category: "residential",
     has360View: false,
     keywords: ["sv kitchen", "SV Lobby", "SV Main Door", "Student Village"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/sv_outside_pic.jpg",
     hours: "SV Office Mon - Fri, 8:00 AM - 5:00 PM",
   },
 
@@ -72,7 +72,7 @@ const BUILDING_INFO: Record<
     category: "food",
     has360View: true,
     keywords: ["canteen", "food", "dining", "hall"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/diningpic.jpg",
     hours: "Mon - Fri, 7:00 AM - 5:00 PM",
   },
 
@@ -83,7 +83,7 @@ const BUILDING_INFO: Record<
     category: "academic",
     has360View: false,
     keywords: ["IT", "IT Deparment", "BlockG"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/blockg_pic.jpg",
     hours: "Mon - Fri, 8:00 AM - 5:30 PM",
   },
 
@@ -94,7 +94,7 @@ const BUILDING_INFO: Record<
     category: "academic",
     has360View: true,
     keywords: ["Junction", "Library", "John's Pie", "Student HQ"],
-    imageUrl: "/places/borneo-atrium.jpg",
+    imageUrl: "/images/lobby.jpg",
     hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
   },
 
@@ -104,7 +104,7 @@ const BUILDING_INFO: Record<
       "Campus multi-level parking facility for students and staff vehicles.",
     category: "parking",
     has360View: false,
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/parking_pic.jpg",
     hours: "-",
   },
 
@@ -115,7 +115,7 @@ const BUILDING_INFO: Record<
     category: "sports",
     has360View: true,
     keywords: ["Sport Hall", "Badminton Court", "Bastketball Court", "GYM"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/mph_pic.jpg",
     hours: "Mon - Fri, 7:00 AM - 23:00 PM",
   },
 
@@ -125,7 +125,7 @@ const BUILDING_INFO: Record<
       "Female accommodation building within the Swinburne Student Village.",
     category: "residential",
     has360View: false,
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/sv_inside_pic.jpg",
     hours: "-",
   },
 
@@ -136,7 +136,7 @@ const BUILDING_INFO: Record<
     category: "academic",
     has360View: true,
     keywords: ["lt", "lecture", "theatre", "hall"],
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/lecturetheater_pic.jpg",
     hours: "Mon - Fri, 8:00 AM - 6:00 PM",
   },
 
@@ -146,7 +146,7 @@ const BUILDING_INFO: Record<
       "Upper level dining area with additional seating and student gathering space.",
     category: "food",
     has360View: true,
-    imageUrl: "/places/a-block.jpg",
+    imageUrl: "/images/diningpic.jpg",
     hours: "Mon - Fri, 7:00 AM - 5:00 PM",
   },
 };
@@ -340,7 +340,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     category: "academic",
     has360View: true,
     keywords: ["a block", "block a"],
-    imageUrl: "/places/borneo-atrium.jpg",
+    imageUrl: "/images/lobby.jpg",
     hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
     shortLabel: "A",
     offset: [-10, 8, -7],  //[-10, 3, 8]
@@ -353,7 +353,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     category: "academic",
     has360View: true,
     keywords: ["e block", "block e"],
-    imageUrl: "/places/borneo-atrium.jpg",
+    imageUrl: "/images/blockE_pic.jpg",
     hours: "-",
     shortLabel: "E",
     offset: [0, 3, 46],
@@ -366,7 +366,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     category: "student_facility",
     has360View: true,
     keywords: ["borneo atrium", "atrium"],
-    imageUrl: "/places/borneo-atrium.jpg",
+    imageUrl: "/images/borneoatrium_pic.jpg",
     hours: "Open 24 hours (Mon–Sun)",
     shortLabel: "BA",
     offset: [10, 3, 23],
