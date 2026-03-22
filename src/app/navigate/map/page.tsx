@@ -22,6 +22,73 @@ const BUILDING_INFO: Record<
     phone?: string;
   }
 > = {
+  TPX_Buildings_6: {
+    label: "A Block",
+    description:
+      "Central academic zone including A Block, E Block, and the Borneo Atrium.",
+    category: "academic",
+    has360View: true,
+    keywords: ["Junction", "Library", "John's Pie", "Student HQ"],
+    imageUrl: "/images/lobby.jpg",
+    hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
+  },
+
+  
+  TPX_Buildings_8: {
+    label: "MPH & Angelus Fitness",
+    description:
+      "Multipurpose hall and Angelus Fitness gym facilities for sports and events.",
+    category: "sports",
+    has360View: true,
+    keywords: ["Sport Hall", "Badminton Court", "Bastketball Court", "GYM"],
+    imageUrl: "/images/mph_pic.jpg",
+    hours: "Mon - Fri, 7:00 AM - 23:00 PM",
+  },
+
+  TPX_Buildings_5: {
+    label: "G Block",
+    description:
+      "Academic building containing classrooms, labs, and teaching facilities.",
+    category: "academic",
+    has360View: false,
+    keywords: ["IT", "IT Deparment", "BlockG"],
+    imageUrl: "/images/blockg_pic.jpg",
+    hours: "Mon - Fri, 8:00 AM - 5:30 PM",
+  },
+
+  TPX_Buildings_4: {
+    label: "Dining Hall",
+    description:
+      "Main dining area serving meals for Student Village residents.",
+    category: "food",
+    has360View: true,
+    keywords: ["canteen", "food", "dining", "hall"],
+    imageUrl: "/images/diningpic.jpg",
+    hours: "Mon - Fri, 7:00 AM - 5:00 PM",
+  },
+
+  TPX_Buildings_10: {
+    label: "Lecture Theatre",
+    description:
+      "Large lecture theatre used for major classes, seminars, and presentations.",
+    category: "academic",
+    has360View: true,
+    keywords: ["lt", "lecture", "theatre", "hall"],
+    imageUrl: "/images/lecturetheater_pic.jpg",
+    hours: "Mon - Fri, 8:00 AM - 6:00 PM",
+  },
+
+  TPX_Buildings_3: {
+    label: "SV Office and Kitchen",
+    description:
+      "Student Village management office and shared kitchen facilities.",
+    category: "residential",
+    has360View: false,
+    keywords: ["sv kitchen", "SV Lobby", "SV Main Door", "Student Village"],
+    imageUrl: "/images/sv_outside_pic.jpg",
+    hours: "SV Office Mon - Fri, 8:00 AM - 5:00 PM",
+  },
+
   TPX_Buildings_0: {
     label: "Student Hub 1st Floor",
     description:
@@ -54,50 +121,6 @@ const BUILDING_INFO: Record<
     hours: "-",
   },
 
-  TPX_Buildings_3: {
-    label: "SV Office and Kitchen",
-    description:
-      "Student Village management office and shared kitchen facilities.",
-    category: "residential",
-    has360View: false,
-    keywords: ["sv kitchen", "SV Lobby", "SV Main Door", "Student Village"],
-    imageUrl: "/images/sv_outside_pic.jpg",
-    hours: "SV Office Mon - Fri, 8:00 AM - 5:00 PM",
-  },
-
-  TPX_Buildings_4: {
-    label: "Dining Hall",
-    description:
-      "Main dining area serving meals for Student Village residents.",
-    category: "food",
-    has360View: true,
-    keywords: ["canteen", "food", "dining", "hall"],
-    imageUrl: "/images/diningpic.jpg",
-    hours: "Mon - Fri, 7:00 AM - 5:00 PM",
-  },
-
-  TPX_Buildings_5: {
-    label: "G Block",
-    description:
-      "Academic building containing classrooms, labs, and teaching facilities.",
-    category: "academic",
-    has360View: false,
-    keywords: ["IT", "IT Deparment", "BlockG"],
-    imageUrl: "/images/blockg_pic.jpg",
-    hours: "Mon - Fri, 8:00 AM - 5:30 PM",
-  },
-
-  TPX_Buildings_6: {
-    label: "A Block",
-    description:
-      "Central academic zone including A Block, E Block, and the Borneo Atrium.",
-    category: "academic",
-    has360View: true,
-    keywords: ["Junction", "Library", "John's Pie", "Student HQ"],
-    imageUrl: "/images/lobby.jpg",
-    hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
-  },
-
   TPX_Buildings_7: {
     label: "Multi-Storey Carpark",
     description:
@@ -108,17 +131,6 @@ const BUILDING_INFO: Record<
     hours: "-",
   },
 
-  TPX_Buildings_8: {
-    label: "MPH & Angelus Fitness",
-    description:
-      "Multipurpose hall and Angelus Fitness gym facilities for sports and events.",
-    category: "sports",
-    has360View: true,
-    keywords: ["Sport Hall", "Badminton Court", "Bastketball Court", "GYM"],
-    imageUrl: "/images/mph_pic.jpg",
-    hours: "Mon - Fri, 7:00 AM - 23:00 PM",
-  },
-
   TPX_Buildings_9: {
     label: "SV Female Building",
     description:
@@ -127,17 +139,6 @@ const BUILDING_INFO: Record<
     has360View: false,
     imageUrl: "/images/sv_inside_pic.jpg",
     hours: "-",
-  },
-
-  TPX_Buildings_10: {
-    label: "Lecture Theatre",
-    description:
-      "Large lecture theatre used for major classes, seminars, and presentations.",
-    category: "academic",
-    has360View: true,
-    keywords: ["lt", "lecture", "theatre", "hall"],
-    imageUrl: "/images/lecturetheater_pic.jpg",
-    hours: "Mon - Fri, 8:00 AM - 6:00 PM",
   },
 
   TPX_Buildings_11: {
@@ -1597,7 +1598,8 @@ export default function CampusMapPage() {
         style={{
           width: "100%",
           maxWidth: 1400,
-          height: isMobile ? "calc(100dvh - 16px)" : "88vh",
+          // height: isMobile ? "calc(100dvh - 16px)" : "88vh",
+          height: isMobile ? "calc(100dvh - 100px)" : "70vh",
           position: "relative",
           border: "3px solid red",
           borderRadius: isMobile ? 16 : 20,
@@ -2354,6 +2356,7 @@ export default function CampusMapPage() {
 
         <Canvas
           camera={{ fov: 50 }}
+          // style={{ height: "80%" }}
           onCreated={({ camera, gl, scene }) => {
             gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -2423,7 +2426,14 @@ export default function CampusMapPage() {
                   setMobileSheetExpanded(false);
                 }
               } else {
-                setPicked(p);
+                const info = getBuildingInfo(p.meshName);
+
+                setPicked({
+                  ...p,
+                  imageUrl: info.imageUrl,
+                  hours: info.hours,
+                });
+
                 if (isMobile) {
                   setLocationPanelOpen(false);
                   setMobileSheetOpen(true);
