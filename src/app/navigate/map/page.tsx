@@ -198,52 +198,76 @@ function getSearchableBuildings(): Array<{
   return [...buildingItems, ...poiItems];
 }
 
+function findNearestRouteNode(lat: number, lng: number): RouteNode | null {
+  let nearestNode: RouteNode | null = null;
+  let smallestDistance = Infinity;
+
+  for (const node of ROUTE_NODES) {
+    if (!node.gps) continue;
+
+    const latDiff = lat - node.gps.lat;
+    const lngDiff = lng - node.gps.lng;
+    const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
+
+    if (distance < smallestDistance) {
+      smallestDistance = distance;
+      nearestNode = node;
+    }
+  }
+
+  return nearestNode;
+}
+
 type RouteNode = {
   id: string;
   label: string;
   position: [number, number, number];
+  gps?: {
+    lat: number;
+    lng: number;
+  };
   color?: string;
   visible?: boolean;
 };
 
 const ROUTE_NODES: RouteNode[] = [
-  { id: "a", label: "A", position: [20, 1, 50], color: "#f97316", visible: false }, //true
+  { id: "a", label: "A", position: [20, 1, 50], gps: { lat: 1.532097, lng: 110.357248 }, color: "#f97316", visible: false }, 
 
   { id: "a1", label: "a1", position: [20, 1, -16], color: "#06b6d4", visible: false },
   { id: "a2", label: "a2", position: [20, 1, 20], color: "#06b6d4", visible: false },
   { id: "a3", label: "a3", position: [35, 1, -16], color: "#06b6d4", visible: false },
 
-  { id: "g", label: "G", position: [35, 1, -30], color: "#06b6d4", visible: false }, //true
+  { id: "g", label: "G", position: [35, 1, -30], gps: { lat: 1.532685, lng: 110.357178 }, color: "#06b6d4", visible: false },
 
   { id: "b1", label: "B1", position: [20, 1, 70], color: "#a855f7", visible: false },
   { id: "b2", label: "B2", position: [40, 1, 70], color: "#a855f7", visible: false },
   { id: "b3", label: "B3", position: [40, 1, 85], color: "#a855f7", visible: false },
-  { id: "b4", label: "B4", position: [50, 1, 85], color: "#a855f7", visible: false },
+  { id: "b4", label: "B4", position: [50, 1, 85], gps: { lat: 1.531651, lng: 110.357613 }, color: "#a855f7", visible: false },
 
   { id: "ae1", label: "AE", position: [20, 1, 100], color: "#06b6d4", visible: false },
-  { id: "ae2", label: "E", position: [40, 1, 100], color: "#06b6d4", visible: false }, //true
+  { id: "ae2", label: "E", position: [40, 1, 100], gps: { lat: 1.531339, lng: 110.357420 }, color: "#06b6d4", visible: false },
 
   { id: "p1", label: "p1", position: [0, 1, 50], color: "#f97316", visible: false },
   { id: "p2", label: "p2", position: [0, 1, 75], color: "#f97316", visible: false },
-  { id: "p", label: "P", position: [-15, 1, 75], color: "#f97316", visible: false }, //true
+  { id: "p", label: "P", position: [-15, 1, 75], gps: { lat: 1.531546, lng: 110.356661 }, color: "#f97316", visible: false },
 
   { id: "r1", label: "r1", position: [0, 1, 20], color: "#f97316", visible: false },
   { id: "r2", label: "r2", position: [-35, 1, 20], color: "#f97316", visible: false },
-  { id: "r", label: "R", position: [-35, 1, 5], color: "#f97316", visible: false },
+  { id: "r", label: "R", position: [-35, 1, 5], gps: { lat: 1.532403, lng: 110.356381 }, color: "#f97316", visible: false },
 
   { id: "gl1", label: "gl1", position: [70, 1, -16], color: "#06b6d4", visible: false },
-  { id: "l", label: "L", position: [70, 1, 5], color: "#06b6d4", visible: false }, //true
+  { id: "l", label: "L", position: [70, 1, 5], gps: { lat: 1.532337, lng: 110.357707 }, color: "#06b6d4", visible: false },
   { id: "al1", label: "al", position: [70, 1, 70], color: "#06b6d4", visible: false },
 
   //G to C
-  { id: "c", label: "C", position: [35, 1, -60], color: "#06b6d4" },
+  { id: "c", label: "C", position: [35, 1, -60], gps: { lat: 1.533048, lng: 110.357225 }, color: "#06b6d4" },
   { id: "c1", label: "c1", position: [35, 1, -80], color: "#06b6d4" },
   { id: "c2", label: "c2", position: [25, 1, -95], color: "#06b6d4" },
 
   //D to sv1
-  { id: "d", label: "D", position: [15, 1, -113], color: "#06b6d4" },
+  { id: "d", label: "D", position: [15, 1, -113], gps: { lat: 1.533606, lng: 110.357152 }, color: "#06b6d4" },
   { id: "d1", label: "D1", position: [0, 1, -100], color: "#06b6d4" },
-  { id: "d2", label: "D2", position: [-40, 1, -80], color: "#06b6d4" },
+  { id: "d2", label: "D2", position: [-40, 1, -80], gps: { lat: 1.533268, lng: 110.356527 }, color: "#06b6d4" },
 ];
 
 const ROUTE_EDGES: [string, string][] = [
@@ -1340,6 +1364,10 @@ export default function CampusMapPage() {
   const [currentLocationNode, setCurrentLocationNode] = useState<string>("");
   const [currentLocationLabel, setCurrentLocationLabel] = useState<string>("");
 
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [locationError, setLocationError] = useState("");
+  const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const [searchText, setSearchText] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -1528,6 +1556,59 @@ export default function CampusMapPage() {
     }
   }
 
+  function handleDetectCurrentLocation() {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    setIsDetectingLocation(true);
+    setLocationError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        setDetectedCoords({ lat, lng });
+
+        const nearestNode = findNearestRouteNode(lat, lng);
+
+        if (!nearestNode) {
+          setLocationError("Unable to match your location to a campus node.");
+          setIsDetectingLocation(false);
+          return;
+        }
+
+        setCurrentLocationNode(nearestNode.id);
+        setCurrentLocationLabel(nearestNode.label);
+        setIsDetectingLocation(false);
+
+        if (isMobile) {
+          setLocationPanelOpen(false);
+        }
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError("Location permission denied.");
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setLocationError("Location information is unavailable.");
+        } else if (error.code === error.TIMEOUT) {
+          setLocationError("Location request timed out.");
+        } else {
+          setLocationError("Failed to detect location.");
+        }
+
+        setIsDetectingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  }
+
   function handleClearCurrentLocation() {
     setCurrentLocationNode("");
     setCurrentLocationLabel("");
@@ -1598,8 +1679,8 @@ export default function CampusMapPage() {
         style={{
           width: "100%",
           maxWidth: 1400,
-          // height: isMobile ? "calc(100dvh - 16px)" : "88vh",
-          height: isMobile ? "calc(100dvh - 100px)" : "70vh",
+          height: isMobile ? "calc(100dvh - 16px)" : "88vh",
+          // height: isMobile ? "calc(100dvh - 100px)" : "70vh",
           position: "relative",
           border: "3px solid red",
           borderRadius: isMobile ? 16 : 20,
@@ -2018,6 +2099,37 @@ export default function CampusMapPage() {
                 </button>
               )}
             </div>
+
+            <button
+              onClick={handleDetectCurrentLocation}
+              disabled={isDetectingLocation}
+              style={{
+                border: "none",
+                background: isDetectingLocation ? "#94a3b8" : "#3b82f6",
+                color: "#ffffff",
+                borderRadius: 10,
+                padding: "10px 12px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: isDetectingLocation ? "not-allowed" : "pointer",
+              }}
+            >
+              {isDetectingLocation ? "Detecting..." : "Detect My Location"}
+            </button>
+
+            {locationError && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#b91c1c",
+                  background: "#fee2e2",
+                  padding: "8px 10px",
+                  borderRadius: 8,
+                }}
+              >
+                {locationError}
+              </div>
+            )}
 
             <button onClick={() => handleSetCurrentLocation("a", "A Block")}>
               A Block
