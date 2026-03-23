@@ -1248,7 +1248,8 @@ function NavigatePageContent() {
         />
       </div>
 
-      <div className="col-span-full grid grid-cols-2 md:grid-cols-3 gap-3">
+      {/* <div className="col-span-full grid grid-cols-2 md:grid-cols-3 gap-3"> */}
+      <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {CARDS.map((c) => (
           <TileCard key={c.key} card={c} active={c.key === activeKey} />
         ))}
