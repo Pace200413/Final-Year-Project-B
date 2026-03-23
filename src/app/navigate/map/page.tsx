@@ -1047,7 +1047,7 @@ function BuildingTopLabels({
             text: poi.shortLabel,
             position: [
               center.x + poi.offset[0],
-              box.max.y + poi.offset[1],
+              box.max.y + poi.offset[1] + 2,
               center.z + poi.offset[2],
             ],
             poi,
@@ -1064,7 +1064,7 @@ function BuildingTopLabels({
         text: shortLabel,
         position: [
           center.x,
-          box.max.y + Math.max(size.y * 0.08, 2),
+          box.max.y + Math.max(size.y * 0.08, 2) + 2,
           center.z,
         ],
         poi: undefined,
@@ -1092,44 +1092,29 @@ function BuildingTopLabels({
                 onPickPoi(label.poi);
               }
             }}
+            title={label.poi ? label.poi.label : label.text}
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
               pointerEvents: label.poi ? "auto" : "none",
               cursor: label.poi ? "pointer" : "default",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 35,
+              height: 35,
+              borderRadius: "50%",
+              background: "rgba(139, 30, 63, 0.88)",
+              color: "#ffffff",
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: "system-ui",
+              lineHeight: 1,
+              border: "3px solid rgba(0, 0, 0, 0.95)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.24)",
+              backdropFilter: "blur(6px)",
+              userSelect: "none",
             }}
           >
-            <div
-              style={{
-                minWidth: 40,
-                height: 40,
-                padding: "0 8px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#8b1e3f",
-                color: "#ffffff",
-                fontSize: 17,
-                fontWeight: 800,
-                fontFamily: "system-ui",
-                lineHeight: 1,
-                borderRadius: 4,
-                boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
-              }}
-            >
-              {label.text}
-            </div>
-
-            <div
-              style={{
-                width: 26,
-                height: 8,
-                background: "#6e1632",
-                marginTop: 2,
-                borderRadius: 2,
-              }}
-            />
+            {label.text}
           </div>
         </Html>
       ))}
@@ -1366,13 +1351,13 @@ export default function CampusMapPage() {
 
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
-  const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
+  // const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const [searchText, setSearchText] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(false);
-  const [locationPanelOpen, setLocationPanelOpen] = useState(false);
+  // const [locationPanelOpen, setLocationPanelOpen] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [mobileSheetExpanded, setMobileSheetExpanded] = useState(false);
 
@@ -1415,17 +1400,11 @@ export default function CampusMapPage() {
     setMounted(true);
   }, []);
 
+
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-
-      // desktop always keep open
-      if (!mobile) {
-        setLocationPanelOpen(true);
-      } else {
-        setLocationPanelOpen(false);
-      }
     };
 
     checkMobile();
@@ -1433,6 +1412,25 @@ export default function CampusMapPage() {
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // useEffect(() => {
+  //   const checkMobile = () => {
+  //     const mobile = window.innerWidth <= 768;
+  //     setIsMobile(mobile);
+
+  //     // desktop always keep open
+  //     if (!mobile) {
+  //       setLocationPanelOpen(true);
+  //     } else {
+  //       setLocationPanelOpen(false);
+  //     }
+  //   };
+
+  //   checkMobile();
+  //   window.addEventListener("resize", checkMobile);
+
+  //   return () => window.removeEventListener("resize", checkMobile);
+  // }, []);
 
   const searchableBuildings = useMemo(() => getSearchableBuildings(), []);
 
@@ -1513,10 +1511,14 @@ export default function CampusMapPage() {
       setSearchOpen(false); //false
 
       if (isMobile) {
-        setLocationPanelOpen(false);
         setMobileSheetOpen(true);
         setMobileSheetExpanded(true);
       }
+      // if (isMobile) {
+      //   setLocationPanelOpen(false);
+      //   setMobileSheetOpen(true);
+      //   setMobileSheetExpanded(true);
+      // }
       return;
     }
 
@@ -1541,20 +1543,20 @@ export default function CampusMapPage() {
     setSearchOpen(false); //false
 
     if (isMobile) {
-      setLocationPanelOpen(false);
+      // setLocationPanelOpen(false);
       setMobileSheetOpen(true);
       setMobileSheetExpanded(true);
     }
   };
 
-  function handleSetCurrentLocation(nodeId: string, label: string) {
-    setCurrentLocationNode(nodeId);
-    setCurrentLocationLabel(label);
+  // function handleSetCurrentLocation(nodeId: string, label: string) {
+  //   setCurrentLocationNode(nodeId);
+  //   setCurrentLocationLabel(label);
 
-    if (isMobile) {
-      setLocationPanelOpen(false);
-    }
-  }
+  //   if (isMobile) {
+  //     setLocationPanelOpen(false);
+  //   }
+  // }
 
   function handleDetectCurrentLocation() {
     if (!navigator.geolocation) {
@@ -1570,7 +1572,7 @@ export default function CampusMapPage() {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
 
-        setDetectedCoords({ lat, lng });
+        // setDetectedCoords({ lat, lng });
 
         const nearestNode = findNearestRouteNode(lat, lng);
 
@@ -1584,9 +1586,9 @@ export default function CampusMapPage() {
         setCurrentLocationLabel(nearestNode.label);
         setIsDetectingLocation(false);
 
-        if (isMobile) {
-          setLocationPanelOpen(false);
-        }
+        // if (isMobile) {
+        //   setLocationPanelOpen(false);
+        // }
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
@@ -1659,10 +1661,13 @@ export default function CampusMapPage() {
   }
 
   return (
-    <main className="flex flex-col h-auto">
-        <div className="w-full mx-auto px-2 md:px-4 py-3 md:py-6 flex-1">
+    // <main className="flex flex-col h-auto">
+    //     <div className="w-full mx-auto px-2 md:px-4 py-3 md:py-6 flex-1">
+    <main className="flex flex-col h-[100dvh] overflow-hidden">
+      <div className="w-full mx-auto px-2 md:px-4 py-2 md:py-4 flex-1 min-h-0 flex flex-col">
           {/* Header */}
-          <header className="flex items-center gap-3 p-3 mb-4 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200">
+          {/* <header className="flex items-center gap-3 p-3 mb-4 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200"> */}
+          <header className="flex items-center gap-3 p-3 md:p-3 mb-3 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200 flex-shrink-0">
             <Link
               href="/navigate"
               aria-label="Back"
@@ -1675,12 +1680,27 @@ export default function CampusMapPage() {
               <p className="text-sm text-slate-500 mt-0.5">3D campus view</p>
             </div>
           </header>
-      <div
+      {/* <div
         style={{
           width: "100%",
           maxWidth: 1400,
           height: isMobile ? "calc(100dvh - 16px)" : "88vh",
           // height: isMobile ? "calc(100dvh - 100px)" : "70vh",
+          position: "relative",
+          border: "3px solid red",
+          borderRadius: isMobile ? 16 : 20,
+          background: "linear-gradient(to bottom, #1e293b, #0b1220)",
+          overflow: "hidden",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.12)",
+        }}
+      > */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1400,
+          flex: 1,
+          minHeight: 0,
+          height: isMobile ? "100%" : "100%",
           position: "relative",
           border: "3px solid red",
           borderRadius: isMobile ? 16 : 20,
@@ -1709,7 +1729,8 @@ export default function CampusMapPage() {
           >
             <div
               style={{
-                padding: isMobile ? 12 : 14,
+                // padding: isMobile ? 12 : 14,
+                padding: isMobile ? 10 : 14,
                 background: "#ffffff",
                 borderBottom: searchOpen ? "1px solid rgba(0,0,0,0.08)" : "none",
               }}
@@ -1741,7 +1762,8 @@ export default function CampusMapPage() {
                   placeholder="Search building, hall, hub..."
                   style={{
                     width: "100%",
-                    height: isMobile ? 40 : 42,
+                    // height: isMobile ? 40 : 42,
+                    height: isMobile ? 38 : 42,
                     borderRadius: 10,
                     border: "1px solid #cbd5e1",
                     padding: "0 40px 0 12px",
@@ -1993,185 +2015,6 @@ export default function CampusMapPage() {
           </div>
         )}
 
-        {/* Mobile toggle button */}
-        {isMobile && (
-          <button
-            onClick={() => {
-              setLocationPanelOpen((v) => {
-                const next = !v;
-
-                if (next) {
-                  setMobileSheetOpen(false);
-                  setMobileSheetExpanded(false);
-                  setPicked(null);
-                }
-
-                return next;
-              });
-            }}
-            style={{
-              position: "absolute",
-              top: 72,
-              right: 12,
-              zIndex: 20,
-              border: "none",
-              background: "rgba(255,255,255,0.96)",
-              color: "#0f172a",
-              borderRadius: 12,
-              padding: "10px 14px",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 10px 24px rgba(0,0,0,0.14)",
-              backdropFilter: "blur(8px)",
-            }}
-          >
-            {locationPanelOpen ? "Close Location" : "Set Location"}
-          </button>
-        )}
-
-          <div
-            style={{
-              position: "absolute",
-              zIndex: 20,
-              background: "rgba(255,255,255,0.96)",
-              padding: 10,
-              borderRadius: isMobile ? 16 : 14,
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-              overflowY: "auto",
-              boxShadow: "0 10px 24px rgba(0,0,0,0.14)",
-              color: "#0f172a",
-              fontFamily: "system-ui",
-              backdropFilter: "blur(8px)",
-
-              // desktop
-              ...(isMobile
-                ? {
-                    left: 12,
-                    right: 12,
-                    bottom: 12,
-                    maxHeight: "42%",
-                    transform: locationPanelOpen
-                      ? "translateY(0)"
-                      : "translateY(calc(100% + 20px))",
-                    opacity: locationPanelOpen ? 1 : 0,
-                    pointerEvents: locationPanelOpen ? "auto" : "none",
-                    transition: "transform 0.28s ease, opacity 0.28s ease",
-                  }
-                : {
-                    top: 72,
-                    right: 12,
-                    width: 200,
-                    maxHeight: 300,
-                  }),
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-                
-              }}
-            >
-              <div style={{ fontSize: 13, fontWeight: 700 }}>
-                Set Current Location
-              </div>
-
-              {currentLocationNode && (
-                <button
-                  onClick={handleClearCurrentLocation}
-                  style={{
-                    border: "none",
-                    background: "#fee2e2",
-                    color: "#b91c1c",
-                    borderRadius: 8,
-                    padding: "6px 8px",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Clear Pin
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={handleDetectCurrentLocation}
-              disabled={isDetectingLocation}
-              style={{
-                border: "none",
-                background: isDetectingLocation ? "#94a3b8" : "#3b82f6",
-                color: "#ffffff",
-                borderRadius: 10,
-                padding: "10px 12px",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: isDetectingLocation ? "not-allowed" : "pointer",
-              }}
-            >
-              {isDetectingLocation ? "Detecting..." : "Detect My Location"}
-            </button>
-
-            {locationError && (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#b91c1c",
-                  background: "#fee2e2",
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                }}
-              >
-                {locationError}
-              </div>
-            )}
-
-            <button onClick={() => handleSetCurrentLocation("a", "A Block")}>
-              A Block
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("g", "G Block")}>
-              G Block
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("l", "Lecture Theatre")}>
-              Lecture Theatre
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("p", "Carpark")}>
-              Carpark
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("r", "MPH & Gym")}>
-              MPH & Gym
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("c", "Dining Hall")}>
-              Dining Hall
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("d", "Student Hub")}>
-              Student Hub
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("d2", "SV1")}>
-              SV1
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("ae2", "E Block")}>
-              E Block
-            </button>
-
-            <button onClick={() => handleSetCurrentLocation("b4", "Borneo Atrium")}>
-              Borneo Atrium
-            </button>
-          </div>
-
         {isMobile && picked && mobileSheetOpen && (
             <div
               style={{
@@ -2179,14 +2022,15 @@ export default function CampusMapPage() {
                 left: 12,
                 right: 12,
                 bottom: 12,
-                zIndex: 110,
+                zIndex: 20, //here there
                 background: "rgba(255,255,255,0.98)",
                 borderRadius: 20,
                 boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
                 overflow: "hidden",
                 fontFamily: "system-ui",
                 transition: "all 0.25s ease",
-                maxHeight: mobileSheetExpanded ? "62%" : "96px",
+                // maxHeight: mobileSheetExpanded ? "62%" : "96px",
+                maxHeight: mobileSheetExpanded ? "52%" : "88px",
                 display: "flex",
                 flexDirection: "column",
                 backdropFilter: "blur(10px)",
@@ -2401,13 +2245,92 @@ export default function CampusMapPage() {
           style={{
             position: "absolute",
             right: 18,
-            bottom: isMobile && picked && mobileSheetOpen ? 240 : 18,
+            // bottom: isMobile && picked && mobileSheetOpen ? 240 : 18,
+            bottom: isMobile && picked && mobileSheetOpen ? 220 : 72,
             zIndex: 20,
             display: "flex",
             flexDirection: "column",
             gap: 10,
           }}
         >
+            {/* Clear Current Location */}
+            {currentLocationNode && (
+              <button
+                onClick={handleClearCurrentLocation}
+                title="Clear current location"
+                aria-label="Clear current location"
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "rgba(255,255,255,0.95)",
+                  color: "#dc2626",
+                  fontSize: 30,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                ×
+              </button>
+            )}
+
+            {/* Detect My Location */}
+            <button
+              onClick={() => {
+                setPicked(null);
+                setHovered(null);
+                handleDetectCurrentLocation();
+              }}
+              disabled={isDetectingLocation}
+              title="Detect my location"
+              aria-label="Detect my location"
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: "50%",
+                border: "none",
+                background: "rgba(255,255,255,0.95)",
+                color: isDetectingLocation ? "#94a3b8" : "#080808",
+                fontSize: 40,
+                fontWeight: 700,
+                cursor: isDetectingLocation ? "not-allowed" : "pointer",
+                boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {isDetectingLocation ? "…" : "⌖"}
+            </button>
+          {locationError && (
+            <div
+              style={{
+                position: "absolute",
+                right: 18,
+                // bottom: isMobile && picked && mobileSheetOpen ? 368 : 148,
+                bottom: isMobile && picked && mobileSheetOpen ? 350 : 200,
+                zIndex: 25,
+                maxWidth: 220,
+                background: "rgba(254,226,226,0.96)",
+                color: "#b91c1c",
+                padding: "10px 12px",
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: 600,
+                boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {locationError}
+            </div>
+          )}
           <button
             onClick={() => {
               setPicked(null);
@@ -2520,10 +2443,14 @@ export default function CampusMapPage() {
               setSearchOpen(false);
 
               if (isMobile) {
-                setLocationPanelOpen(false);
                 setMobileSheetOpen(true);
                 setMobileSheetExpanded(true);
               }
+              // if (isMobile) {
+              //   setLocationPanelOpen(false);
+              //   setMobileSheetOpen(true);
+              //   setMobileSheetExpanded(true);
+              // }
             }}
           />
 
@@ -2547,10 +2474,14 @@ export default function CampusMapPage() {
                 });
 
                 if (isMobile) {
-                  setLocationPanelOpen(false);
                   setMobileSheetOpen(true);
                   setMobileSheetExpanded(true);
                 }
+                // if (isMobile) {
+                //   setLocationPanelOpen(false);
+                //   setMobileSheetOpen(true);
+                //   setMobileSheetExpanded(true);
+                // }
               }
             }}
             onHover={(p) => setHovered(p)}
@@ -2600,10 +2531,15 @@ export default function CampusMapPage() {
           />
         </Canvas>
       </div>
-    
-      <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
+
+      {!isMobile && (
+        <p className="mt-3 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
+          🖱️ Click + drag to look around • 🔍 Scroll to zoom
+        </p>
+      )}
+      {/* <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
         🖱️ Click + drag to look around • 🔍 Scroll to zoom
-      </p>
+      </p> */}
     </div>
     </main>
   );

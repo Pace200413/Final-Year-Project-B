@@ -20,6 +20,7 @@ import {
   FaLaptopCode ,
   FaMapMarkerAlt, 
   FaWalking,
+  FaHome
 } from 'react-icons/fa';
 
 import type { IconType } from 'react-icons';
@@ -1034,7 +1035,7 @@ const CARD_UI: Record<
     description: 'Ground floor (chicken rice, noodles)',
   },
   studentvillage: {
-    icon: FaBuilding,
+    icon: FaHome,
     hint: 'Student accommodation blocks',
     image: '/images/sv_inside_pic.jpg',
     hours: { open: '00:00', close: '24:00' },
