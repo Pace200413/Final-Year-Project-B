@@ -65,4 +65,10 @@ export const NAV_DESTINATIONS: NavDestination[] = [
     href: "/navigate/dining",
     aliases: ["dining", "cafeteria", "food", "restaurant", "canteen", "breakfast", "lunch"],
   },
+  {
+    key: 'studentvillage',
+    title: 'Student Village',
+    href: '/navigate/map?to=studentvillage',
+    aliases: ['student village', 'SV', 'village', 'sv', 'sv1', 'sv2', 'sv3'],
+  },
 ];

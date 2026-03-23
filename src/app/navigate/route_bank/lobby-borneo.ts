@@ -82,7 +82,7 @@ export const lobbyBorneoRoute: RouteDefinition = {
                 image: '/images360/L-B-18.jpg',
                 label: 'You arrive the Borneo Atrium! Welcome!',
                 initialYaw: 180,
-                back: { yaw: 190, pitch: -7 },
+                // back: { yaw: 190, pitch: -7 },
                 instruction: 'You have arrived at Borneo Atrium.',
             },    
   ],

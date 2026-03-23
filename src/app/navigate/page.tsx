@@ -432,7 +432,7 @@ function UploadQr({ onDone }: { onDone: () => void }) {
 
 /* ================= QR Map panel (2D map in a modal) ================= */
 
-type QRLocationKey = 'lobby' | 'atrium' | 'library' | 'mph' | 'gblock';
+type QRLocationKey = 'lobby' | 'atrium' | 'library' | 'mph' | 'gblock' | 'studentvillage';
 
 type QRLocation = {
   key: QRLocationKey;
@@ -483,6 +483,14 @@ const QR_LOCATIONS: QRLocation[] = [
     x: 15,
     y: 55,
     routeHref: '/navigate/map?from=lobby&to=gblock',
+  },
+  {
+    key: 'studentvillage',
+    label: 'Student Village',
+    description: 'Student accommodation blocks including SV1, SV2 and SV3.',
+    x: 15,
+    y: 55,
+    routeHref: '/navigate/map?from=lobby&to=studentvillage',
   },
 ];
 
@@ -934,90 +942,182 @@ type CardItem = {
   href: string;
   icon: IconType;
   hint: string;
+  image?: string;
   hours?: Hours;
   stallsCount?: number;
   description?: string;
 };
 
-const CARD_UI: Record<string, { icon: IconType; hint: string; hours?: Hours; stallsCount?: number; description?: string }> = {
-  maps: { icon: FaMapMarkedAlt, hint: 'Swinburne Sarawak Map & 360 View', description: 'Interactive map with red dots and 360° panoramas.' },
-  mph: { icon: FaBuilding, hint: 'Events & assemblies', hours: { open: '07:00', close: '23:00' }, description: 'Venue bookings, exams hall, large events.' },
-  atrium: { icon: FaUniversity, hint: 'Event Places & Hangout', description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.' },
-  HQ: { icon: FaInfoCircle, hint: 'Help desk & services', hours: { open: '08:00', close: '17:00' }, description: 'ID cards, enrolment support, fees & forms.' },
-  library: { icon: FaBookOpen, hint: 'Resources & study zones', hours: { open: '08:00', close: '21:30' }, description: 'Quiet zone, self-checkout, opening hours.' },
-  study: { icon: FaBook, hint: 'Study places, group rooms', hours: { open: '00:00', close: '24:00' }, description: 'Junction, charging area, discussion room.' },
-  gblock: { icon: FaLaptopCode, hint: 'Student service & IT Department', hours: { open: '08:00', close: '17:00' }, description: 'Student service desk, IT department offices and support rooms.' },
-  studenthub: { icon: FaUsers, hint: 'Clubs & hangout space', hours: { open: '07:00', close: '22:00' }, description: 'Clubs, lounge areas, activity sign-ups.' },
-  dining: { icon: FaUtensils, hint: 'Having your breakfast and lunch here', hours: { open: '07:00', close: '17:00' }, stallsCount: 12, description: 'Ground floor (chicken rice, noodles)' },
+// const CARD_UI: Record<string, { icon: IconType; hint: string; hours?: Hours; stallsCount?: number; description?: string }> = {
+//   maps: { icon: FaMapMarkedAlt, hint: 'Swinburne Sarawak Map & 360 View', description: 'Interactive map with red dots and 360° panoramas.' },
+//   mph: { icon: FaBuilding, hint: 'Events & assemblies', hours: { open: '07:00', close: '23:00' }, description: 'Venue bookings, exams hall, large events.' },
+//   atrium: { icon: FaUniversity, hint: 'Event Places & Hangout', description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.' },
+//   HQ: { icon: FaInfoCircle, hint: 'Help desk & services', hours: { open: '08:00', close: '17:00' }, description: 'ID cards, enrolment support, fees & forms.' },
+//   library: { icon: FaBookOpen, hint: 'Resources & study zones', hours: { open: '08:00', close: '21:30' }, description: 'Quiet zone, self-checkout, opening hours.' },
+//   study: { icon: FaBook, hint: 'Study places, group rooms', hours: { open: '00:00', close: '24:00' }, description: 'Junction, charging area, discussion room.' },
+//   gblock: { icon: FaLaptopCode, hint: 'Student service & IT Department', hours: { open: '08:00', close: '17:00' }, description: 'Student service desk, IT department offices and support rooms.' },
+//   studenthub: { icon: FaUsers, hint: 'Clubs & hangout space', hours: { open: '07:00', close: '22:00' }, description: 'Clubs, lounge areas, activity sign-ups.' },
+//   dining: { icon: FaUtensils, hint: 'Having your breakfast and lunch here', hours: { open: '07:00', close: '17:00' }, stallsCount: 12, description: 'Ground floor (chicken rice, noodles)' },
+//   studentvillage: { icon: FaBuilding, hint: 'Student accommodation blocks', hours: { open: '00:00', close: '24:00' }, description: 'Student Village area including SV1, SV2 and SV3.'},
+// };
+
+const CARD_UI: Record<
+  string,
+  {
+    icon: IconType;
+    hint: string;
+    image?: string;
+    hours?: Hours;
+    stallsCount?: number;
+    description?: string;
+  }
+> = {
+  maps: {
+    icon: FaMapMarkedAlt,
+    hint: 'Swinburne Sarawak Map & 3D View',
+    image: '/images/3Dmap_pic.jpg',
+    description: 'Interactive map with red dots and 360° panoramas.',
+  },
+  mph: {
+    icon: FaBuilding,
+    hint: 'Events & assemblies',
+    image: '/images/mph_pic.jpg',
+    hours: { open: '07:00', close: '23:00' },
+    description: 'Venue bookings, exams hall, large events.',
+  },
+  atrium: {
+    icon: FaUniversity,
+    hint: 'Event Places & Hangout',
+    image: '/images/borneoatrium_pic.jpg',
+    description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.',
+  },
+  HQ: {
+    icon: FaInfoCircle,
+    hint: 'Help desk & services',
+    image: '/images/hq_pic.jpg',
+    hours: { open: '08:00', close: '17:00' },
+    description: 'ID cards, enrolment support, fees & forms.',
+  },
+  library: {
+    icon: FaBookOpen,
+    hint: 'Resources & study zones',
+    image: '/images/library_pic.jpg',
+    hours: { open: '08:00', close: '21:30' },
+    description: 'Quiet zone, self-checkout, opening hours.',
+  },
+  study: {
+    icon: FaBook,
+    hint: 'Study places, group rooms',
+    image: '/images/junction1_pic.jpg',
+    hours: { open: '00:00', close: '24:00' },
+    description: 'Junction, charging area, discussion room.',
+  },
+  gblock: {
+    icon: FaLaptopCode,
+    hint: 'Student service & IT Department',
+    image: '/images/blockg_pic.jpg',
+    hours: { open: '08:00', close: '17:00' },
+    description: 'Student service desk, IT department offices and support rooms.',
+  },
+  studenthub: {
+    icon: FaUsers,
+    hint: 'Clubs & hangout space',
+    image: '/images/shub_pic.jpg',
+    hours: { open: '07:00', close: '22:00' },
+    description: 'Clubs, lounge areas, activity sign-ups.',
+  },
+  dining: {
+    icon: FaUtensils,
+    hint: 'Having your breakfast and lunch here',
+    image: '/images/dining_pic.jpeg',
+    hours: { open: '07:00', close: '17:00' },
+    description: 'Ground floor (chicken rice, noodles)',
+  },
+  studentvillage: {
+    icon: FaBuilding,
+    hint: 'Student accommodation blocks',
+    image: '/images/sv_inside_pic.jpg',
+    hours: { open: '00:00', close: '24:00' },
+    description: 'Student Village area including SV1, SV2 and SV3.',
+  },
 };
 
 const CARDS: CardItem[] = NAV_DESTINATIONS.map((d) => {
   const ui = CARD_UI[d.key];
-  return { ...d, icon: ui?.icon ?? FaMapMarkedAlt, hint: ui?.hint ?? d.title, ...ui };
+  return {
+    ...d,
+    ...ui,
+    icon: ui?.icon ?? FaMapMarkedAlt,
+    hint: ui?.hint ?? d.title,
+  };
 });
 
 function TileCard({ card, active }: { card: CardItem; active: boolean }) {
   const open = isOpenNow(card.hours);
-  const [expanded, setExpanded] = useState(false);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'touch' && !expanded) {
-      e.preventDefault();
-      setExpanded(true);
-    }
-  };
 
   return (
     <article
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
-      onPointerDown={onPointerDown}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) setExpanded(false);
-      }}
       className={[
-        'group relative overflow-hidden',
-        'rounded-[10px] bg-white shadow-[0_6px_12px_rgba(0,0,0,0.05)]',
-        'transition-[height,box-shadow] duration-200 ease-in-out',
-        'h-35 hover:h-70 focus-within:h-70',
+        'group overflow-hidden rounded-2xl bg-white shadow-[0_6px_16px_rgba(0,0,0,0.08)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(0,0,0,0.12)]',
         active ? 'ring-2 ring-[#C8102E]/30' : '',
       ].join(' ')}
     >
-      <Link href={card.href} className="flex h-36 flex-col items-start justify-center gap-2 p-4 rounded-[10px] outline-none">
-        <div className="inline-flex items-center justify-center rounded-[12px] px-2.5 py-2 bg-[#C8102E]/10">
-          <card.icon className="w-5 h-5 text-[#C8102E]" />
-        </div>
-        <div className="text-left">
-          <p className="font-semibold text-slate-900 leading-tight">{card.title}</p>
-          <p className="text-[13px] text-slate-600 leading-snug">{card.hint}</p>
-        </div>
-      </Link>
+      <Link href={card.href} className="block outline-none">
+        {/* Top image section */}
+        <div className="relative h-36 w-full overflow-hidden bg-slate-200">
+          {card.image ? (
+            <img
+              src={card.image}
+              alt={card.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-slate-400 text-sm">
+              No image
+            </div>
+          )}
 
-      <div
-        className={[
-          'px-4 pb-4 -mt-1 overflow-hidden transition-all duration-200 ease-out',
-          expanded ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0',
-        ].join(' ')}
-      >
-        <div className="rounded-[14px] border border-slate-200 bg-white p-3 text-sm text-slate-700">
+          {/* dark overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+
+          {/* icon badge at top left */}
+          <div className="absolute left-3 top-3 inline-flex items-center justify-center rounded-xl bg-white/90 px-2.5 py-2 shadow">
+            <card.icon className="h-5 w-5 text-[#C8102E]" />
+          </div>
+        </div>
+
+        {/* Bottom content */}
+        <div className="space-y-1 p-4">
+          <p className="font-semibold text-slate-900 leading-tight">
+            {card.title}
+          </p>
+
+          <p className="text-sm text-slate-600 line-clamp-2">
+            {card.hint}
+          </p>
+
           {typeof open === 'boolean' && (
-            <div className="mb-1.5 flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-1 text-xs text-slate-500">
               <span
                 className={`inline-flex h-2.5 w-2.5 rounded-full ${open ? 'bg-emerald-500' : 'bg-slate-400'}`}
                 aria-hidden
               />
-              <span className="font-medium">{open ? 'Open now' : 'Closed now'}</span>
-              {card.hours && <span className="text-slate-500">({card.hours.open}–{card.hours.close})</span>}
+              <span>{open ? 'Open now' : 'Closed now'}</span>
+              {card.hours && (
+                <span>
+                  {card.hours.open}–{card.hours.close}
+                </span>
+              )}
             </div>
           )}
+
           {typeof card.stallsCount === 'number' && (
-            <div className="mb-1.5">
-              <span className="font-medium">Stalls:</span> {card.stallsCount}
-            </div>
+            <p className="text-xs text-slate-500">
+              {card.stallsCount} stalls
+            </p>
           )}
-          {card.description && <div className="line-clamp-3">{card.description}</div>}
         </div>
-      </div>
+      </Link>
     </article>
   );
 }
@@ -1105,6 +1205,7 @@ function NavigatePageContent() {
     if (t.includes('hq') || t.includes('student hq') || t.includes('help') || t.includes('info')) return 'HQ';
     if (t.includes('hall') || t.includes('mph') || t.includes('multi purpose')) return 'mph';
     if (t.includes('hub') || t.includes('student hub') || t.includes('club') || t.includes('hangout')) return 'studenthub';
+    if (t.includes('student village') || t.includes('village') || t.includes('sv1') || t.includes('sv2') || t.includes('sv3')) return 'studentvillage';
     return '';
   }, [q]);
 
