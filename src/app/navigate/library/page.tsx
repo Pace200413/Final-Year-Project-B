@@ -175,7 +175,6 @@ export default function Library360Page() {
                 <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="swin-back-label">Back</span>
           </button>
         `;
           div.style.cursor = idx > 0 ? 'pointer' : 'default';
@@ -288,31 +287,6 @@ export default function Library360Page() {
                 </div>
               )}
 
-              {/* TOP-LEFT location box */}
-              {routeMode && (
-                <div className="absolute top-1 left-9 z-20">
-                  <div className="bg-black/55 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1.5 text-white min-w-[160px] md:min-w-[210px]">
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-wide text-slate-200/80 mb-0.5">
-                      You are here
-                    </p>
-                    <p className="text-xs md:text-sm font-semibold line-clamp-1">
-                      {ROUTE[currentIdx].label}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Instruction white box */}
-              {routeMode && (
-                <div className="absolute bottom-3 left-3 z-20 swin-step-box">
-                  <p className="swin-step-label">Next instruction</p>
-                  <p className="swin-step-text">{guidanceText}</p>
-                  <p className="swin-step-meta">
-                    Step {currentIdx + 1} of {ROUTE.length}
-                  </p>
-                </div>
-              )}
-
               {/* TOP-CENTER guidance text (desktop) */}
               {routeMode && (
                 <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-4 z-20">
@@ -332,7 +306,7 @@ export default function Library360Page() {
                     Navigate here
                   </button>
                   <p className="hidden md:block text-xs text-white/80 bg-black/30 rounded-full px-3 py-1">
-                    We will guide you through the MPH
+                    We will guide you through the atrium
                   </p>
                 </div>
               ) : (
@@ -344,16 +318,27 @@ export default function Library360Page() {
                   <button
                     onClick={handlePrev}
                     disabled={currentIdx === 0}
-                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-black/40 text-white text-lg disabled:opacity-30"
+                    className="swin-ctrl-btn swin-ctrl-btn--prev"
+                    aria-label="Previous step"
                   >
                     ←
+                    <svg viewBox="0 0 32 32" className="swin-ctrl-arrow swin-ctrl-arrow--prev" aria-hidden="true">
+                      <path d="M8 16h16" />
+                      <path d="M14 10l-6 6 6 6" />
+                    </svg>
                   </button>
+
                   <button
                     onClick={handleNext}
                     disabled={currentIdx === ROUTE.length - 1}
-                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-red-600 text-white text-lg disabled:opacity-30"
+                    className="swin-ctrl-btn swin-ctrl-btn--next"
+                    aria-label="Next step"
                   >
                     →
+                    <svg viewBox="0 0 32 32" className="swin-ctrl-arrow" aria-hidden="true">
+                      <path d="M8 16h16" />
+                      <path d="M18 10l6 6-6 6" />
+                    </svg>
                   </button>
                   <button
                     onClick={handleExitRoute}

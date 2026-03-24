@@ -176,7 +176,7 @@ export default function MultiPurposeHall360Page() {
                 <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="swin-back-label">Back</span>
+            
           </button>
         `;
           div.style.cursor = idx > 0 ? 'pointer' : 'default';
@@ -291,31 +291,6 @@ export default function MultiPurposeHall360Page() {
                     <li>2. Click “Navigate here”.</li>
                     <li>3. Follow the arrow to next point.</li>
                   </ul>
-                </div>
-              )}
-
-              {/* TOP-LEFT info box */}
-              {routeMode && (
-                <div className="absolute top-1 left-9 z-20">
-                  <div className="bg-black/55 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1.5 text-white min-w-[160px] md:min-w-[210px]">
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-wide text-slate-200/80 mb-0.5">
-                      You are here
-                    </p>
-                    <p className="text-xs md:text-sm font-semibold line-clamp-1">
-                      {ROUTE[currentIdx].label}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step instruction */}
-              {routeMode && (
-                <div className="absolute bottom-3 left-3 z-20 swin-step-box">
-                  <p className="swin-step-label">Next instruction</p>
-                  <p className="swin-step-text">{guidanceText}</p>
-                  <p className="swin-step-meta">
-                    Step {currentIdx + 1} of {ROUTE.length}
-                  </p>
                 </div>
               )}
 
@@ -444,7 +419,7 @@ export default function MultiPurposeHall360Page() {
                 </div>
               )}
 
-              /* Collapsed “Next destinations” floating button */
+              {/* Collapsed “Next destinations” floating button */}
               {routeMode && currentIdx === ROUTE.length - 1 && nextPanelCollapsed && (
                 <button
                   type="button"

@@ -1,24 +1,116 @@
 // src/route_bank/index.ts
 import type { RouteId, RouteDefinition } from './types';
-import { lobbyMphRoute } from './lobby-mph';
-import { lobbyBorneoRoute } from './lobby-borneo';
-import { lobbyGblockRoute } from './lobby-gblock';
-import { lobbyDiningRoute } from './lobby-dining';
-import { lobbyShubRoute } from './lobby-shub';
-import { lobbyJunctionRoute} from './lobby-junction';
-import { lobbyHqRoute} from './lobby-hq';
-import { lobbyLibraryRoute} from './lobby-library';
-import { mphBorneoRoute } from './mph-borneo';
-import { mphLibraryRoute } from './mph-library';
-import { mphJunctionRoute } from './mph-junction';
-import { borneoMphRoute } from './borneo-mph';
-import { borneoHqRoute } from './borneo-hq';
-import { borneoShubRoute } from './borneo-shub';
-import { borneoGblockRoute } from './borneo-gblock';
-import { borneoDiningRoute } from './borneo-dining';
-import { borneoJunctionRoute } from './borneo-junction';
-import { borneoLibraryRoute } from './borneo-library';
 
+import {
+    dininigMphRoute,
+    diningHqRoute,
+    diningShubRoute,
+    diningGblockRoute,
+    diningBorneoRoute,
+    diningJunctionRoute,
+    diningLibraryRoute,
+    diningSvRoute,
+} from './Dininig_all';
+
+import {
+    gblockMphRoute,
+    gblockHqRoute,
+    gblockShubRoute,
+    gblockDiningRoute,
+    gblockBorneoRoute,
+    gblockJunctionRoute,
+    gblockLibraryRoute,
+    gblockSvRoute,
+} from './Gblock_all';
+
+import {
+    junctionMphRoute,
+    junctionHqRoute,
+    junctionShubRoute,
+    junctionDiningRoute,
+    junctionBorneoRoute,
+    junctionGblockRoute,
+    junctionLibraryRoute,
+    junctionSvRoute,
+} from './Junction_all';
+
+import {
+    libraryMphRoute,
+    libraryHqRoute,
+    libraryShubRoute,
+    libraryDiningRoute,
+    libraryBorneoRoute,
+    libraryGblockRoute,
+    libraryJunctionRoute,
+    librarySvRoute,
+} from './Library_all';
+
+import {
+    hqMphRoute,
+    hqLibraryRoute,
+    hqShubRoute,
+    hqDiningRoute,
+    hqBorneoRoute,
+    hqGblockRoute,
+    hqJunctionRoute,
+    hqSvRoute,
+} from './StudentHQ_all';
+
+import {
+    shubMphRoute,
+    shubLibraryRoute,
+    shubHQRoute,
+    shubDiningRoute,
+    shubBorneoRoute,
+    shubGblockRoute,
+    shubJunctionRoute,
+    shubSvRoute,
+} from './StudentHub_all';
+
+import {
+    svMphRoute,
+    svLibraryRoute,
+    svHQRoute,
+    svDiningRoute,
+    svBorneoRoute,
+    svGblockRoute,
+    svJunctionRoute,
+    svShubRoute,
+} from './SV_all';
+
+import { 
+    mphBorneoRoute,
+    mphLibraryRoute,
+    mphJunctionRoute,
+    mphSvRoute,
+    mphHQRoute,
+    mphDiningRoute,
+    mphGblockRoute,
+    mphShubRoute,
+} from './Mph_all';
+
+import {
+    lobbyMphRoute,
+    lobbyBorneoRoute,
+    lobbyGblockRoute,
+    lobbyDiningRoute,
+    lobbyShubRoute,
+    lobbyJunctionRoute,
+    lobbyHqRoute,
+    lobbyLibraryRoute,
+    lobbySvRoute,
+} from './Lobby_all';
+
+import {
+    borneoMphRoute,
+    borneoHqRoute,
+    borneoShubRoute,
+    borneoGblockRoute,
+    borneoDiningRoute,
+    borneoJunctionRoute,
+    borneoLibraryRoute,
+    borneoSvRoute,
+} from './BorneoAtrium_all';
 
 export type { RouteId, RouteScene, RouteDefinition } from './types';
 
@@ -31,9 +123,80 @@ export const routeBank: Record<RouteId, RouteDefinition> = {
     'lobby-junction': lobbyJunctionRoute,
     'lobby-hq': lobbyHqRoute,
     'lobby-library': lobbyLibraryRoute,
+    'lobby-SV': lobbySvRoute,
+
+    'dining-mph': dininigMphRoute,
+    'dining-hq': diningHqRoute,
+    'dining-shub': diningShubRoute,
+    'dining-gblock':diningGblockRoute,
+    'dining-borneo': diningBorneoRoute,
+    'dining-junction': diningJunctionRoute,
+    'dining-library': diningLibraryRoute,
+    'dining-SV': diningSvRoute,
+
+    'gblock-mph': gblockMphRoute,
+    'gblock-hq': gblockHqRoute,
+    'gblock-shub': gblockShubRoute,
+    'gblock-dining':gblockDiningRoute,
+    'gblock-borneo': gblockBorneoRoute,
+    'gblock-junction': gblockJunctionRoute,
+    'gblock-library': gblockLibraryRoute,
+    'gblock-SV': gblockSvRoute,
+
+    'junction-mph': junctionMphRoute,
+    'junction-hq': junctionHqRoute,
+    'junction-shub': junctionShubRoute,
+    'junction-dining':junctionDiningRoute,
+    'junction-borneo': junctionBorneoRoute,
+    'junction-gblock': junctionGblockRoute,
+    'junction-library': junctionLibraryRoute,
+    'junction-SV': junctionSvRoute,
+
+    'library-mph': libraryMphRoute,
+    'library-hq': libraryHqRoute,
+    'library-shub': libraryShubRoute,
+    'library-dining':libraryDiningRoute,
+    'library-borneo': libraryBorneoRoute,
+    'library-gblock': libraryGblockRoute,
+    'library-junction': libraryJunctionRoute,
+    'library-SV': librarySvRoute,
+
+    'hq-mph': hqMphRoute,
+    'hq-library': hqLibraryRoute,
+    'hq-shub': hqShubRoute,
+    'hq-dining':hqDiningRoute,
+    'hq-borneo': hqBorneoRoute,
+    'hq-gblock': hqGblockRoute,
+    'hq-junction': hqJunctionRoute,
+    'hq-SV': hqSvRoute,
+
+    'shub-mph': shubMphRoute,
+    'shub-library': shubLibraryRoute,
+    'shub-hq': shubHQRoute,
+    'shub-dining':shubDiningRoute,
+    'shub-borneo': shubBorneoRoute,
+    'shub-gblock': shubGblockRoute,
+    'shub-junction': shubJunctionRoute,
+    'shub-SV': shubSvRoute,
+
+    'SV-mph': svMphRoute,
+    'SV-library': svLibraryRoute,
+    'SV-hq': svHQRoute,
+    'SV-dining':svDiningRoute,
+    'SV-borneo': svBorneoRoute,
+    'SV-gblock': svGblockRoute,
+    'SV-junction': svJunctionRoute,
+    'SV-shub': svShubRoute,
+
     'mph-borneo': mphBorneoRoute,
     'mph-library': mphLibraryRoute,
     'mph-junction': mphJunctionRoute,
+    'mph-SV': mphSvRoute,
+    'mph-hq': mphHQRoute,
+    'mph-dining':mphDiningRoute,
+    'mph-gblock': mphGblockRoute,
+    'mph-shub': mphShubRoute,
+
     'borneo-mph': borneoMphRoute,
     'borneo-junction': borneoJunctionRoute,
     'borneo-hq': borneoHqRoute,
@@ -41,4 +204,5 @@ export const routeBank: Record<RouteId, RouteDefinition> = {
     'borneo-gblock': borneoGblockRoute,
     'borneo-shub': borneoShubRoute,
     'borneo-library': borneoLibraryRoute,
+    'borneo-SV': borneoSvRoute,
 };

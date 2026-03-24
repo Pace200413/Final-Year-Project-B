@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { routeBank, type RouteId, type RouteScene } from '../route_bank';
 import { useRouter } from 'next/navigation';
 
@@ -25,58 +25,57 @@ type HotSpot = {
 };
 
 export default function GBlock360Page() {
+  /* pano / viewer state */
   const [panoReady, setPanoReady] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // navigation states
+  /* route mode state */
   const [routeMode, setRouteMode] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [showHelp, setShowHelp] = useState(true);
   const [lastMove, setLastMove] = useState<'forward' | 'back' | null>(null);
 
+  /* NEW: next-destination panel collapsed? (start collapsed like MPH) */
   const [nextPanelCollapsed, setNextPanelCollapsed] = useState(true);
 
+  /* refs to the pannellum viewer + container */
   const viewerRef = useRef<PannellumViewer | null>(null);
   const paneRef = useRef<HTMLDivElement>(null);
 
   const [routeKey, setRouteKey] = useState<RouteId>('lobby-gblock');
   const currentRouteDef = routeBank[routeKey];
   const ROUTE: RouteScene[] = currentRouteDef.scenes;
-  const nextOptionsCount = (currentRouteDef.nextRouteIds ?? []).length; // for badge
+  const nextOptionsCount = (currentRouteDef.nextRouteIds ?? []).length; 
   const router = useRouter();
 
-  const PANO = '/images360/gblock10.jpg';
+  /* ---------- DEFAULT (non-route) PANORAMA ---------- */
+  const DEFAULT_PANO = '/images360/gblock10.jpg';
 
-  // human-like guidance message
+  /* ---------- ROUTE CONFIG ---------- */
   const guidanceText = useMemo(() => {
-    // not started yet
     if (!routeMode) return 'Tap “Navigate here” to start guided 360° route.';
 
     const scene = ROUTE[currentIdx];
 
-    // 1) if this scene has a custom instruction, use it
     if (scene.instruction) {
       return scene.instruction;
     }
 
-    // 2) if this is the last scene and no custom text, say arrived
     if (currentIdx === ROUTE.length - 1) {
       return 'You have reached the destination.';
     }
 
-    // 3) otherwise give a generic forward instruction
     return 'Look for the red arrow in front and click it to move forward.';
   }, [routeMode, currentIdx, ROUTE]);
 
-  // preload
+  /* ---------- preload default pano ---------- */
   useEffect(() => {
     const img = new Image();
     img.onload = () => setPanoReady(true);
     img.onerror = () => setErrorMsg('❌ Could not load panorama image.');
-    img.src = PANO;
-  }, []);
+    img.src = DEFAULT_PANO;
+  }, [DEFAULT_PANO]);
 
-  // load pannellum (default viewer)
+  /* ---------- inject pannellum script/css ---------- */
   useEffect(() => {
     const w = window as PannellumWindow;
     if (w.pannellum) {
@@ -88,7 +87,7 @@ export default function GBlock360Page() {
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
     script.onload = () => initViewerDefault();
-    script.onerror = () => setErrorMsg('⚠ Failed to load Pannellum from CDN.');
+    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum from CDN.');
     document.body.appendChild(script);
 
     const link = document.createElement('link');
@@ -96,9 +95,13 @@ export default function GBlock360Page() {
     link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
     document.head.appendChild(link);
 
-    return () => viewerRef.current?.destroy?.();
+    return () => {
+      viewerRef.current?.destroy?.();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ---------- viewer initializers ---------- */
 
   const initViewerDefault = () => {
     const w = window as PannellumWindow;
@@ -112,7 +115,7 @@ export default function GBlock360Page() {
 
     viewerRef.current = w.pannellum.viewer(paneRef.current, {
       type: 'equirectangular',
-      panorama: PANO,
+      panorama: DEFAULT_PANO,
       autoLoad: true,
       showZoomCtrl: true,
       showFullscreenCtrl: true,
@@ -125,13 +128,10 @@ export default function GBlock360Page() {
     });
   };
 
-  // UPDATED: accept move direction
-  const initViewerForIndex = (
-    idx: number,
-    moveDir: 'forward' | 'back' = 'forward'
-  ) => {
+  const initViewerForIndex = (idx: number, moveDir: 'forward' | 'back' = 'forward') => {
     const w = window as PannellumWindow;
     if (!paneRef.current || !w.pannellum) return;
+
     const scene = ROUTE[idx];
 
     try {
@@ -140,7 +140,6 @@ export default function GBlock360Page() {
       /* noop */
     }
 
-    // decide starting yaw
     let startYaw = scene.initialYaw;
     if (moveDir === 'back') {
       if (scene.back) {
@@ -202,7 +201,6 @@ export default function GBlock360Page() {
                 <path d="M7.5 11.5 12 7l4.5 4.5" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            <span class="swin-back-label">Back</span>
           </button>
         `;
           div.style.cursor = idx > 0 ? 'pointer' : 'default';
@@ -211,62 +209,11 @@ export default function GBlock360Page() {
       });
     }
 
-    // SERVICE DESK INFO (no navigation, just info text)
-    if (scene.id === 13) {
-      hotSpots.push({
-        pitch: 0,
-        yaw: 195,
-        type: 'info',
-        createTooltipFunc: (div: HTMLElement) => {
-          div.style.background = 'transparent';
-          div.style.border = 'none';
-          div.style.width = 'auto';
-          div.style.height = 'auto';
-          div.style.pointerEvents = 'none';
-
-          div.innerHTML = `
-            <div style="background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.3); text-align: center;">
-              <div style="color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap;">You are at Service Desk</div>
-            </div>
-          `;
-        },
-      });
-    }
-
-    // SERVICE DESK HOTSPOT (for Lobby A 12)
-    if (scene.id === 12) {
-      hotSpots.push({
-        pitch: -4,
-        yaw: 105,
-        type: 'info',
-        createTooltipFunc: (div: HTMLElement) => {
-          div.style.background = 'transparent';
-          div.style.border = 'none';
-          div.style.width = 'auto';
-          div.style.height = 'auto';
-
-          div.innerHTML = `
-            <div class="swin-back-vertical">
-              <div class="swin-forward-btn">
-                <svg viewBox="0 0 32 32" class="swin-forward-icon arrow-up" style="color: #dc2626;">
-                  <path d="M6 16h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                  <path d="M18 10l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </div>
-              <div class="swin-back-label" style="color: #dc2626; font-size: 11px; font-weight: 600; white-space: nowrap; margin-top: 4px;">Service Desk</div>
-            </div>
-          `;
-          div.style.cursor = 'pointer';
-        },
-        clickHandlerFunc: () => handleToServiceDesk(),
-      });
-    }
-
     viewerRef.current = w.pannellum.viewer(paneRef.current, {
       type: 'equirectangular',
       panorama: scene.image,
       autoLoad: true,
-      yaw: startYaw, // use computed yaw
+      yaw: startYaw,
       showZoomCtrl: true,
       showFullscreenCtrl: true,
       compass: false,
@@ -279,15 +226,15 @@ export default function GBlock360Page() {
     });
   };
 
-  // update viewer when route changes
+  /* ---------- react to routeMode / index changes ---------- */
   useEffect(() => {
     if (routeMode) {
-      // if lastMove is null (first time), treat as forward
       initViewerForIndex(currentIdx, lastMove ?? 'forward');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIdx, routeMode, lastMove]);
 
+  /* ---------- handlers ---------- */
   const handleStartRoute = () => {
     setRouteMode(true);
     setCurrentIdx(0);
@@ -311,25 +258,18 @@ export default function GBlock360Page() {
     setCurrentIdx((i) => Math.max(i - 1, 0));
   };
 
-  const handleToServiceDesk = () => {
-    setLastMove('forward');
-    const serviceDeskIdx = ROUTE.findIndex((s) => s.id === 13);
-    if (serviceDeskIdx !== -1) {
-      setCurrentIdx(serviceDeskIdx);
-    }
-  };
-
   const progressPercent = ((currentIdx + 1) / ROUTE.length) * 100;
 
+  /* ---------- UI ---------- */
   return (
     <>
       <Head>
-        <title>G Block Route • 360° View</title>
+        <title>G Block • 360° Route</title>
       </Head>
 
       <main className="flex flex-col h-auto">
         <div className="w-full mx-auto px-2 md:px-4 flex-1">
-          {/* Header */}
+          {/* Header (same style as the other page) */}
           <header className="flex items-center gap-3 p-3 mb-4 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200">
             <Link
               href="/navigate"
@@ -341,14 +281,15 @@ export default function GBlock360Page() {
             <div>
               <h1 className="text-lg font-extrabold text-slate-900">G Block</h1>
               <p className="text-sm text-slate-500 mt-0.5">
-                360° route: Lobby A → G Block
+                360° guided route inside atrium
               </p>
             </div>
           </header>
 
-          {/* Viewer */}
+          {/* Panorama / Viewer shell */}
           <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden">
             <div className="relative w-full h-[58vh] md:h-auto md:aspect-[20/9] bg-black">
+              {/* pannellum mounts here */}
               <div
                 ref={paneRef}
                 className={`absolute inset-0 z-0 transition-opacity duration-500 ${
@@ -379,38 +320,6 @@ export default function GBlock360Page() {
                 </div>
               )}
 
-              {/* TOP-LEFT HUD */}
-              {routeMode && (
-                <div className="absolute top-1 left-9 z-20">
-                  <div className="bg-black/55 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1.5 text-white min-w-[160px] md:min-w-[210px]">
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-wide text-slate-200/80 mb-0.5">
-                      You are here
-                    </p>
-                    <p className="text-xs md:text-sm font-semibold line-clamp-1">
-                      {ROUTE[currentIdx].label}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Step instruction */}
-              {routeMode && (
-                <div
-                  className="
-                    absolute bottom-3
-                    left-1/2 -translate-x-1/2    /* mobile: center horizontally */
-                    sm:left-3 sm:translate-x-0   /* ≥640px: back to bottom-left */
-                    z-20 swin-step-box
-                  "
-                >
-                  <p className="swin-step-label">Next instruction</p>
-                  <p className="swin-step-text">{guidanceText}</p>
-                  <p className="swin-step-meta">
-                    Step {currentIdx + 1} of {ROUTE.length}
-                  </p>
-                </div>
-              )}
-
               {/* TOP-CENTER guidance */}
               {routeMode && (
                 <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-4 z-20">
@@ -430,7 +339,7 @@ export default function GBlock360Page() {
                     Navigate here
                   </button>
                   <p className="hidden md:block text-xs text-white/80 bg-black/30 rounded-full px-3 py-1">
-                    We will guide you through the MPH
+                    We will guide you through the atrium
                   </p>
                 </div>
               ) : (
@@ -442,16 +351,27 @@ export default function GBlock360Page() {
                   <button
                     onClick={handlePrev}
                     disabled={currentIdx === 0}
-                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-black/40 text-white text-lg disabled:opacity-30"
+                    className="swin-ctrl-btn swin-ctrl-btn--prev"
+                    aria-label="Previous step"
                   >
                     ←
+                    <svg viewBox="0 0 32 32" className="swin-ctrl-arrow swin-ctrl-arrow--prev" aria-hidden="true">
+                      <path d="M8 16h16" />
+                      <path d="M14 10l-6 6 6 6" />
+                    </svg>
                   </button>
+
                   <button
                     onClick={handleNext}
                     disabled={currentIdx === ROUTE.length - 1}
-                    className="w-8 h-8 md:w-9 md:h-9 grid place-items-center rounded-full bg-red-600 text-white text-lg disabled:opacity-30"
+                    className="swin-ctrl-btn swin-ctrl-btn--next"
+                    aria-label="Next step"
                   >
                     →
+                    <svg viewBox="0 0 32 32" className="swin-ctrl-arrow" aria-hidden="true">
+                      <path d="M8 16h16" />
+                      <path d="M18 10l6 6-6 6" />
+                    </svg>
                   </button>
                   <button
                     onClick={handleExitRoute}
@@ -566,11 +486,14 @@ export default function GBlock360Page() {
                 )}
             </div>
 
-            {/* Bottom bar */}
+            {/* Bottom info bar */}
             <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/90 text-slate-300 text-xs border-t border-white/10 z-10">
               <span className="truncate">
-                {routeMode ? ROUTE[currentIdx].label : 'G Block View'}
+                {routeMode
+                  ? ROUTE[currentIdx].label
+                  : 'G Block'}
               </span>
+
               {routeMode ? (
                 <div className="flex items-center gap-2">
                   <span className="md:hidden text-[10px] text-slate-200/80 truncate max-w-[95px]">
@@ -590,10 +513,11 @@ export default function GBlock360Page() {
             </div>
           </section>
 
+          {/* Help / instructions */}
           <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
-            🖱 Click + drag to look around • 🔍 Scroll to zoom
+            🖱️ Click + drag to look around • 🔍 Scroll to zoom
             <br />
-            📍 Tap the arrows or hotspots to move
+            📱 Tap the arrows or hotspots to move
           </p>
         </div>
       </main>
