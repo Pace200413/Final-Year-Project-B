@@ -814,7 +814,7 @@ export const mphShubRoute: RouteDefinition = {
   fromNode: 'MPH',
   toNode: 'Student Hub',
   scenes: [
-    {
+            {
                 id: 1,
                 image: '/images360/L-M-17.jpg',
                 label: 'Multi Purpose Hall Lobby',
