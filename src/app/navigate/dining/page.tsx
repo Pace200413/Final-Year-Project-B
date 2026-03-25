@@ -240,12 +240,6 @@ export default function Dining360Page() {
           div.style.width = 'auto';
           div.style.height = 'auto';
           div.style.pointerEvents = 'none';
-
-          div.innerHTML = `
-            <div style="background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.3); text-align: center;">
-              <div style="color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap;">You have reached dining area</div>
-            </div>
-          `;
         },
       });
     }
