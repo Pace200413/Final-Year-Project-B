@@ -151,7 +151,7 @@ export const lobbyMphRoute: RouteDefinition = {
       back: { yaw: 160, pitch: 0 },
     },
   ],
-  nextRouteIds: ['mph-borneo', 'mph-library', 'mph-junction'],
+  nextRouteIds: ['mph-borneo', 'mph-library', 'mph-junction', 'mph-SV', 'mph-hq', 'mph-dining', 'mph-gblock', 'mph-shub'],
 };
 
 // Dininig
@@ -553,10 +553,9 @@ export const lobbyHqRoute: RouteDefinition = {
       image: '/images360/L-H-4.jpg',
       label: 'Student HQ Lobby',
       initialYaw: 340,
-      back: { yaw: 250, pitch: 0 },
     },
   ],
-  nextRouteIds: ['borneo-mph', 'mph-borneo'],
+  nextRouteIds: ['hq-mph', 'hq-library', 'hq-shub', 'hq-dining', 'hq-borneo', 'hq-gblock', 'hq-junction', 'hq-SV'],
 };
 
 // G Block

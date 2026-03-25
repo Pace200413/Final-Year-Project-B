@@ -275,13 +275,13 @@ export default function GBlock360Page() {
               ←
             </Link>
             <div>
-              <h1 className="text-lg font-extrabold text-slate-900">G Block</h1>
+              <h1 className="text-lg font-extrabold text-slate-900">Multi Purpose Hall</h1>
               <p className="text-sm text-slate-500 mt-0.5">
-                360° guided route inside atrium
+                360° guided route: {currentRouteDef.title}
               </p>
             </div>
           </header>
-
+          
           {/* Panorama / Viewer shell */}
           <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden">
             <div className="relative w-full h-[58vh] md:h-auto md:aspect-[20/9] bg-black">

@@ -319,9 +319,9 @@ export default function Dining360Page() {
               ←
             </Link>
             <div>
-              <h1 className="text-lg font-extrabold text-slate-900">Dining Area</h1>
+              <h1 className="text-lg font-extrabold text-slate-900">Multi Purpose Hall</h1>
               <p className="text-sm text-slate-500 mt-0.5">
-                360° route: Lobby A → Dining Area
+                360° guided route: {currentRouteDef.title}
               </p>
             </div>
           </header>
