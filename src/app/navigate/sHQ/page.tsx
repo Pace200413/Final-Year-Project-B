@@ -48,7 +48,6 @@ export default function StudentHQ360Page() {
   const guidanceText = useMemo(() => {
     if (!routeMode) return 'Tap “Navigate here” to start guided 360° route.';
     const scene = ROUTE[currentIdx];
-    if (scene.instruction) return scene.instruction;
     if (currentIdx === ROUTE.length - 1) return 'You’ve reached the end of Student HQ route ✅';
     return 'Follow the red arrow to continue.';
   }, [routeMode, currentIdx, ROUTE]);

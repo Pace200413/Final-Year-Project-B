@@ -56,10 +56,6 @@ export default function BorneoAtrium360Page() {
 
     const scene = ROUTE[currentIdx];
 
-    if (scene.instruction) {
-      return scene.instruction;
-    }
-
     if (currentIdx === ROUTE.length - 1) {
       return 'You have reached the destination.';
     }

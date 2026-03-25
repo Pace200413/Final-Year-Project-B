@@ -949,19 +949,6 @@ type CardItem = {
   description?: string;
 };
 
-// const CARD_UI: Record<string, { icon: IconType; hint: string; hours?: Hours; stallsCount?: number; description?: string }> = {
-//   maps: { icon: FaMapMarkedAlt, hint: 'Swinburne Sarawak Map & 360 View', description: 'Interactive map with red dots and 360° panoramas.' },
-//   mph: { icon: FaBuilding, hint: 'Events & assemblies', hours: { open: '07:00', close: '23:00' }, description: 'Venue bookings, exams hall, large events.' },
-//   atrium: { icon: FaUniversity, hint: 'Event Places & Hangout', description: 'Main public atrium at between Block A and Block B. Events locate, seating, hangout place.' },
-//   HQ: { icon: FaInfoCircle, hint: 'Help desk & services', hours: { open: '08:00', close: '17:00' }, description: 'ID cards, enrolment support, fees & forms.' },
-//   library: { icon: FaBookOpen, hint: 'Resources & study zones', hours: { open: '08:00', close: '21:30' }, description: 'Quiet zone, self-checkout, opening hours.' },
-//   study: { icon: FaBook, hint: 'Study places, group rooms', hours: { open: '00:00', close: '24:00' }, description: 'Junction, charging area, discussion room.' },
-//   gblock: { icon: FaLaptopCode, hint: 'Student service & IT Department', hours: { open: '08:00', close: '17:00' }, description: 'Student service desk, IT department offices and support rooms.' },
-//   studenthub: { icon: FaUsers, hint: 'Clubs & hangout space', hours: { open: '07:00', close: '22:00' }, description: 'Clubs, lounge areas, activity sign-ups.' },
-//   dining: { icon: FaUtensils, hint: 'Having your breakfast and lunch here', hours: { open: '07:00', close: '17:00' }, stallsCount: 12, description: 'Ground floor (chicken rice, noodles)' },
-//   studentvillage: { icon: FaBuilding, hint: 'Student accommodation blocks', hours: { open: '00:00', close: '24:00' }, description: 'Student Village area including SV1, SV2 and SV3.'},
-// };
-
 const CARD_UI: Record<
   string,
   {

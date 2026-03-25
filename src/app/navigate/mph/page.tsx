@@ -50,7 +50,6 @@ export default function MultiPurposeHall360Page() {
   const guidanceText = useMemo(() => {
     if (!routeMode) return 'Tap “Navigate here” to start guided 360° route.';
     const scene = ROUTE[currentIdx];
-    if (scene.instruction) return scene.instruction;
     if (currentIdx === ROUTE.length - 1) return 'You’ve reached the end of the MPH route ✅';
     return 'Look for the red arrow in front and click it to move forward.';
   }, [routeMode, currentIdx, ROUTE]);

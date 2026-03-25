@@ -55,11 +55,6 @@ export default function Dining360Page() {
 
     const scene = ROUTE[currentIdx];
 
-    // 1) if this scene has a custom instruction, use it
-    if (scene.instruction) {
-      return scene.instruction;
-    }
-
     // 2) if this is the last scene and no custom text, say arrived
     if (currentIdx === ROUTE.length - 1) {
       return 'You have reached the destination.';

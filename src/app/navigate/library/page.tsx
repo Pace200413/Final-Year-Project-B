@@ -52,7 +52,6 @@ export default function Library360Page() {
   const guidanceText = useMemo(() => {
     if (!routeMode) return 'Tap “Navigate here” to start guided 360° route.';
     const scene = ROUTE[currentIdx];
-    if (scene.instruction) return scene.instruction;
     if (currentIdx === ROUTE.length - 1) return 'You have reached the last section.';
     return 'Look for the red arrow to continue.';
   }, [routeMode, currentIdx, ROUTE]);
