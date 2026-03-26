@@ -1,11 +1,26 @@
 'use client';
 
+import Head from 'next/head';
+import Script from 'next/script';
 import Link from 'next/link';
 import React from 'react';
 import * as THREE from "three";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Html, Edges, Line } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
+
+interface PannellumViewer {
+  destroy?: () => void;
+  resize?: () => void;
+}
+
+type PannellumApi = {
+  viewer: (el: HTMLElement, opts: Record<string, unknown>) => PannellumViewer;
+};
+
+type PannellumWindow = Window & {
+  pannellum?: PannellumApi;
+};
 
 const BUILDING_INFO: Record<
   string,
@@ -14,6 +29,7 @@ const BUILDING_INFO: Record<
     description: string;
     category: string;
     has360View: boolean;
+    panoUrl?: string;
     keywords?: string[];
     imageUrl?: string;
     address?: string;
@@ -30,10 +46,10 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["Junction", "Library", "John's Pie", "Student HQ"],
     imageUrl: "/images/lobby.jpg",
+    panoUrl: "/images360/lobby_c2.jpg",
     hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
   },
 
-  
   TPX_Buildings_8: {
     label: "MPH & Angelus Fitness",
     description:
@@ -42,6 +58,7 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["Sport Hall", "Badminton Court", "Bastketball Court", "GYM"],
     imageUrl: "/images/mph_pic.jpg",
+    panoUrl: "/images360/L-M-18.jpg",
     hours: "Mon - Fri, 7:00 AM - 23:00 PM",
   },
 
@@ -50,9 +67,10 @@ const BUILDING_INFO: Record<
     description:
       "Academic building containing classrooms, labs, and teaching facilities.",
     category: "academic",
-    has360View: false,
+    has360View: true,
     keywords: ["IT", "IT Deparment", "BlockG"],
     imageUrl: "/images/blockg_pic.jpg",
+    panoUrl: "/images360/gblock10.jpg",
     hours: "Mon - Fri, 8:00 AM - 5:30 PM",
   },
 
@@ -64,6 +82,7 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["canteen", "food", "dining", "hall"],
     imageUrl: "/images/diningpic.jpg",
+    panoUrl: "/images360/dining.jpg",
     hours: "Mon - Fri, 7:00 AM - 5:00 PM",
   },
 
@@ -75,6 +94,7 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["lt", "lecture", "theatre", "hall"],
     imageUrl: "/images/lecturetheater_pic.jpg",
+    panoUrl: "/images360/lecturetheatre.jpg",
     hours: "Mon - Fri, 8:00 AM - 6:00 PM",
   },
 
@@ -83,9 +103,10 @@ const BUILDING_INFO: Record<
     description:
       "Student Village management office and shared kitchen facilities.",
     category: "residential",
-    has360View: false,
+    has360View: true,
     keywords: ["sv kitchen", "SV Lobby", "SV Main Door", "Student Village"],
     imageUrl: "/images/sv_outside_pic.jpg",
+    panoUrl: "/images360/sv_outside.jpg",
     hours: "SV Office Mon - Fri, 8:00 AM - 5:00 PM",
   },
 
@@ -97,6 +118,7 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["student hub", "Volleyball Court", "activity", "S Hub Sport Hall"],
     imageUrl: "/images/shub1_pic.jpeg",
+    panoUrl: "/images360/shub_L2.jpg",
     hours: "Mon - Sun, 9:00 AM - 10:00 PM",
   },
 
@@ -108,6 +130,7 @@ const BUILDING_INFO: Record<
     has360View: true,
     keywords: ["student hub", "hub", "Dancing Room", "Gaming Room"],
     imageUrl: "/images/shub_pic.jpg",
+    panoUrl: "/images360/shub_L1.jpg",
     hours: "Mon - Sun, 9:00 AM - 10:00 PM",
   },
 
@@ -116,8 +139,9 @@ const BUILDING_INFO: Record<
     description:
       "Male accommodation building within the Swinburne Student Village.",
     category: "residential",
-    has360View: false,
+    has360View: true,
     imageUrl: "/images/sv_inside_pic.jpg",
+    panoUrl: "/images360/sv_inside.jpg",
     hours: "-",
   },
 
@@ -126,8 +150,9 @@ const BUILDING_INFO: Record<
     description:
       "Campus multi-level parking facility for students and staff vehicles.",
     category: "parking",
-    has360View: false,
+    has360View: true,
     imageUrl: "/images/parking_pic.jpg",
+    panoUrl: "/images360/carpark1.jpg",
     hours: "-",
   },
 
@@ -136,8 +161,9 @@ const BUILDING_INFO: Record<
     description:
       "Female accommodation building within the Swinburne Student Village.",
     category: "residential",
-    has360View: false,
+    has360View: true,
     imageUrl: "/images/sv_inside_pic.jpg",
+    panoUrl: "/images360/sv_inside.jpg",
     hours: "-",
   },
 
@@ -148,6 +174,7 @@ const BUILDING_INFO: Record<
     category: "food",
     has360View: true,
     imageUrl: "/images/diningpic.jpg",
+    panoUrl: "/images360/diningL2.jpg",
     hours: "Mon - Fri, 7:00 AM - 5:00 PM",
   },
 };
@@ -157,6 +184,7 @@ function getBuildingInfo(meshName: string): {
   description: string;
   category: string;
   has360View: boolean;
+  panoUrl?: string;
   keywords?: string[];
   imageUrl?: string;
   hours?: string;
@@ -349,6 +377,7 @@ type CampusPOI = {
   description: string;
   category: string;
   has360View: boolean;
+  panoUrl?: string;
   keywords?: string[];
   shortLabel: string;
   offset: [number, number, number];
@@ -366,6 +395,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     has360View: true,
     keywords: ["a block", "block a"],
     imageUrl: "/images/lobby.jpg",
+    panoUrl: "/images360/lobby_c2.jpg",
     hours: "Student HQ Mon - Fri, 8:00 AM - 5:00 PM",
     shortLabel: "A",
     offset: [-10, 8, -7],  //[-10, 3, 8]
@@ -379,6 +409,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     has360View: true,
     keywords: ["e block", "block e"],
     imageUrl: "/images/blockE_pic.jpg",
+    panoUrl: "/images360/blockE.jpg",
     hours: "-",
     shortLabel: "E",
     offset: [0, 3, 46],
@@ -392,6 +423,7 @@ const CAMPUS_POIS: CampusPOI[] = [
     has360View: true,
     keywords: ["borneo atrium", "atrium"],
     imageUrl: "/images/borneoatrium_pic.jpg",
+    panoUrl: "/images360/borneo_atrium.jpg",
     hours: "Open 24 hours (Mon–Sun)",
     shortLabel: "BA",
     offset: [10, 3, 23],
@@ -1399,6 +1431,15 @@ function FocusCameraOnRoute({
   return null;
 }
 
+function isEquirectangular(url: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(Math.abs(img.width - 2 * img.height) <= 2);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+}
+
 /* ---------- MAIN PAGE ---------- */
 export default function CampusMapPage() {
   const [picked, setPicked] = useState<{
@@ -1409,6 +1450,7 @@ export default function CampusMapPage() {
     description: string;
     category: string;
     has360View: boolean;
+    panoUrl?: string;
     imageUrl?: string;
     hours?: string;
     poiId?: string;
@@ -1447,6 +1489,77 @@ export default function CampusMapPage() {
 
   const [mounted, setMounted] = useState(false);
 
+  const [open360, setOpen360] = useState(false);
+  const [panoReady, setPanoReady] = useState(false);
+  const [panoError, setPanoError] = useState("");
+
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const viewerRef = useRef<PannellumViewer | null>(null);
+
+  useEffect(() => {
+    if (!open360 || !picked?.panoUrl || !panoReady || !hostRef.current) return;
+
+    const w = window as PannellumWindow;
+    if (!w.pannellum) return;
+
+    try {
+      viewerRef.current?.destroy?.();
+    } catch {
+      // ignore
+    }
+
+    hostRef.current.innerHTML = "";
+
+    let removeResize: (() => void) | undefined;
+
+    (async () => {
+      setPanoError("");
+
+      const ok = await isEquirectangular(picked.panoUrl!);
+      if (!ok) {
+        setPanoError("This image is not a real 360 panorama.");
+        return;
+      }
+
+      viewerRef.current = w.pannellum!.viewer(hostRef.current!, {
+        type: "equirectangular",
+        panorama: picked.panoUrl,
+        autoLoad: true,
+        showFullscreenCtrl: true,
+        showZoomCtrl: true,
+        compass: false,
+        hfov: 100,
+        minHfov: 60,
+        maxHfov: 120,
+      });
+
+      const resize = () => viewerRef.current?.resize?.();
+      resize();
+      requestAnimationFrame(resize);
+      window.addEventListener("resize", resize);
+      removeResize = () => window.removeEventListener("resize", resize);
+    })();
+
+    return () => {
+      removeResize?.();
+      try {
+        viewerRef.current?.destroy?.();
+      } catch {
+        // ignore
+      }
+      viewerRef.current = null;
+    };
+  }, [open360, picked?.panoUrl, panoReady]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen360(false);
+    };
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  
   useEffect(() => {
     if (!startNode || !endNode) {
       setActiveRoute([]);
@@ -1494,25 +1607,6 @@ export default function CampusMapPage() {
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  // useEffect(() => {
-  //   const checkMobile = () => {
-  //     const mobile = window.innerWidth <= 768;
-  //     setIsMobile(mobile);
-
-  //     // desktop always keep open
-  //     if (!mobile) {
-  //       setLocationPanelOpen(true);
-  //     } else {
-  //       setLocationPanelOpen(false);
-  //     }
-  //   };
-
-  //   checkMobile();
-  //   window.addEventListener("resize", checkMobile);
-
-  //   return () => window.removeEventListener("resize", checkMobile);
-  // }, []);
 
   const searchableBuildings = useMemo(() => getSearchableBuildings(), []);
 
@@ -1583,6 +1677,7 @@ export default function CampusMapPage() {
         description: poi.description,
         category: poi.category,
         has360View: poi.has360View,
+        panoUrl: poi.panoUrl,
         imageUrl: poi.imageUrl,
         hours: poi.hours,
         poiId: poi.id,
@@ -1596,11 +1691,6 @@ export default function CampusMapPage() {
         setMobileSheetOpen(true);
         setMobileSheetExpanded(true);
       }
-      // if (isMobile) {
-      //   setLocationPanelOpen(false);
-      //   setMobileSheetOpen(true);
-      //   setMobileSheetExpanded(true);
-      // }
       return;
     }
 
@@ -1616,6 +1706,7 @@ export default function CampusMapPage() {
       description: info.description,
       category: info.category,
       has360View: info.has360View,
+      panoUrl: info.panoUrl,
       imageUrl: info.imageUrl,
       hours: info.hours,
     });
@@ -1630,15 +1721,6 @@ export default function CampusMapPage() {
       setMobileSheetExpanded(true);
     }
   };
-
-  // function handleSetCurrentLocation(nodeId: string, label: string) {
-  //   setCurrentLocationNode(nodeId);
-  //   setCurrentLocationLabel(label);
-
-  //   if (isMobile) {
-  //     setLocationPanelOpen(false);
-  //   }
-  // }
 
   function handleDetectCurrentLocation() {
     if (!navigator.geolocation) {
@@ -1743,7 +1825,26 @@ export default function CampusMapPage() {
   }
 
   return (
-    <main className="flex flex-col h-[100dvh] overflow-hidden">
+    <>
+      <Head>
+        <title>Campus Map</title>
+        <link rel="stylesheet" href="/vendor/pannellum/pannellum.css" />
+      </Head>
+
+      <Script
+        src="/vendor/pannellum/pannellum.js"
+        strategy="afterInteractive"
+        onLoad={() => setPanoReady(true)}
+        onError={() => {
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
+          s.onload = () => setPanoReady(true);
+          s.onerror = () => console.error("Failed to load Pannellum.");
+          document.body.appendChild(s);
+        }}
+      />
+
+      <main className="flex flex-col h-[100dvh] overflow-hidden">
       <div className={`w-full mx-auto ${isMobile ? "px-0" : "px-2 md:px-4"} py-2 md:py-4 flex-1 min-h-0 flex flex-col`}>
           {/* Header */}
           <header className="flex items-center gap-3 p-3 md:p-3 mb-3 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200 flex-shrink-0">
@@ -1762,7 +1863,9 @@ export default function CampusMapPage() {
       <div
         style={{
           width: isMapFullscreen ? "100vw" : "100%",
-          maxWidth: isMapFullscreen ? "100vw" : 1400,
+          margin: "0 auto",
+          // maxWidth: isMapFullscreen ? "100vw" : 1400,
+          maxWidth: "100%",
           flex: 1,
           minHeight: 0,
           height: isMapFullscreen ? "100dvh" : "100%",
@@ -1964,17 +2067,22 @@ export default function CampusMapPage() {
                     }}
                   >
                     <button
-                      disabled={!picked.has360View}
+                      disabled={!picked.panoUrl}
+                      onClick={() => {
+                        if (picked.panoUrl) {
+                          setOpen360(true);
+                        }
+                      }}
                       style={{
                         flex: 1,
                         padding: isMobile ? "9px 12px" : "10px 12px",
                         borderRadius: 10,
                         border: "none",
-                        background: picked.has360View ? "#38bdf8" : "#94a3b8",
+                        background: picked.panoUrl ? "#38bdf8" : "#94a3b8",
                         color: "#0f172a",
                         fontWeight: 700,
                         fontSize: isMobile ? 13 : 14,
-                        cursor: picked.has360View ? "pointer" : "not-allowed",
+                        cursor: picked.panoUrl ? "pointer" : "not-allowed",
                       }}
                     >
                       Open 360 View
@@ -2114,7 +2222,7 @@ export default function CampusMapPage() {
                 fontFamily: "system-ui",
                 transition: "all 0.25s ease",
                 // maxHeight: mobileSheetExpanded ? "62%" : "96px",
-                maxHeight: mobileSheetExpanded ? "52%" : "88px",
+                maxHeight: mobileSheetExpanded ? "82dvh" : "88px",
                 display: "flex",
                 flexDirection: "column",
                 backdropFilter: "blur(10px)",
@@ -2200,7 +2308,7 @@ export default function CampusMapPage() {
               <div
                 style={{
                   overflowY: "auto",
-                  padding: "0 14px 14px",
+                  padding: "0 14px 24px",
                 }}
               >
                 {picked.imageUrl && (
@@ -2249,17 +2357,22 @@ export default function CampusMapPage() {
                   }}
                 >
                   <button
-                    disabled={!picked.has360View}
+                    disabled={!picked.panoUrl}
+                    onClick={() => {
+                      if (picked.panoUrl) {
+                        setOpen360(true);
+                      }
+                    }}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
                       borderRadius: 12,
                       border: "none",
-                      background: picked.has360View ? "#38bdf8" : "#94a3b8",
+                      background: picked.panoUrl ? "#38bdf8" : "#94a3b8",
                       color: "#0f172a",
                       fontWeight: 700,
                       fontSize: 14,
-                      cursor: picked.has360View ? "pointer" : "not-allowed",
+                      cursor: picked.panoUrl ? "pointer" : "not-allowed",
                     }}
                   >
                     Open 360 View
@@ -2574,6 +2687,7 @@ export default function CampusMapPage() {
                 description: poi.description,
                 category: poi.category,
                 has360View: poi.has360View,
+                panoUrl: poi.panoUrl,
                 imageUrl: poi.imageUrl,
                 hours: poi.hours,
                 poiId: poi.id,
@@ -2610,6 +2724,7 @@ export default function CampusMapPage() {
 
                 setPicked({
                   ...p,
+                  panoUrl: info.panoUrl,
                   imageUrl: info.imageUrl,
                   hours: info.hours,
                 });
@@ -2682,8 +2797,125 @@ export default function CampusMapPage() {
       {/* <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
         🖱️ Click + drag to look around • 🔍 Scroll to zoom
       </p> */}
-    </div>
-    </main>
+        </div>
+
+        {open360 && picked?.panoUrl && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 3000,
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: isMobile ? 8 : 24,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen360(false);
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 1100,
+              background: "#020617",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 20,
+              overflow: "hidden",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 14px",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(2,6,23,0.92)",
+              }}
+            >
+              <div>
+                <div style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>
+                  {picked.name}
+                </div>
+                <div style={{ color: "#94a3b8", fontSize: 12 }}>
+                  360° Viewer
+                </div>
+              </div>
+
+              <button
+                onClick={() => setOpen360(false)}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#f8fafc",
+                  color: "#0f172a",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "16 / 9",
+                background: "#000",
+              }}
+            >
+              <div
+                ref={hostRef}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                }}
+              />
+
+              {panoError && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#f8fafc",
+                    fontSize: 14,
+                    textAlign: "center",
+                    padding: 24,
+                  }}
+                >
+                  {panoError}
+                </div>
+              )}
+
+              {!panoReady && !panoError && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#e2e8f0",
+                    fontSize: 14,
+                  }}
+                >
+                  Loading 360° viewer...
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      </main>
+    </>
   );
 }
 

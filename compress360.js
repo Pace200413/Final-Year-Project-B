@@ -2,8 +2,8 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-const inputDir = "./public/images360-original";
-const outputDir = "./public/images360";
+const inputDir = "./public/360-original";
+const outputDir = "./public/360";
 
 // Make sure output folder exists
 if (!fs.existsSync(outputDir)) {
