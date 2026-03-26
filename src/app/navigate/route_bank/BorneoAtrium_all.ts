@@ -130,7 +130,6 @@ export const borneoMphRoute: RouteDefinition = {
                 image: '/images360/L-M-18.jpg',
                 label: 'You arrived at the MPH! Welcome!',
                 initialYaw: 0,
-                // back: { yaw: 160, pitch: 0 },
             },
   ],
 };
@@ -224,7 +223,7 @@ export const borneoHqRoute: RouteDefinition = {
       id: 11,
       image: '/images360/L-H-4.jpg',
       label: 'Student HQ Lobby',
-      initialYaw: 340,
+      initialYaw: 330,
     },
   ],
 };
@@ -576,7 +575,6 @@ export const borneoDiningRoute: RouteDefinition = {
                 forward: { yaw: 278, pitch: -3 },
                 back : { yaw: 30, pitch: 0 },
             },
-            //lobby move to shub
             {
               id: 10,
               image: '/images360/LobbyA_3_Dinign.jpg',

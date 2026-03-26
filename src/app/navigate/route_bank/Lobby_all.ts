@@ -511,10 +511,9 @@ export const lobbyJunctionRoute: RouteDefinition = {
       image: '/images360/L-J-20.jpg',
       label: 'You arrive Junction Level 1',
       initialYaw: 270,
-      back: { yaw: 180, pitch: -4 },
     },
   ],
-  nextRouteIds: ['borneo-mph', 'mph-borneo'],
+  nextRouteIds: ['junction-mph', 'junction-hq', 'junction-shub', 'junction-dining', 'junction-borneo', 'junction-gblock', 'junction-library', 'junction-SV', ],
 };
 
 // HQ
