@@ -1905,14 +1905,7 @@ export default function ExitNavigationPage() {
   }, [routeMode, currentIdx, activeRoute, libReady]);
 
   /* ------------------- Actions ------------------- */
-  const handleLocateMe = () => {
-    toast.loading("Detecting your location…");
-    setTimeout(() => {
-      toast.dismiss();
-      setActiveLocation("Library, Level 1");
-      toast.success("Location set to Library, Level 1");
-    }, 800);
-  };
+
 
   const startExitRoute = () => {
     if (!selectedExit) return toast.error("Please choose an exit first.");
@@ -1993,16 +1986,13 @@ export default function ExitNavigationPage() {
 
         {/* Location Selector */}
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="mb-3">
             <div>
               <h2 className="font-semibold text-gray-900 text-base sm:text-lg flex items-center">
                 <FaMapPin className="text-gray-500 mr-2" /> Your Current Location
               </h2>
               <p className="text-gray-700 text-sm sm:text-base">{activeLocation}</p>
             </div>
-            <button onClick={handleLocateMe} className="text-xs sm:text-sm bg-[#EF4444] text-white px-3 py-2 rounded-lg hover:bg-red-600 transition">
-              Auto detect
-            </button>
           </div>
 
           <div className="flex flex-wrap gap-2">
