@@ -18,7 +18,7 @@ import {
   CalendarDays,
   AlertTriangle,
   BookOpen,
-  Clock3
+  GraduationCap,
 } from "lucide-react";
 
 /* ---------- Dev-only: subtle staff access ---------- */
@@ -27,7 +27,7 @@ const IS_STAFF_LINK = process.env.NODE_ENV !== "production";
 /* ---------- Layout helpers ---------- */
 type SectionProps = { id?: string; title: string; subtitle?: string; children: ReactNode };
 
-const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
+const CONTAINER = "mx-auto w-full max-w-[1280px] container-px";
 
 const Section = ({ id, title, subtitle, children }: SectionProps) => (
   <section id={id} className={`${CONTAINER} mt-8 scroll-mt-24`}>
@@ -326,28 +326,28 @@ export default function Page() {
   </div>
 </Section>
 
-<Section
-  id="academics"
-  title="Study & Library"
-  subtitle="Access your timetable and reserve discussion rooms."
->
-  <div className={GRID_2}>
-    <Wrap>
-      <TileCard
-        href="/timetable"
-        title="Timetable"
-        icon={<Clock3 className="h-5 w-5" />}
-      />
-    </Wrap>
-    <Wrap>
-      <TileCard
-        href="/book-a-room"
-        title="Book a Room"
-        icon={<BookOpen className="h-5 w-5" />}
-      />
-    </Wrap>
-  </div>
-</Section>
+        <Section
+          id="academics"
+          title="Study & Library"
+          subtitle="Helpful student resources and room booking."
+        >
+          <div className={GRID_2}>
+            <Wrap>
+              <TileCard
+                href="/new-to-swinburne"
+                title="New to Swinburne"
+                icon={<GraduationCap className="h-5 w-5" />}
+              />
+            </Wrap>
+            <Wrap>
+              <TileCard
+                href="/book-a-room"
+                title="Book a Room"
+                icon={<BookOpen className="h-5 w-5" />}
+              />
+            </Wrap>
+          </div>
+        </Section>
       <ChatLauncher />
     </div>
   );

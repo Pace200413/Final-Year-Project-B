@@ -266,6 +266,7 @@ class NotificationManager {
   }
 }
 
+
 export const notificationManager = new NotificationManager();
 
 /* ------------------------------------------------------------------ */

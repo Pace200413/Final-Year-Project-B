@@ -17,7 +17,7 @@ function prettifyNameFromEmail(email?: string | null) {
     .join(" ");
 }
 
-const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
+const CONTAINER = "mx-auto w-full max-w-[1280px] container-px";
 
 type EditableProfile = {
   fullName: string;

@@ -116,4 +116,3 @@ export function checkRateLimit(id: string): RateLimitResult {
 
   return { allowed: true };
 }
-

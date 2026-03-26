@@ -796,9 +796,13 @@ const IconMsg = (p: any) => (
   </svg>
 );
 
-const IconStar = (p: any) => (
+const IconEssentials = (p: any) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <path d="m12 17.3-5.5 3 1.1-6.3L3 9.7l6.3-.9L12 3l2.7 5.8 6.3.9-4.6 4.3 1.1 6.3z" />
+    <rect x="5" y="4" width="12" height="16" rx="2.5" />
+    <path d="M9 8h4" />
+    <path d="M9 12h5" />
+    <path d="M9 16h3" />
+    <path d="M17 7h1.5A1.5 1.5 0 0 1 20 8.5V19" />
   </svg>
 );
 
@@ -1132,7 +1136,7 @@ export function BottomNav() {
   const tabs = [
     { label: "Home", href: "/", icon: <IconHome /> },
     { label: "Messages", href: "/messages", icon: <IconMsg /> },
-    { label: "Favourites", href: "/favourites", icon: <IconStar /> },
+    { label: "Essentials", href: "/student-essentials", icon: <IconEssentials /> },
     { label: "Break", href: "/study-break", icon: <IconBreak /> },
   ];
 
@@ -1161,7 +1165,7 @@ export function BottomNav() {
       {
         key: "events",
         label: "Events",
-        icon: IconStar,
+        icon: CalendarIcon,
         href: "/events",
         description: "What’s happening on campus",
         featured: true,
@@ -1187,11 +1191,11 @@ export function BottomNav() {
         tone: "slate",
       },
       {
-        key: "favourites",
-        label: "Favourites",
-        icon: IconStar,
-        href: "/favourites",
-        description: "Saved places and tools",
+        key: "student-essentials",
+        label: "Student Essentials",
+        icon: IconEssentials,
+        href: "/student-essentials",
+        description: "Student info, fees, exams and graduation",
         tone: "slate",
       },
       {

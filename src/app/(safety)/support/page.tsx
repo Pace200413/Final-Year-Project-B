@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mail, X } from "lucide-react";
+import { Mail, Phone, X } from "lucide-react";
 import { FaDoorOpen, FaPhoneAlt, FaShieldAlt } from "react-icons/fa";
-import { EmergencyBanner, EmergencyFAB, ServiceStatusBar } from "@/components/SystemLayer";
+import { EmergencyBanner, EmergencyFAB } from "@/components/SystemLayer";
 import { SupportDirectory, SupportRequestForm } from "@/components/SupportUI";
 import type { Service } from "@/components/appTypes";
 import {
@@ -123,21 +123,22 @@ export default function SupportPage() {
           </SmartLink>
         </div>
 
-        <div className="mt-4 space-y-4">
-          <EmergencyBanner
-            variant="smart"
-            phone={content.alertPhone}
-            showContext={false}
-          />
-          <ServiceStatusBar items={content.status} />
+        <div className="mt-5 space-y-4">
+          <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-sm">
+            <EmergencyBanner
+              variant="smart"
+              phone={content.alertPhone}
+              showContext={false}
+            />
+          </div>
 
           <InlineAlert tone="amber">{content.inlineAlertText}</InlineAlert>
 
-          <div className="flex gap-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#E31B23] px-4 py-3 text-sm font-semibold text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#E31B23] px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
               aria-haspopup="dialog"
               aria-expanded={drawerOpen}
               aria-controls="request-drawer"
@@ -149,8 +150,9 @@ export default function SupportPage() {
             <button
               type="button"
               onClick={jumpToServices}
-              className="inline-flex flex-1 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
             >
+              <Phone className="h-4 w-4" />
               {content.browseButtonLabel}
             </button>
           </div>
@@ -158,19 +160,16 @@ export default function SupportPage() {
       </SafetyCard>
 
       <SafetyCard id="services" className="mt-4 scroll-mt-24">
-        <h2 className="text-[15px] font-semibold text-slate-900">
-          {content.browseTitle}
-        </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          {content.browseDescription}
-        </p>
-
-        <div className="mt-4">
-          <SupportDirectory
-            services={content.services as Service[]}
-            preset={{}}
-          />
+        <div className="mb-4">
+          <h2 className="text-[18px] font-semibold tracking-tight text-slate-900">
+            {content.browseTitle}
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            {content.browseDescription}
+          </p>
         </div>
+
+        <SupportDirectory services={content.services as Service[]} preset={{}} />
       </SafetyCard>
 
       <EmergencyFAB phone={content.alertPhone} />

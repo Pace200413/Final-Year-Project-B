@@ -4,23 +4,7 @@
     "phone": "082-260991",
     "cta": "Call now"
   },
-  "status": [
-    {
-      "name": "Canvas",
-      "ok": true,
-      "href": "/support/canvas-status"
-    },
-    {
-      "name": "Student Portal",
-      "ok": true,
-      "href": "/support/student-portal"
-    },
-    {
-      "name": "Wi-Fi",
-      "ok": true,
-      "href": "/support/wifi"
-    }
-  ],
+  "status": [],
   "shortcuts": [
     {
       "label": "Login issue",
@@ -99,40 +83,22 @@
     {
       "q": "I can't log into Canvas or the Student Portal.",
       "a": "Reset your password via Microsoft login first. If it persists, contact IT with your student ID and a screenshot.",
-      "tags": [
-        "it",
-        "canvas",
-        "login",
-        "password",
-        "portal"
-      ]
+      "tags": ["it", "canvas", "login", "password", "portal"]
     },
     {
       "q": "The classroom AC or projector isn't working.",
       "a": "Log a ticket with Facilities and include the room number and photo/video.",
-      "tags": [
-        "facilities",
-        "classroom",
-        "ac",
-        "projector"
-      ]
+      "tags": ["facilities", "classroom", "ac", "projector"]
     },
     {
       "q": "Who do I call in an emergency?",
       "a": "Dial Campus Security (082-260991). For off-campus, use national emergency services.",
-      "tags": [
-        "safety",
-        "emergency",
-        "security"
-      ]
+      "tags": ["safety", "emergency", "security"]
     },
     {
       "q": "How do I connect to campus Wi-Fi?",
       "a": "Connect to 'Swinburne-Student' with your student credentials. If issues, forget & reconnect or contact IT.",
-      "tags": [
-        "wifi",
-        "internet"
-      ]
+      "tags": ["wifi", "internet"]
     }
   ],
   "routing": {

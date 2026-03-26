@@ -139,9 +139,9 @@ export const DEFAULT_SUPPORT_PAGE_CONTENT: SupportPageContent = {
   inlineAlertText: DEFAULT_SUPPORT_ALERT_TEXT,
 
   drawerButtonLabel: "Send request",
-  browseButtonLabel: "Browse services",
+  browseButtonLabel: "Services",
 
-  browseTitle: "Browse services",
+  browseTitle: "Services",
   browseDescription: "Find the right department and contact method quickly.",
 
   drawerTitle: "Send a request",

@@ -9,3 +9,5 @@ coverage/
 public/.DS_Store
 .env.local
 *.tsbuildinfo
+
+public/images/matlab_R2025b_macOSAppleSilicon.dmg

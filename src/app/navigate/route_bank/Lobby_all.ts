@@ -234,7 +234,6 @@ export const lobbyDiningRoute: RouteDefinition = {
   ],
   nextRouteIds: ['dining-mph', 'dining-hq','dining-shub','dining-gblock','dining-borneo','dining-junction','dining-library','dining-SV'],
 };
-};
 
 // Student Hub
 export const lobbyShubRoute: RouteDefinition = {
@@ -355,7 +354,7 @@ export const lobbyShubRoute: RouteDefinition = {
   ],
   nextRouteIds: ['shub-mph', 'shub-library','shub-hq','shub-dining','shub-borneo','shub-gblock','shub-SV'],
 };
-};
+
 
 // Library
 export const lobbyLibraryRoute: RouteDefinition = {
@@ -614,7 +613,6 @@ export const lobbyGblockRoute: RouteDefinition = {
   ],
   nextRouteIds: ['gblock-mph', 'gblock-hq','gblock-SV','gblock-dining','gblock-borneo','gblock-junction','gblock-library','gblock-shub'],
 };
-};
 
 //  Student Village
 export const lobbySvRoute: RouteDefinition = {
@@ -758,6 +756,5 @@ export const lobbySvRoute: RouteDefinition = {
     },
   ],
   nextRouteIds: ['SV-mph','SV-gblock','SV-library','SV-hq','SV-dining','SV-borneo','SV-junction','SV-shub'],
-};
 };
 

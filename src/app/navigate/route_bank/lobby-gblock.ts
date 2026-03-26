@@ -1,0 +1,63 @@
+// import type { RouteDefinition } from './types';
+
+// export const lobbyGblockRoute: RouteDefinition = {
+//   id: 'lobby-gblock',
+//   title: 'Lobby → G Block',
+//   fromNode: 'Block A Lobby',
+//   toNode: 'G Block',
+//   scenes: [
+//     {
+//       id: 1,
+//       image: '/images360/LobbyA_1_Dining.jpg',
+//       label: 'A Block Lobby',
+//       initialYaw: 0,
+//       forward: { yaw: 0, pitch: 0 },
+//       instruction: 'You are now at Lobby A. Move forward along the walkway.',
+//     },
+//     {
+//       id: 2,
+//       image: '/images360/LobbyA_3_Dining.jpg',
+//       label: 'Lobby A → G Block Corridor Entrance',
+//       initialYaw: 0,
+//       forward: { yaw: 0, pitch: 0 },
+//       back: { yaw: 180, pitch: 0 },
+//       instruction: 'Continue straight through the corridor leading toward G Block.',
+//     },
+//     {
+//       id: 3,
+//       image: '/images360/LobbyA_5_Dining.jpg',
+//       label: 'Connecting Corridor',
+//       initialYaw: 0,
+//       forward: { yaw: 0, pitch: 0 },
+//       back: { yaw: 180, pitch: 0 },
+//       instruction: 'Keep walking straight along the corridor.',
+//     },
+//     {
+//       id: 4,
+//       image: '/images360/LobbyA_6_Dining.jpg',
+//       label: 'Corridor Midpoint',
+//       initialYaw: 180,
+//       forward: { yaw: 180, pitch: 0 },
+//       back: { yaw: 0, pitch: 0 },
+//       instruction: 'Continue heading straight toward G Block.',
+//     },
+//     {
+//       id: 5,
+//       image: '/images360/LobbyA_7_Dining.jpg',
+//       label: 'G Block Entrance Ahead',
+//       initialYaw: 220,
+//       forward: { yaw: 220, pitch: 0 },
+//       back: { yaw: 0, pitch: 0 },
+//       instruction: 'Turn right here and enter the G Block building.',
+//     },
+//     {
+//       id: 6,
+//       image: '/images360/LobbyA_11_Dining.jpg',
+//       label: 'G Block Entrance Door',
+//       initialYaw: 0,
+//       forward: { yaw: 0, pitch: 0 },
+//       instruction: 'Go straight and enter through the G Block door.',
+//     },
+//   ],
+//   nextRouteIds: ['borneo-mph', 'mph-borneo'],
+// };

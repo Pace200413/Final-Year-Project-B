@@ -217,12 +217,27 @@ export function ServiceWorkerRegistration() {
 
 type TextSize = "default" | "large";
 type Contrast = "normal" | "high";
+type Motion = "standard" | "reduced";
+type Density = "comfortable" | "compact";
 
-function applyAppearance(text: TextSize, contrast: Contrast) {
+const TEXT_KEY = "a11y_text";
+const CONTRAST_KEY = "a11y_contrast";
+const MOTION_KEY = "a11y_motion";
+const DENSITY_KEY = "a11y_density";
+
+function applyAppearance(
+  text: TextSize,
+  contrast: Contrast,
+  motion: Motion,
+  density: Density
+) {
   const root = document.documentElement;
+
   root.classList.remove("dark");
   root.classList.toggle("a11y-text-large", text === "large");
   root.classList.toggle("a11y-contrast-high", contrast === "high");
+  root.classList.toggle("a11y-motion-reduced", motion === "reduced");
+  root.classList.toggle("a11y-density-compact", density === "compact");
   root.style.colorScheme = "light";
 }
 
@@ -236,17 +251,32 @@ function setThemeColorMeta() {
   el.content = "#F2F2F7";
 }
 
-export function AppearanceClient(props?: { textSize?: TextSize; contrast?: Contrast }) {
-  const { textSize, contrast } = props ?? {};
+export function AppearanceClient(props?: {
+  textSize?: TextSize;
+  contrast?: Contrast;
+  motion?: Motion;
+  density?: Density;
+}) {
+  const { textSize, contrast, motion, density } = props ?? {};
 
   useEffect(() => {
     const readAndApply = () => {
-      const rawText = textSize ?? localStorage.getItem("a11y_text");
-      const effectiveText: TextSize = rawText === "large" ? "large" : "default";
-      const effectiveContrast: Contrast =
-        contrast ?? ((localStorage.getItem("a11y_contrast") as Contrast) || "normal");
+      const rawText = textSize ?? localStorage.getItem(TEXT_KEY);
+      const rawContrast = contrast ?? localStorage.getItem(CONTRAST_KEY);
+      const rawMotion = motion ?? localStorage.getItem(MOTION_KEY);
+      const rawDensity = density ?? localStorage.getItem(DENSITY_KEY);
 
-      applyAppearance(effectiveText, effectiveContrast);
+      const effectiveText: TextSize = rawText === "large" ? "large" : "default";
+      const effectiveContrast: Contrast = rawContrast === "high" ? "high" : "normal";
+      const effectiveMotion: Motion = rawMotion === "reduced" ? "reduced" : "standard";
+      const effectiveDensity: Density = rawDensity === "compact" ? "compact" : "comfortable";
+
+      applyAppearance(
+        effectiveText,
+        effectiveContrast,
+        effectiveMotion,
+        effectiveDensity
+      );
       setThemeColorMeta();
     };
 
@@ -254,7 +284,7 @@ export function AppearanceClient(props?: { textSize?: TextSize; contrast?: Contr
 
     const onStorage = (e: StorageEvent) => {
       if (!e.key) return;
-      if (["a11y_text", "a11y_contrast"].includes(e.key)) {
+      if ([TEXT_KEY, CONTRAST_KEY, MOTION_KEY, DENSITY_KEY].includes(e.key)) {
         readAndApply();
       }
     };
@@ -270,7 +300,7 @@ export function AppearanceClient(props?: { textSize?: TextSize; contrast?: Contr
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("app-appearance-change", onAppearanceChange);
     };
-  }, [textSize, contrast]);
+  }, [textSize, contrast, motion, density]);
 
   return null;
 }

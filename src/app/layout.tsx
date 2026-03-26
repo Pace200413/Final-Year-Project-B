@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             <main
               id="content"
-              className="maxw container-px overscroll-y-contain py-6 pb-[calc(env(safe-area-inset-bottom)+6.2rem)]"
+              className="main-shell max-w container-px overscroll-y-contain pb-[calc(env(safe-area-inset-bottom)+6.2rem)]"
             >
               {children}
             </main>

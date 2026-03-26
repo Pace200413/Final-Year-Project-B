@@ -28,7 +28,73 @@
 
   --text-scale: 1;
 }
+html.a11y-motion-reduced {
+  scroll-behavior: auto;
+}
 
+html.a11y-density-compact .container-px {
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  html.a11y-density-compact .container-px {
+    padding-left: 1.125rem;
+    padding-right: 1.125rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  html.a11y-density-compact .container-px {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.main-shell {
+  padding-top: 1.5rem;
+}
+
+html.a11y-density-compact .main-shell {
+  padding-top: 1rem;
+}
+
+html.a11y-density-compact .nav-chrome {
+  border-radius: 20px;
+}
+
+html.a11y-density-compact .nav-chrome ul {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+html.a11y-density-compact [aria-label="Quick links (mobile)"] {
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+html.a11y-motion-reduced *,
+html.a11y-motion-reduced *::before,
+html.a11y-motion-reduced *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-motion-reduced .card,
+html.a11y-motion-reduced .hover-lift:hover,
+html.a11y-motion-reduced .boomerang-sheet,
+html.a11y-motion-reduced .float-sheet,
+html.a11y-motion-reduced .tile-float,
+html.a11y-motion-reduced .animate-fadeIn,
+html.a11y-motion-reduced .message-enter,
+html.a11y-motion-reduced .typing-dot,
+html.a11y-motion-reduced .swin-next-toggle-btn,
+html.a11y-motion-reduced .motion-safe\\:animate-fade-in-up {
+  animation: none !important;
+  transform: none !important;
+}
 html.a11y-text-large {
   --text-scale: 1.08;
 }

@@ -2,7 +2,7 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-const inputDir = "./public/images360_original";
+const inputDir = "./public/images360-original";
 const outputDir = "./public/images360";
 
 // Make sure output folder exists
@@ -14,6 +14,8 @@ const files = fs.readdirSync(inputDir);
 
 async function run() {
   for (const file of files) {
+
+    // Only process JPG / JPEG
     if (!file.toLowerCase().endsWith(".jpg") && !file.toLowerCase().endsWith(".jpeg")) {
       continue;
     }
@@ -21,15 +23,21 @@ async function run() {
     const inputFile = path.join(inputDir, file);
     const outputFile = path.join(outputDir, file);
 
-    console.log("Compressing:", file);
+    // Skip if already resized
+    if (fs.existsSync(outputFile)) {
+      console.log("⏭ Skipping (already resized):", file);
+      continue;
+    }
+
+    console.log("🔧 Compressing:", file);
 
     await sharp(inputFile)
-      .resize(4096, 2048, { fit: "cover" }) // you can change size
-      .jpeg({ quality: 70 })                // 60–80 is okay
+      .resize(4096, 2048)                 // 360 image resolution
+      .jpeg({ quality: 70, mozjpeg: true }) // compress
       .toFile(outputFile);
   }
 
-  console.log("✅ Done compressing all images!");
+  console.log("✅ Done compressing images!");
 }
 
 run().catch((err) => {

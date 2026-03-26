@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { Service } from "@/components/appTypes";
-import Fuse, { type IFuseOptions } from "fuse.js";
-import { track } from "@/lib/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -1203,7 +1201,6 @@ export function SupportRequestForm() {
    SupportDirectory
 ============================================================================ */
 
-const DIRECTORY_CATS = ["All", "IT Support", "Facilities", "Safety", "Wellbeing", "Academic"] as const;
 
 const CAT_TONE: Record<string, string> = {
   "IT Support": "ring-sky-200 bg-sky-50",
@@ -1214,11 +1211,24 @@ const CAT_TONE: Record<string, string> = {
 };
 
 function CatBadge({ cat }: { cat: string }) {
+  const tone =
+    cat === "IT Support"
+      ? "border-sky-200 bg-sky-50 text-sky-700"
+      : cat === "Facilities"
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : cat === "Safety"
+          ? "border-rose-200 bg-rose-50 text-rose-700"
+          : cat === "Wellbeing"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+            : cat === "Academic"
+              ? "border-violet-200 bg-violet-50 text-violet-700"
+              : "border-slate-200 bg-slate-50 text-slate-700";
+
   return (
     <span
       className={[
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-slate-700 ring-1",
-        CAT_TONE[cat] ?? "ring-slate-200 bg-slate-50",
+        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+        tone,
       ].join(" ")}
     >
       {cat}
@@ -1238,269 +1248,189 @@ function DirectorySkeleton() {
   );
 }
 
-const FUSE_OPTS: IFuseOptions<Service> = {
-  keys: [
-    { name: "name", weight: 0.6 },
-    { name: "desc", weight: 0.3 },
-    { name: "category", weight: 0.1 },
-  ],
-  threshold: 0.35,
-  ignoreLocation: true,
-};
-
 export function SupportDirectory({
   services,
-  preset,
 }: {
   services: Service[];
   preset?: { cat?: string; q?: string };
 }) {
-  const [cat, setCat] = useState<(typeof DIRECTORY_CATS)[number]>(
-    (preset?.cat as (typeof DIRECTORY_CATS)[number]) ?? "All"
-  );
-  const [q, setQ] = useState(preset?.q ?? "");
   const [hydrated, setHydrated] = useState(false);
-  const [debouncedQ, setDebouncedQ] = useState(q);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setHydrated(true), []);
 
-  // If preset changes later (Quick actions), apply it
-  useEffect(() => {
-    if (!preset) return;
-    if (preset.cat) setCat(preset.cat as (typeof DIRECTORY_CATS)[number]);
-    if (typeof preset.q === "string") {
-      setQ(preset.q);
-      setTimeout(() => inputRef.current?.focus(), 0);
-    }
-  }, [preset?.cat, preset?.q]);
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setDebouncedQ(q);
-      if (q.trim()) track("support_search", { q, cat });
-    }, 160);
-    return () => clearTimeout(t);
-  }, [q, cat]);
-
-  const filtered = useMemo(() => {
-    const subset = cat === "All" ? services : services.filter((s) => s.category === cat);
-    if (!debouncedQ.trim()) return subset;
-    const idx = new Fuse<Service>(subset, FUSE_OPTS);
-    return idx.search(debouncedQ).map((r) => r.item);
-  }, [services, cat, debouncedQ]);
-
   if (!hydrated) return <DirectorySkeleton />;
 
-  const hasQuery = q.trim().length > 0;
-  const hasActiveFilter = cat !== "All" || hasQuery;
-
-  function clearAll() {
-    setCat("All");
-    setQ("");
-    setDebouncedQ("");
-    inputRef.current?.focus();
+  function toneForCategory(category: string) {
+    switch (category) {
+      case "IT Support":
+        return {
+          bubble: "bg-sky-50 text-sky-700 ring-sky-200",
+          glow: "bg-sky-200/40",
+          top: "bg-gradient-to-r from-sky-500 to-sky-300",
+        };
+      case "Facilities":
+        return {
+          bubble: "bg-amber-50 text-amber-700 ring-amber-200",
+          glow: "bg-amber-200/40",
+          top: "bg-gradient-to-r from-amber-500 to-amber-300",
+        };
+      case "Safety":
+        return {
+          bubble: "bg-rose-50 text-rose-700 ring-rose-200",
+          glow: "bg-rose-200/40",
+          top: "bg-gradient-to-r from-rose-500 to-rose-300",
+        };
+      case "Wellbeing":
+        return {
+          bubble: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+          glow: "bg-emerald-200/40",
+          top: "bg-gradient-to-r from-emerald-500 to-emerald-300",
+        };
+      case "Academic":
+        return {
+          bubble: "bg-violet-50 text-violet-700 ring-violet-200",
+          glow: "bg-violet-200/40",
+          top: "bg-gradient-to-r from-violet-500 to-violet-300",
+        };
+      default:
+        return {
+          bubble: "bg-slate-100 text-slate-700 ring-slate-200",
+          glow: "bg-slate-200/40",
+          top: "bg-gradient-to-r from-slate-500 to-slate-300",
+        };
+    }
   }
 
-  const suggestions = ["wifi", "canvas", "projector", "counselling", "library", "parking"];
+  function iconForCategory(category: string) {
+    switch (category) {
+      case "IT Support":
+        return Key;
+      case "Safety":
+        return Shield;
+      case "Wellbeing":
+        return Heart;
+      case "Academic":
+        return BookOpen;
+      case "Facilities":
+        return LifeBuoy;
+      default:
+        return LifeBuoy;
+    }
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Controls */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[190px_1fr_auto] sm:items-end">
-          {/* Category */}
-          <div className="grid gap-1">
-            <label className="text-xs font-semibold text-slate-700">Category</label>
-            <select
-              value={cat}
-              onChange={(e) => setCat(e.target.value as (typeof DIRECTORY_CATS)[number])}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
-              aria-label="Filter by category"
-            >
-              {DIRECTORY_CATS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Search */}
-          <div className="grid gap-1">
-            <label className="text-xs font-semibold text-slate-700">Search</label>
-            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-200">
-              <Search className="h-4 w-4 shrink-0 text-slate-500" />
-              <input
-                ref={inputRef}
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder='Search services… e.g. "wifi", "counselling"'
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
-                aria-label="Search support services"
-                autoComplete="off"
-              />
-              {hasQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setQ("")}
-                  className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
-                  aria-label="Clear search"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              ) : null}
-            </div>
-
-            {/* Tiny suggestions row */}
-            <div className="mt-1 flex flex-wrap gap-2">
-              {suggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setQ(s)}
-                  className="rounded-full bg-slate-50 px-2 py-1 text-[11px] text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Clear all + count */}
-          <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-end">
-            <div className="text-xs text-slate-500" aria-live="polite">
-              <span className="font-semibold text-slate-700">{filtered.length}</span>{" "}
-              result{filtered.length === 1 ? "" : "s"}
-            </div>
-
-            {hasActiveFilter ? (
-              <button
-                type="button"
-                onClick={clearAll}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
-              >
-                Clear all
-              </button>
-            ) : (
-              <div className="hidden sm:block h-9" aria-hidden />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Results */}
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <AnimatePresence mode="popLayout">
-        <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {filtered.map((s) => {
-            const tel = s.phone ? `tel:${s.phone.replace(/[^0-9]/g, "")}` : null;
-            const mail = s.email ? `mailto:${s.email}` : null;
-            const page = `/support/${s.slug}`;
+        {services.map((s) => {
+          const tel = s.phone ? `tel:${s.phone.replace(/[^0-9]/g, "")}` : null;
+          const mail = s.email ? `mailto:${s.email}` : null;
+          const page = `/support/${s.slug}`;
+          const tone = toneForCategory(s.category);
+          const Icon = iconForCategory(s.category);
 
-            return (
-              <motion.div
-                key={s.slug}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
+          return (
+            <motion.div
+              key={s.slug}
+              layout
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="h-full"
+            >
+              <div
+                className={cx(
+                  "group relative flex h-full flex-col overflow-hidden rounded-[26px] border border-slate-200/80 bg-white p-5",
+                  "shadow-[0_14px_36px_rgba(15,23,42,.06)] transition duration-300",
+                  "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_22px_52px_rgba(15,23,42,.10)]"
+                )}
               >
-                {/* Card always goes to details (better UX) */}
-                <Link
-                  href={page}
-                  onClick={() => track("support_card_click", { slug: s.slug })}
-                  className={cx(
-                    "group block rounded-2xl bg-white p-5",
-                    "ring-1 ring-slate-200/70 shadow-sm hover:shadow-md hover:ring-slate-300 transition",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
+                <div aria-hidden className={`absolute inset-x-0 top-0 h-1 ${tone.top}`} />
+                <div
+                  aria-hidden
+                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full blur-3xl ${tone.glow}`}
+                />
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex items-start gap-3">
+                    <span
+                      className={[
+                        "grid h-12 w-12 shrink-0 place-items-center rounded-2xl ring-1 shadow-sm",
+                        "[&_svg]:h-5 [&_svg]:w-5",
+                        tone.bubble,
+                      ].join(" ")}
+                    >
+                      <Icon />
+                    </span>
+
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="truncate text-[15px] font-semibold text-slate-900">{s.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate text-[16px] font-semibold tracking-tight text-slate-900">
+                          {s.name}
+                        </h3>
                         <CatBadge cat={s.category} />
                       </div>
 
-                      <div className="mt-0.5 text-xs text-slate-500">{s.hours}</div>
-
-                      <p className="mt-2 line-clamp-2 text-sm text-slate-700">{s.desc}</p>
-
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        {tel ? (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = tel;
-                            }}
-                            className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[12px] text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-                            title="Call"
-                          >
-                            <Phone className="h-4 w-4" />
-                            Call
-                          </button>
-                        ) : null}
-
-                        {mail ? (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              window.location.href = mail;
-                            }}
-                            className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[12px] text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
-                            title="Email"
-                          >
-                            <Mail className="h-4 w-4" />
-                            Email
-                          </button>
-                        ) : null}
-
-                        <span className="inline-flex items-center gap-1 text-[12px] font-medium text-slate-700">
-                          <ArrowUpRight className="h-4 w-4" />
-                          View details
-                        </span>
+                      <div className="mt-1 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                        {s.hours}
                       </div>
                     </div>
                   </div>
-                </Link>
-              </motion.div>
-            );
-          })}
 
-          {filtered.length === 0 && (
-            <div className="rounded-2xl bg-white p-5 text-sm text-slate-600 ring-1 ring-slate-200">
-              <div className="font-semibold text-slate-900">No matches</div>
-              <div className="mt-1">
-                Try a different keyword, or clear filters.
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setQ(s)}
-                    className="rounded-full bg-slate-50 px-3 py-1 text-[12px] text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+                  <Link
+                    href={page}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-500 ring-1 ring-slate-200 transition group-hover:bg-[#D42A30]/8 group-hover:text-[#D42A30]"
+                    aria-label={`Open ${s.name}`}
                   >
-                    {s}
-                  </button>
-                ))}
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="rounded-full bg-slate-900 px-3 py-1 text-[12px] font-semibold text-white"
-                >
-                  Clear all
-                </button>
+                <p className="relative mt-4 text-[14px] leading-6 text-slate-600">
+                  {s.desc}
+                </p>
+
+                <div className="relative mt-5 flex flex-wrap gap-2">
+                  {tel ? (
+                    <a
+                      href={tel}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Call
+                    </a>
+                  ) : null}
+
+                  {mail ? (
+                    <a
+                      href={mail}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-[12px] font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      <Mail className="h-4 w-4" />
+                      Email
+                    </a>
+                  ) : null}
+
+                  <Link
+                    href={page}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition hover:opacity-95"
+                  >
+                    Open service
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </div>
               </div>
+            </motion.div>
+          );
+        })}
+
+        {services.length === 0 && (
+          <div className="rounded-2xl bg-white p-5 text-sm text-slate-600 ring-1 ring-slate-200">
+            <div className="font-semibold text-slate-900">No services available</div>
+            <div className="mt-1">
+              There are currently no support services to display.
             </div>
-          )}
-        </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   );
