@@ -91,7 +91,7 @@ html.a11y-motion-reduced .animate-fadeIn,
 html.a11y-motion-reduced .message-enter,
 html.a11y-motion-reduced .typing-dot,
 html.a11y-motion-reduced .swin-next-toggle-btn,
-html.a11y-motion-reduced .motion-safe\\:animate-fade-in-up {
+html.a11y-motion-reduced .motion-safe\:animate-fade-in-up {
   animation: none !important;
   transform: none !important;
 }
