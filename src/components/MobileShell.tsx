@@ -448,50 +448,38 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur">
-      <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
+<header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
+  <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
 
-      <div className="maxw container-px flex h-14 items-center justify-between gap-2">
-        <Brand />
+  <div className="maxw container-px flex h-[58px] items-center justify-between gap-2">
+    <Brand />
+    <ProfileMenu srLabel="Open account menu" />
+  </div>
 
-        <nav aria-label="Quick links" className="hidden items-center gap-2 md:flex">
-          <QuickPill href="/navigate" label="Navigate" active={pathname.startsWith("/navigate")} />
-          <QuickPill href="/emergency" label="Emergency" active={pathname.startsWith("/emergency")} />
-          <QuickPill href="/support" label="Support" active={pathname.startsWith("/support")} />
-          <QuickPill href="/events" label="Events" active={pathname.startsWith("/events")} />
-          <QuickPill href="/study-break" label="Study Break" active={pathname.startsWith("/study-break")} />
-          <QuickPill href="https://www.swinburne.edu.my/canvas/" label="Canvas" external />
+  <div className="border-t border-slate-200/60 bg-white md:hidden">
+    <nav
+      aria-label="Quick links (mobile)"
+      className="maxw container-px overflow-x-auto py-1.5 no-scrollbar"
+    >
+      <ul className="flex w-max gap-2">
+        <li><QuickPill href="/navigate" label="Navigate" compact /></li>
+        <li><QuickPill href="/emergency" label="Emergency" compact /></li>
+        <li><QuickPill href="/support" label="Support" compact /></li>
+        <li><QuickPill href="/events" label="Events" compact /></li>
+        <li><QuickPill href="/study-break" label="Study Break" compact /></li>
+        <li><QuickPill href="https://www.swinburne.edu.my/canvas/" label="Canvas" compact external /></li>
+        <li>
           <QuickPill
             href="https://login.microsoftonline.com/3f639a9b-27c8-4403-82b1-ebfb88052d15/wsfed?wa=wsignin1.0&wtrealm=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&wctx=rm%3d0%26id%3dpassive%26ru%3dsecure%2fstudent%2fstuportal.aspx&wreply=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&AppType=Portal&Role=STUDENT"
             label="Student Portal"
+            compact
             external
           />
-        </nav>
-
-        <ProfileMenu srLabel="Open account menu" />
-      </div>
-
-      <div className="border-t border-slate-200/60 bg-white md:hidden">
-        <nav aria-label="Quick links (mobile)" className="maxw container-px overflow-x-auto py-1.5 no-scrollbar">
-          <ul className="flex w-max gap-2">
-            <li><QuickPill href="/navigate" label="Navigate" compact /></li>
-            <li><QuickPill href="/emergency" label="Emergency" compact /></li>
-            <li><QuickPill href="/support" label="Support" compact /></li>
-            <li><QuickPill href="/events" label="Events" compact /></li>
-            <li><QuickPill href="/study-break" label="Study Break" compact /></li>
-            <li><QuickPill href="https://www.swinburne.edu.my/canvas/" label="Canvas" compact external /></li>
-            <li>
-              <QuickPill
-                href="https://login.microsoftonline.com/3f639a9b-27c8-4403-82b1-ebfb88052d15/wsfed?wa=wsignin1.0&wtrealm=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&wctx=rm%3d0%26id%3dpassive%26ru%3dsecure%2fstudent%2fstuportal.aspx&wreply=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&AppType=Portal&Role=STUDENT"
-                label="Student Portal"
-                compact
-                external
-              />
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
   );
 }
 
@@ -505,21 +493,25 @@ function Brand() {
       <Image
         src="/images/swinburne-logo.jpg"
         alt="Swinburne University of Technology"
-        width={28}
-        height={28}
+        width={32}
+        height={32}
         priority
-        className="h-7 w-7 shrink-0 rounded-[6px] object-contain"
+        className="h-8 w-8 shrink-0 rounded-[7px] object-cover ring-1 ring-black/8"
       />
 
-      <div className="min-w-0 leading-none">
-        <div className="flex items-baseline gap-1">
-          <span className="truncate text-[15px] font-semibold tracking-tight text-slate-900 sm:text-[18px]">
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-baseline gap-1">
+          <span className="truncate text-[15px] font-semibold tracking-tight text-slate-900">
             Swinburne
           </span>
-          <span className="truncate text-[15px] font-normal text-slate-500 sm:text-[17px]">
+          <span className="truncate text-[15px] font-normal text-slate-500">
             Sarawak
           </span>
         </div>
+
+        <span className="block truncate text-[11px] font-medium leading-[1.15] text-slate-500">
+          University of Technology
+        </span>
       </div>
     </Link>
   );
@@ -538,9 +530,9 @@ function QuickPill({
   active?: boolean;
   compact?: boolean;
 }) {
-  const base =
-    "inline-flex items-center justify-center rounded-full border transition whitespace-nowrap " +
-  (compact ? "text-[12px] px-3 py-1.5" : "text-sm px-3.5 py-1.5");
+const base =
+  "inline-flex items-center justify-center rounded-full border transition whitespace-nowrap " +
+  (compact ? "text-[12px] px-3 py-1.5 font-medium" : "text-sm px-3.5 py-1.5");
 
   const style = active
     ? "border-[#D42A30]/20 text-[#D42A30] bg-[#D42A30]/6 shadow-[0_6px_14px_rgba(212,42,48,.08)]"
