@@ -451,7 +451,7 @@ export function Header() {
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 shadow-sm backdrop-blur">
       <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
 
-      <div className="maxw container-px flex h-16 items-center justify-between gap-2">
+      <div className="maxw container-px flex h-14 items-center justify-between gap-2">
         <Brand />
 
         <nav aria-label="Quick links" className="hidden items-center gap-2 md:flex">
@@ -471,8 +471,8 @@ export function Header() {
         <ProfileMenu srLabel="Open account menu" />
       </div>
 
-      <div className="border-t border-slate-200/70 bg-white/85 md:hidden">
-        <nav aria-label="Quick links (mobile)" className="maxw container-px overflow-x-auto py-2 no-scrollbar">
+      <div className="border-t border-slate-200/60 bg-white md:hidden">
+        <nav aria-label="Quick links (mobile)" className="maxw container-px overflow-x-auto py-1.5 no-scrollbar">
           <ul className="flex w-max gap-2">
             <li><QuickPill href="/navigate" label="Navigate" compact /></li>
             <li><QuickPill href="/emergency" label="Emergency" compact /></li>
@@ -500,23 +500,23 @@ function Brand() {
     <Link
       href="/"
       aria-label="Swinburne home"
-      className="flex min-w-0 flex-1 items-center gap-2 pr-2"
+      className="flex min-w-0 flex-1 items-center gap-2.5 pr-2"
     >
       <Image
         src="/images/swinburne-logo.jpg"
         alt="Swinburne University of Technology"
-        width={34}
-        height={34}
+        width={28}
+        height={28}
         priority
-        className="h-[34px] w-auto shrink-0 object-contain"
+        className="h-7 w-7 shrink-0 rounded-[6px] object-contain"
       />
 
-      <div className="min-w-0 leading-tight">
-        <div className="flex min-w-0 items-baseline gap-1">
-          <span className="truncate text-[16px] font-semibold tracking-tight text-slate-900 sm:text-[18px]">
+      <div className="min-w-0 leading-none">
+        <div className="flex items-baseline gap-1">
+          <span className="truncate text-[15px] font-semibold tracking-tight text-slate-900 sm:text-[18px]">
             Swinburne
           </span>
-          <span className="truncate text-[16px] font-normal text-slate-500 sm:text-[17px]">
+          <span className="truncate text-[15px] font-normal text-slate-500 sm:text-[17px]">
             Sarawak
           </span>
         </div>
@@ -540,7 +540,7 @@ function QuickPill({
 }) {
   const base =
     "inline-flex items-center justify-center rounded-full border transition whitespace-nowrap " +
-    (compact ? "text-xs px-2.5 py-1" : "text-sm px-3.5 py-1.5");
+  (compact ? "text-[12px] px-3 py-1.5" : "text-sm px-3.5 py-1.5");
 
   const style = active
     ? "border-[#D42A30]/20 text-[#D42A30] bg-[#D42A30]/6 shadow-[0_6px_14px_rgba(212,42,48,.08)]"
