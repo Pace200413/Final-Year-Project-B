@@ -2804,7 +2804,7 @@ export default function CampusMapPage() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 3000,
+            zIndex: 20000,
             background: "rgba(0,0,0,0.55)",
             backdropFilter: "blur(4px)",
             display: "flex",
