@@ -500,30 +500,26 @@ function Brand() {
     <Link
       href="/"
       aria-label="Swinburne home"
-      className="flex min-w-0 flex-1 items-center gap-3 pr-2"
+      className="flex min-w-0 flex-1 items-center gap-2 pr-2"
     >
       <Image
         src="/images/swinburne-logo.jpg"
         alt="Swinburne University of Technology"
-        width={40}
-        height={40}
+        width={34}
+        height={34}
         priority
-        className="shrink-0 rounded-md object-cover shadow-sm ring-1 ring-black/10"
+        className="h-[34px] w-auto shrink-0 object-contain"
       />
 
       <div className="min-w-0 leading-tight">
-        <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline">
-          <span className="truncate text-[17px] font-semibold tracking-tight text-slate-900 sm:text-[18px]">
+        <div className="flex min-w-0 items-baseline gap-1">
+          <span className="truncate text-[16px] font-semibold tracking-tight text-slate-900 sm:text-[18px]">
             Swinburne
           </span>
-          <span className="text-[12px] font-medium text-slate-500 sm:ml-1 sm:text-[17px] sm:font-normal">
+          <span className="truncate text-[16px] font-normal text-slate-500 sm:text-[17px]">
             Sarawak
           </span>
         </div>
-
-        <span className="block text-[11px] text-slate-400 sm:hidden">
-          University of Technology
-        </span>
       </div>
     </Link>
   );
