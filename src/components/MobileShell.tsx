@@ -448,38 +448,15 @@ export function Header() {
   const pathname = usePathname();
 
   return (
-<header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
-  <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
+      <div className="h-[3px] w-full bg-[#D42A30]" aria-hidden />
 
-  <div className="maxw container-px flex h-[58px] items-center justify-between gap-2">
-    <Brand />
-    <ProfileMenu srLabel="Open account menu" />
-  </div>
+      <div className="maxw container-px flex h-[58px] items-center justify-between gap-2">
+        <Brand />
+        <ProfileMenu srLabel="Open account menu" />
+      </div>
 
-  <div className="border-t border-slate-200/60 bg-white md:hidden">
-    <nav
-      aria-label="Quick links (mobile)"
-      className="maxw container-px overflow-x-auto py-1.5 no-scrollbar"
-    >
-      <ul className="flex w-max gap-2">
-        <li><QuickPill href="/navigate" label="Navigate" compact /></li>
-        <li><QuickPill href="/emergency" label="Emergency" compact /></li>
-        <li><QuickPill href="/support" label="Support" compact /></li>
-        <li><QuickPill href="/events" label="Events" compact /></li>
-        <li><QuickPill href="/study-break" label="Study Break" compact /></li>
-        <li><QuickPill href="https://www.swinburne.edu.my/canvas/" label="Canvas" compact external /></li>
-        <li>
-          <QuickPill
-            href="https://login.microsoftonline.com/3f639a9b-27c8-4403-82b1-ebfb88052d15/wsfed?wa=wsignin1.0&wtrealm=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&wctx=rm%3d0%26id%3dpassive%26ru%3dsecure%2fstudent%2fstuportal.aspx&wreply=https%3a%2f%2fsisportal-100380.campusnexus.cloud%2fCMCPortal%2f&AppType=Portal&Role=STUDENT"
-            label="Student Portal"
-            compact
-            external
-          />
-        </li>
-      </ul>
-    </nav>
-  </div>
-</header>
+    </header>
   );
 }
 
@@ -488,69 +465,31 @@ function Brand() {
     <Link
       href="/"
       aria-label="Swinburne home"
-      className="flex min-w-0 flex-1 items-center gap-2.5 pr-2"
+      className="flex min-w-0 flex-1 items-center gap-3 pr-2"
     >
       <Image
         src="/images/swinburne-logo.jpg"
         alt="Swinburne University of Technology"
-        width={32}
-        height={32}
+        width={35}
+        height={35}
         priority
-        className="h-8 w-8 shrink-0 rounded-[7px] object-cover ring-1 ring-black/8"
+        className="h-[35px] w-[35px] shrink-0 rounded-[8px] object-cover ring-1 ring-black/8"
       />
 
       <div className="min-w-0">
-        <div className="flex min-w-0 items-baseline gap-1">
-          <span className="truncate text-[15px] font-semibold tracking-tight text-slate-900">
+        <div className="flex min-w-0 items-baseline gap-1.5 leading-none">
+          <span className="truncate text-[15.5px] font-semibold tracking-tight text-slate-900">
             Swinburne
           </span>
-          <span className="truncate text-[15px] font-normal text-slate-500">
+          <span className="truncate text-[15.5px] font-normal text-slate-500">
             Sarawak
           </span>
         </div>
 
-        <span className="block truncate text-[11px] font-medium leading-[1.15] text-slate-500">
+        <span className="mt-0.5 block truncate text-[11.5px] font-medium tracking-[-0.01em] text-slate-600">
           University of Technology
         </span>
       </div>
-    </Link>
-  );
-}
-
-function QuickPill({
-  href,
-  label,
-  external,
-  active = false,
-  compact = false,
-}: {
-  href: string;
-  label: string;
-  external?: boolean;
-  active?: boolean;
-  compact?: boolean;
-}) {
-const base =
-  "inline-flex items-center justify-center rounded-full border transition whitespace-nowrap " +
-  (compact ? "text-[12px] px-3 py-1.5 font-medium" : "text-sm px-3.5 py-1.5");
-
-  const style = active
-    ? "border-[#D42A30]/20 text-[#D42A30] bg-[#D42A30]/6 shadow-[0_6px_14px_rgba(212,42,48,.08)]"
-    : "border-slate-300 text-slate-700 hover:border-[#D42A30] hover:text-[#D42A30]";
-
-  return (
-    <Link
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      className={base + " " + style}
-    >
-      {label}
-      {external && (
-        <span className="ml-1" aria-hidden>
-          ↗
-        </span>
-      )}
     </Link>
   );
 }
@@ -778,9 +717,23 @@ const IconHome = (p: any) => (
   </svg>
 );
 
-const IconMsg = (p: any) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+const IconFunding = (p: any) => (
+  <svg
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={C}
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...p}
+  >
+    <rect x="3.5" y="6" width="17" height="12" rx="2.5" />
+    <path d="M3.5 10h17" />
+    <circle cx="12" cy="14" r="2.3" />
+    <path d="M17.5 6V4.8" />
+    <path d="M6.5 19.2V18" />
   </svg>
 );
 
@@ -832,26 +785,6 @@ const IconApps = (p: any) => (
 const IconX = (p: any) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
     <path d="M18 6 6 18M6 6l12 12" />
-  </svg>
-);
-
-const IconSearch = (p: any) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <circle cx="11" cy="11" r="7" />
-    <path d="m20 20-3.5-3.5" />
-  </svg>
-);
-
-const IconMic = (p: any) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <rect x="9" y="2" width="6" height="12" rx="3" />
-    <path d="M5 10a7 7 0 0 0 14 0M12 19v3" />
-  </svg>
-);
-
-const IconScan = (p: any) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2" />
   </svg>
 );
 
@@ -1051,15 +984,11 @@ export function BottomNav() {
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
   const [open, setOpen] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const [navDim, setNavDim] = useState(false);
 
   useEffect(() => {
     if (!isAdminRoute) return;
     setOpen(false);
-    setScanOpen(false);
-    setQuery("");
     setNavDim(false);
   }, [isAdminRoute]);
 
@@ -1070,7 +999,7 @@ export function BottomNav() {
     const html = document.documentElement as HTMLElement;
     const scrollY = window.scrollY;
 
-    if (open || scanOpen) {
+    if (open) {
       (body as any).dataset.scrollLock = "1";
       body.style.position = "fixed";
       body.style.top = `-${scrollY}px`;
@@ -1092,10 +1021,10 @@ export function BottomNav() {
         window.scrollTo(0, scrollY);
       }
     };
-  }, [open, scanOpen, isAdminRoute]);
+  }, [open, isAdminRoute]);
 
   useEffect(() => {
-    if (open || scanOpen) {
+    if (open) {
       setNavDim(false);
       return;
     }
@@ -1119,11 +1048,11 @@ export function BottomNav() {
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [open, scanOpen]);
+  }, [open]);
 
   const tabs = [
     { label: "Home", href: "/", icon: <IconHome /> },
-    { label: "Messages", href: "/messages", icon: <IconMsg /> },
+    { label: "Funding", href: "/scholarships", icon: <IconFunding /> },
     { label: "Essentials", href: "/student-essentials", icon: <IconEssentials /> },
     { label: "Break", href: "/study-break", icon: <IconBreak /> },
   ];
@@ -1144,7 +1073,7 @@ export function BottomNav() {
       {
         key: "support",
         label: "Support",
-        icon: IconMenu,
+        icon: ChatIcon,
         href: "/support",
         description: "Get help and campus assistance",
         featured: true,
@@ -1171,11 +1100,11 @@ export function BottomNav() {
         },
       },
       {
-        key: "messages",
-        label: "Messages",
-        icon: IconMsg,
-        href: "/messages",
-        description: "Open your conversations",
+        key: "funding",
+        label: "Funding",
+        icon: IconFunding,
+        href: "/scholarships",
+        description: "Scholarships and instalment payment plan",
         tone: "slate",
       },
       {
@@ -1189,9 +1118,9 @@ export function BottomNav() {
       {
         key: "settings",
         label: "Settings",
-        icon: IconMenu,
+        icon: InfoIcon,
         href: "/settings",
-        description: "Profile, accessibility and app options",
+        description: "Profile and app options",
         tone: "slate",
       },
       {
@@ -1214,38 +1143,13 @@ export function BottomNav() {
     []
   );
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return actions;
-    return actions.filter((a) => a.label.toLowerCase().includes(q) || a.key.includes(q));
-  }, [actions, query]);
-
-  const featuredActions = filtered.filter((a) => a.featured);
-  const regularActions = filtered.filter((a) => !a.featured);
+  const featuredActions = actions.filter((a) => a.featured);
+  const regularActions = actions.filter((a) => !a.featured);
 
   const run = (a: Action) => {
     setOpen(false);
     if (a.run) return a.run();
     if (a.href) router.push(a.href);
-  };
-
-  const recRef = useRef<any>(null);
-
-  const onMic = () => {
-    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      alert("Speech recognition not supported");
-      return;
-    }
-    if (recRef.current) recRef.current.stop();
-    const rec = new SR();
-    rec.lang = "en-US";
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = (e: any) => setQuery(e.results[0][0].transcript || "");
-    rec.onerror = () => {};
-    recRef.current = rec;
-    rec.start();
   };
 
   if (isAdminRoute) return null;
@@ -1313,7 +1217,7 @@ export function BottomNav() {
                       Quick actions
                     </div>
                     <div className="mt-1 text-[12.5px] text-slate-500">
-                      Jump anywhere faster with cleaner shortcuts.
+                      Open a section in one tap.
                     </div>
                   </div>
 
@@ -1325,100 +1229,47 @@ export function BottomNav() {
                     <IconX />
                   </button>
                 </div>
-
-                <div className="mt-4 flex items-center gap-2">
-                  <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
-                    <span className="text-slate-400">
-                      <IconSearch />
-                    </span>
-                    <input
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder="Search quick actions"
-                      className="w-full bg-transparent text-[14px] outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-
-                  <button
-                    onClick={onMic}
-                    aria-label="Voice input"
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95"
-                  >
-                    <IconMic />
-                  </button>
-
-                  <button
-                    onClick={() => setScanOpen(true)}
-                    aria-label="Open scanner"
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95"
-                  >
-                    <IconScan />
-                  </button>
-                </div>
               </div>
 
               <div
                 className="sheet-scroll max-h-[72svh] overflow-y-auto overscroll-contain px-4 pb-5 pt-4 sm:px-5"
                 style={{ WebkitOverflowScrolling: "touch" }}
               >
-                {filtered.length === 0 ? (
-                  <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-[13px] text-slate-500">
-                    No quick actions found.
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {featuredActions.length > 0 && (
-                      <section>
-                        <div className="mb-2 flex items-center justify-between">
-                          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                            {query ? "Best matches" : "Essentials"}
-                          </div>
+                <div className="space-y-5">
+                  {featuredActions.length > 0 && (
+                    <section>
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                          Essentials
                         </div>
+                      </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          {featuredActions.map((a) => (
-                            <QuickActionCard key={a.key} action={a} onClick={() => run(a)} />
-                          ))}
-                        </div>
-                      </section>
-                    )}
+                      <div className="grid grid-cols-2 gap-3">
+                        {featuredActions.map((a) => (
+                          <QuickActionCard key={a.key} action={a} onClick={() => run(a)} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
-                    {regularActions.length > 0 && (
-                      <section>
-                        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                          More actions
-                        </div>
+                  {regularActions.length > 0 && (
+                    <section>
+                      <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        More actions
+                      </div>
 
-                        <div className="space-y-2">
-                          {regularActions.map((a) => (
-                            <QuickActionRow key={a.key} action={a} onClick={() => run(a)} />
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                  </div>
-                )}
+                      <div className="space-y-2">
+                        {regularActions.map((a) => (
+                          <QuickActionRow key={a.key} action={a} onClick={() => run(a)} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      )}
-
-      {scanOpen && (
-        <Scanner
-          onClose={() => setScanOpen(false)}
-          onResult={(txt) => {
-            setScanOpen(false);
-            setOpen(false);
-            try {
-              const u = new URL(txt);
-              window.location.href = u.toString();
-            } catch {
-              navigator.clipboard?.writeText(txt);
-              alert(`Scanned: ${txt}`);
-            }
-          }}
-        />
       )}
 
       <style jsx global>{`
@@ -1522,116 +1373,5 @@ function NavBtn({
         {label}
       </span>
     </Link>
-  );
-}
-
-function Scanner({ onClose, onResult }: { onClose: () => void; onResult: (txt: string) => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const raf = useRef<number | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [supported, setSupported] = useState<boolean>(false);
-
-  useEffect(() => {
-    const has = typeof window !== "undefined" && (window as any).BarcodeDetector;
-    setSupported(!!has);
-    let running = true;
-
-    (async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          (videoRef.current as any).srcObject = stream;
-          await videoRef.current.play();
-        }
-        if (!has) return;
-
-        const det = new (window as any).BarcodeDetector({
-          formats: ["qr_code", "aztec", "pdf417", "data_matrix", "code_128"],
-        });
-
-        const tick = async () => {
-          if (!running || !videoRef.current) return;
-          const codes = await det.detect(videoRef.current).catch(() => []);
-          if (codes && codes[0]?.rawValue) {
-            running = false;
-            onResult(codes[0].rawValue);
-            return;
-          }
-          raf.current = requestAnimationFrame(tick);
-        };
-
-        tick();
-      } catch {
-        // camera blocked
-      }
-    })();
-
-    return () => {
-      running = false;
-      if (raf.current !== null) cancelAnimationFrame(raf.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, [onResult]);
-
-  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const has = (window as any).BarcodeDetector;
-      if (!has) {
-        alert("No scanner available here");
-        return;
-      }
-      const det = new (window as any).BarcodeDetector();
-      const bmp = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = bmp.width;
-      canvas.height = bmp.height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(bmp, 0, 0);
-      const codes = await det.detect(canvas);
-      if (codes && codes[0]?.rawValue) onResult(codes[0].rawValue);
-      else alert("No code found in image");
-    } catch {
-      alert("Could not scan image");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-label="Scanner">
-      <button className="absolute inset-0 animate-backdrop bg-slate-900/60" onClick={onClose} />
-      <div className="absolute inset-x-0 top-[10%] mx-auto w-full max-w-[520px] px-4 sm:px-6">
-        <div className="boomerang-sheet overflow-hidden rounded-2xl bg-black/90 shadow-xl ring-1 ring-white/10">
-          <div className="flex items-center justify-between px-3 py-2 text-white/90">
-            <span className="text-[13px]">Scan a QR / barcode</span>
-            <button onClick={onClose} className="rounded-md px-2 py-1 hover:bg-white/10">
-              <IconX />
-            </button>
-          </div>
-
-          <div className="relative aspect-[16/10] bg-black">
-            <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
-            <div className="pointer-events-none absolute inset-6 rounded-2xl ring-2 ring-white/70" />
-          </div>
-
-          {!supported && (
-            <div className="flex items-center justify-between gap-2 bg-white px-3 py-3">
-              <span className="text-[13px] text-slate-700">Camera scanning not supported — pick a photo</span>
-              <label className="cursor-pointer rounded-md px-2 py-1 text-[13px] ring-1 ring-slate-300 hover:bg-slate-50">
-                Choose image
-                <input type="file" accept="image/*" capture="environment" hidden onChange={onPickFile} />
-              </label>
-            </div>
-          )}
-
-          {supported && (
-            <div className="bg-white px-3 py-2 text-[12.5px] text-slate-600">
-              Tip: center the code in the frame. We’ll auto-open URLs, copy other text.
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
   );
 }

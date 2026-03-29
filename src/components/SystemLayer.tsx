@@ -124,41 +124,41 @@ function Dot({ ok }: { ok: boolean }) {
 export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[] }) {
   return (
     <section aria-label="Service status">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {items.map((it, idx) => {
           const statusText = it.tip ?? (it.ok ? "Operational" : "Degraded");
           const href = it.href;
           const external = !!href && (it.external || /^https?:\/\//i.test(href));
 
-          const chip =
-            "rounded-2xl px-3 py-2 bg-white/75 ring-1 ring-slate-200/70 " +
-            "shadow-[0_10px_22px_rgba(15,23,42,.06)] supports-[backdrop-filter]:backdrop-blur-xl " +
-            "transition hover:bg-white/90 hover:ring-slate-300 " +
+          const chipClass =
+            "group rounded-[22px] px-3.5 py-2.5 bg-white ring-1 ring-slate-200/80 " +
+            "shadow-[0_8px_18px_rgba(15,23,42,.05)] transition " +
+            "hover:-translate-y-[1px] hover:shadow-[0_12px_24px_rgba(15,23,42,.08)] hover:ring-slate-300 " +
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2";
 
           const content = (
-            <div className="grid gap-0.5">
-              <div className="flex min-w-0 items-center gap-2">
-                <Dot ok={it.ok} />
-                <div className="min-w-0 whitespace-normal text-[13px] font-semibold leading-tight text-slate-900">
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className={`h-2.5 w-2.5 shrink-0 rounded-full ${it.ok ? "bg-emerald-500" : "bg-amber-500"}`}
+              />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[13.5px] font-semibold text-slate-900">
                   {it.name}
                 </div>
-                {external ? (
-                  <span className="ml-auto text-[11px] font-semibold text-slate-400" aria-hidden>
-                    ↗
-                  </span>
-                ) : null}
+                <div className="text-[11px] text-slate-500">{statusText}</div>
               </div>
-
-              <div className="truncate pl-4 text-[11px] leading-none text-slate-500">
-                {statusText}
-              </div>
+              {external ? (
+                <span className="text-[11px] font-semibold text-slate-400" aria-hidden>
+                  ↗
+                </span>
+              ) : null}
             </div>
           );
 
           if (!href) {
             return (
-              <div key={`${it.name}-${idx}`} className={chip} aria-label={`${it.name} ${statusText}`}>
+              <div key={`${it.name}-${idx}`} className={chipClass}>
                 {content}
               </div>
             );
@@ -171,7 +171,7 @@ export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={chip}
+                className={chipClass}
                 aria-label={`${it.name} ${statusText} (opens in new tab)`}
               >
                 {content}
@@ -180,7 +180,7 @@ export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[
           }
 
           return (
-            <Link key={`${it.name}-${idx}`} href={href} className={chip} aria-label={`${it.name} ${statusText}`}>
+            <Link key={`${it.name}-${idx}`} href={href} className={chipClass}>
               {content}
             </Link>
           );

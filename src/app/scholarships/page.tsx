@@ -3,92 +3,107 @@ import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
   CreditCard,
-  FileCheck2,
-  Globe2,
   GraduationCap,
-  Info,
-  ShieldCheck,
+  Landmark,
+  WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import {
-  STUDENT_ESSENTIALS,
-  type StudentEssentialItem,
-} from "@/data/student-essentials";
 
 const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
 
+type FundingItem = {
+  title: string;
+  href: string;
+  image: string;
+  alt: string;
+  tag: string;
+  description: string;
+};
+
+const FUNDING_ITEMS: FundingItem[] = [
+  {
+    title: "Scholarships for Foundation programs",
+    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-foundation/",
+    image: "/images/scholarships/foundation-programs.jpg",
+    alt: "Foundation scholarship information",
+    tag: "Foundation",
+    description:
+      "Official scholarships for foundation students starting their studies at Swinburne Sarawak.",
+  },
+  {
+    title: "Scholarships for Diploma programs",
+    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-diploma/",
+    image: "/images/scholarships/diploma-programs.jpg",
+    alt: "Diploma scholarship information",
+    tag: "Diploma",
+    description:
+      "Explore available diploma scholarships and official eligibility details for diploma applicants.",
+  },
+  {
+    title: "Scholarships for Undergraduate programs",
+    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-undergraduate/",
+    image: "/images/scholarships/undergraduate-programs.jpg",
+    alt: "Undergraduate scholarship information",
+    tag: "Undergraduate",
+    description:
+      "Official scholarship opportunities for undergraduate students, including tuition support pathways.",
+  },
+  {
+    title: "Scholarships for Postgraduate programs",
+    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-postgraduate/",
+    image: "/images/scholarships/postgraduate-programs.jpg",
+    alt: "Postgraduate scholarship information",
+    tag: "Postgraduate",
+    description:
+      "Postgraduate scholarship options for advanced study, with official application information and guidance.",
+  },
+  {
+    title: "Instalment Payment Plan",
+    href: "https://www.swinburne.edu.my/study/study-with-us/easy-payment-plan/",
+    image: "/images/scholarships/instalment-payment-plan.jpg",
+    alt: "Instalment payment plan information",
+    tag: "Payment plan",
+    description:
+      "Spread tuition payments into manageable instalments through the official Swinburne payment plan page.",
+  },
+];
+
 type Meta = {
-  category: string;
-  summary: string;
   icon: LucideIcon;
   pillClass: string;
 };
 
-function getMeta(title: string): Meta {
-  switch (title) {
-    case "Student Information":
+function getMeta(tag: string): Meta {
+  switch (tag) {
+    case "Foundation":
       return {
-        category: "Information",
-        summary:
-          "Important student-facing information and official academic guidance.",
-        icon: Info,
-        pillClass: "border-slate-200 bg-white/90 text-slate-700",
-      };
-    case "International Student Services":
-      return {
-        category: "International",
-        summary:
-          "Support, services, and key guidance for international students.",
-        icon: Globe2,
-        pillClass: "border-sky-200/80 bg-sky-50/95 text-sky-700",
-      };
-    case "Managing Your Enrolment":
-      return {
-        category: "Enrolment",
-        summary:
-          "Study load decisions, admin tasks, and enrolment-related processes.",
-        icon: FileCheck2,
-        pillClass: "border-violet-200/80 bg-violet-50/95 text-violet-700",
-      };
-    case "Safer Community":
-      return {
-        category: "Safety",
-        summary:
-          "Official resources and guidance that support a safer campus community.",
-        icon: ShieldCheck,
-        pillClass: "border-emerald-200/80 bg-emerald-50/95 text-emerald-700",
-      };
-    case "Paying Your Fees":
-      return {
-        category: "Finance",
-        summary:
-          "Fee payment options and related student finance information.",
-        icon: CreditCard,
-        pillClass: "border-amber-200/80 bg-amber-50/95 text-amber-700",
-      };
-    case "Exams, Results and Student Progression":
-      return {
-        category: "Assessment",
-        summary:
-          "Exam information, results, progression, and academic milestones.",
-        icon: BookOpen,
+        icon: GraduationCap,
         pillClass: "border-rose-200/80 bg-rose-50/95 text-rose-700",
       };
-    case "Graduation and Course Completion":
+    case "Diploma":
       return {
-        category: "Graduation",
-        summary:
-          "Graduation requirements, course completion steps, and official updates.",
         icon: GraduationCap,
+        pillClass: "border-sky-200/80 bg-sky-50/95 text-sky-700",
+      };
+    case "Undergraduate":
+      return {
+        icon: Landmark,
         pillClass: "border-indigo-200/80 bg-indigo-50/95 text-indigo-700",
+      };
+    case "Postgraduate":
+      return {
+        icon: GraduationCap,
+        pillClass: "border-violet-200/80 bg-violet-50/95 text-violet-700",
+      };
+    case "Payment plan":
+      return {
+        icon: WalletCards,
+        pillClass: "border-amber-200/80 bg-amber-50/95 text-amber-700",
       };
     default:
       return {
-        category: "Resource",
-        summary: "Official student resource.",
-        icon: Info,
+        icon: CreditCard,
         pillClass: "border-slate-200 bg-white/90 text-slate-700",
       };
   }
@@ -117,27 +132,27 @@ function Hero() {
           Home
         </Link>
         <span aria-hidden>›</span>
-        <span className="font-medium text-slate-800">Student Essentials</span>
+        <span className="font-medium text-slate-800">Funding</span>
       </nav>
 
       <div className="relative overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_12px_28px_rgba(15,23,42,.05)]">
         <div
           aria-hidden
-          className="absolute inset-0 [background:radial-gradient(circle_at_top_left,rgba(212,42,48,.07),transparent_24%),linear-gradient(180deg,rgba(255,255,255,.99),rgba(248,250,252,.98))]"
+          className="absolute inset-0 [background:radial-gradient(circle_at_top_left,rgba(212,42,48,.08),transparent_24%),linear-gradient(180deg,rgba(255,255,255,.99),rgba(248,250,252,.98))]"
         />
 
         <div className="relative flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
           <div className="min-w-0">
             <h1 className="text-[24px] font-semibold tracking-tight text-slate-900 sm:text-[28px]">
-              Student Essentials
+              Scholarships & Payment Plans
             </h1>
             <p className="mt-1 text-[13.5px] leading-5 text-slate-600 sm:text-[14px]">
-              Fees, enrolment, exams, support, and graduation.
+              Official funding links for every study level.
             </p>
           </div>
 
           <div className="shrink-0 rounded-full border border-[#D42A30]/15 bg-[#D42A30]/6 px-3 py-1 text-[11px] font-semibold text-[#B0171E]">
-            {STUDENT_ESSENTIALS.length} links
+            {FUNDING_ITEMS.length} links
           </div>
         </div>
       </div>
@@ -155,16 +170,16 @@ function SectionHeader() {
   );
 }
 
-function EssentialsCard({
+function FundingCard({
   item,
   index,
 }: {
-  item: StudentEssentialItem;
+  item: FundingItem;
   index: number;
 }) {
-  const meta = getMeta(item.title);
+  const meta = getMeta(item.tag);
   const Icon = meta.icon;
-  const featured = index === 0;
+  const isPayment = item.tag === "Payment plan";
 
   return (
     <Link
@@ -175,7 +190,7 @@ function EssentialsCard({
         "group relative isolate overflow-hidden rounded-[26px] border border-slate-200/80 bg-white",
         "shadow-[0_14px_34px_rgba(15,23,42,.055)] transition duration-300",
         "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_48px_rgba(15,23,42,.10)]",
-        featured ? "md:col-span-2" : "",
+        isPayment ? "md:col-span-2 xl:col-span-3" : "",
       ].join(" ")}
     >
       <div
@@ -186,7 +201,7 @@ function EssentialsCard({
       <div
         className={[
           "relative overflow-hidden bg-slate-100",
-          featured ? "aspect-[16/9]" : "aspect-[16/10]",
+          isPayment ? "aspect-[16/8]" : "aspect-[16/10]",
         ].join(" ")}
       >
         <Image
@@ -198,14 +213,19 @@ function EssentialsCard({
 
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-900/12 to-transparent"
+          className={[
+            "absolute inset-0",
+            isPayment
+              ? "bg-gradient-to-t from-slate-950/65 via-slate-950/15 to-transparent"
+              : "bg-gradient-to-t from-slate-950/60 via-slate-900/12 to-transparent",
+          ].join(" ")}
         />
 
         <div className="absolute left-4 top-4 flex items-center gap-2">
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.08em] backdrop-blur ${meta.pillClass}`}
           >
-            {meta.category}
+            {item.tag}
           </span>
         </div>
 
@@ -225,7 +245,7 @@ function EssentialsCard({
           <h3
             className={[
               "font-semibold leading-tight tracking-tight text-slate-900",
-              featured ? "text-[23px] sm:text-[27px]" : "text-[19px] sm:text-[22px]",
+              isPayment ? "text-[23px] sm:text-[27px]" : "text-[19px] sm:text-[22px]",
             ].join(" ")}
           >
             {item.title}
@@ -236,8 +256,13 @@ function EssentialsCard({
           </span>
         </div>
 
-        <p className="mt-2.5 text-[13.5px] leading-6 text-slate-600">
-          {meta.summary}
+        <p
+          className={[
+            "mt-2.5 text-[13.5px] leading-6 text-slate-600",
+            isPayment ? "max-w-3xl" : "",
+          ].join(" ")}
+        >
+          {item.description}
         </p>
 
         <div className="mt-4 flex items-center justify-between gap-3">
@@ -255,7 +280,7 @@ function EssentialsCard({
   );
 }
 
-export default function StudentEssentialsPage() {
+export default function ScholarshipsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden pb-28">
       <BackgroundDecor />
@@ -265,8 +290,8 @@ export default function StudentEssentialsPage() {
         <SectionHeader />
 
         <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {STUDENT_ESSENTIALS.map((item: StudentEssentialItem, index: number) => (
-            <EssentialsCard key={item.title} item={item} index={index} />
+          {FUNDING_ITEMS.map((item, index) => (
+            <FundingCard key={item.title} item={item} index={index} />
           ))}
         </div>
       </section>
