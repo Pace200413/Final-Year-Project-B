@@ -52,7 +52,9 @@ html.a11y-density-compact .container-px {
 }
 
 .main-shell {
-  padding-top: 1.5rem;
+  /* padding-top: 1.5rem; */
+  padding-top: 0.7rem;
+
 }
 
 html.a11y-density-compact .main-shell {
