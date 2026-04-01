@@ -545,7 +545,7 @@ function FitCameraToObject({
       const d = maxDim * 1.2 * distanceMultiplier;
       const h = maxDim * 1.6 * distanceMultiplier;
 
-      camera.position.set(center.x - d * 1.8, center.y + h, center.z + d * 1.4);
+      camera.position.set(center.x - d * 1.5, center.y + h, center.z + d * 1.5);
     }
 
     camera.lookAt(center);
@@ -1027,7 +1027,7 @@ function CampusModel({
         <FitCameraToObject
           object={rootObj}
           view="angled"
-          distanceMultiplier={1.2}
+          distanceMultiplier={1.9}
         />
       )}
     </group>
@@ -1984,6 +1984,12 @@ export default function CampusMapPage() {
     setActiveRoute([]);
   }
 
+  function handleClearRoute() {
+    setStartNode("");
+    setEndNode("");
+    setActiveRoute([]);
+  }
+
   function handleNavigateHere() {
     if (!picked) return;
 
@@ -2083,7 +2089,7 @@ export default function CampusMapPage() {
           height: isMapFullscreen
             ? "100dvh"
             : isMobile
-            ? "calc(100dvh - 220px)"
+            ? "calc(100dvh - 140px)"
             : "calc(100dvh - 200px)",
           minHeight: isMapFullscreen ? "100dvh" : isMobile ? "60dvh" : "70dvh",
         }}
@@ -2405,7 +2411,7 @@ export default function CampusMapPage() {
         </div>
     )}
 
-        {isMobile && picked && mobileSheetOpen && !isMapFullscreen && (
+        {isMobile && picked && mobileSheetOpen && (
             <div
               style={{
                 position: "absolute",
@@ -2662,8 +2668,8 @@ export default function CampusMapPage() {
               title={isMapFullscreen ? "Exit full screen" : "Enlarge map"}
               aria-label={isMapFullscreen ? "Exit full screen" : "Enlarge map"}
               style={{
-                width: 46,
-                height: 46,
+                width: 52,
+                height: 52,
                 borderRadius: "50%",
                 border: "none",
                 background: "rgba(255,255,255,0.95)",
@@ -2681,12 +2687,11 @@ export default function CampusMapPage() {
               {isMapFullscreen ? "🗗" : "⛶"}
             </button>
 
-            {/* Clear Current Location */}
-            {currentLocationNode && (
+            {activeRoute.length > 0 && (
               <button
-                onClick={handleClearCurrentLocation}
-                title="Clear current location"
-                aria-label="Clear current location"
+                onClick={handleClearRoute}
+                title="Clear route"
+                aria-label="Clear route"
                 style={{
                   width: 52,
                   height: 52,
@@ -2694,7 +2699,7 @@ export default function CampusMapPage() {
                   border: "none",
                   background: "rgba(255,255,255,0.95)",
                   color: "#dc2626",
-                  fontSize: 30,
+                  fontSize: 24,
                   fontWeight: 700,
                   cursor: "pointer",
                   boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2712,11 +2717,16 @@ export default function CampusMapPage() {
             <button
               onClick={() => {
                 setPicked(null);
-                handleDetectCurrentLocation();
+
+                if (currentLocationNode) {
+                  handleClearCurrentLocation();
+                } else {
+                  handleDetectCurrentLocation();
+                }
               }}
               disabled={isDetectingLocation}
-              title="Detect my location"
-              aria-label="Detect my location"
+              title={currentLocationNode ? "Remove current location" : "Detect my location"}
+              aria-label={currentLocationNode ? "Remove current location" : "Detect my location"}
               style={{
                 width: 52,
                 height: 52,
@@ -2724,7 +2734,7 @@ export default function CampusMapPage() {
                 border: "none",
                 background: "rgba(255,255,255,0.95)",
                 color: isDetectingLocation ? "#94a3b8" : "#080808",
-                fontSize: 40,
+                fontSize: 25,
                 fontWeight: 700,
                 cursor: isDetectingLocation ? "not-allowed" : "pointer",
                 boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2734,7 +2744,7 @@ export default function CampusMapPage() {
                 backdropFilter: "blur(8px)",
               }}
             >
-              {isDetectingLocation ? "…" : "⌖"}
+              {isDetectingLocation ? "…" : currentLocationNode ? "📍" : "⌖"}
             </button>
           {locationError && (
             <div
@@ -2799,7 +2809,7 @@ export default function CampusMapPage() {
               border: "none",
               background: "rgba(255,255,255,0.95)",
               color: "#0f172a",
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 800,
               cursor: "pointer",
               boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2996,11 +3006,6 @@ export default function CampusMapPage() {
                 setMobileSheetOpen(true);
                 setMobileSheetExpanded(true);
               }
-              // if (isMobile) {
-              //   setLocationPanelOpen(false);
-              //   setMobileSheetOpen(true);
-              //   setMobileSheetExpanded(true);
-              // }
             }}
           />
 
@@ -3008,6 +3013,9 @@ export default function CampusMapPage() {
             onPick={(p) => {
               if (picked?.uuid === p.uuid) {
                 setPicked(null);
+                setSearchText("");
+                setSearchOpen(false);
+
                 if (isMobile) {
                   setMobileSheetOpen(false);
                   setMobileSheetExpanded(false);
@@ -3063,8 +3071,8 @@ export default function CampusMapPage() {
             enableRotate={viewMode === "3D"}
             minPolarAngle={viewMode === "3D" ? 0.35 : 0.001}
             maxPolarAngle={viewMode === "3D" ? Math.PI / 2 - 0.15 : 0.001}
-            minDistance={20}
-            maxDistance={300}
+            minDistance={viewMode === "2D" ? 80 : 20}
+            maxDistance={viewMode === "2D" ? 500 : 300}
             enablePan={true}
             screenSpacePanning={true}
             mouseButtons={{

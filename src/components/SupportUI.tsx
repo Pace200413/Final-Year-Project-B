@@ -226,7 +226,8 @@ export function SubpageLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <div className="maxw container-px py-8">
+      <div className="maxw container-px py-4">  
+      {/* <div className="maxw container-px py-8">   */}
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
           {icon} {title}
         </h1>
