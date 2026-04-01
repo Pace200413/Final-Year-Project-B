@@ -700,7 +700,7 @@ function ApplyViewMode({
     const maxDim = Math.max(size.x, size.y, size.z);
 
     if (viewMode === "2D") {
-      const topHeight = maxDim * 0.55;
+      const topHeight = maxDim * 2.5;
 
       camera.position.set(center.x, center.y + topHeight, center.z);
       controls.target.copy(center);
@@ -1283,7 +1283,7 @@ function CurrentLocationPin({ nodeId }: { nodeId: string }) {
 
 function RouteLines({
   edges,
-  color = "#ec1515",
+  color = "#ff2d2d",
 }: {
   edges: [string, string][];
   color?: string;
@@ -1300,20 +1300,194 @@ function RouteLines({
 
         if (!start || !end) return null;
 
+        const y = 3.2;
+
         return (
-          <Line
-            key={`${startId}-${endId}-${index}`}
-            points={[
-              [start[0], start[1] + 3, start[2]],
-              [end[0], end[1] + 3, end[2]],
-            ]}
-            color={color}
-            lineWidth={7}
-          />
+          <group key={`${startId}-${endId}-${index}`}>
+            {/* Outer soft base */}
+            <Line
+              points={[
+                [start[0], start[1] + y, start[2]],
+                [end[0], end[1] + y, end[2]],
+              ]}
+              color="#ff9a9a"
+              lineWidth={14}
+              transparent
+              opacity={0.35}
+            />
+
+            {/* Middle glow */}
+            <Line
+              points={[
+                [start[0], start[1] + y + 0.02, start[2]],
+                [end[0], end[1] + y + 0.02, end[2]],
+              ]}
+              color="#ff5a5a"
+              lineWidth={10}
+              transparent
+              opacity={0.75}
+            />
+
+            {/* Main sharp route */}
+            <Line
+              points={[
+                [start[0], start[1] + y + 0.05, start[2]],
+                [end[0], end[1] + y + 0.05, end[2]],
+              ]}
+              color={color}
+              lineWidth={6}
+            />
+          </group>
         );
       })}
     </>
   );
+}
+
+function DestinationPulse({ nodeId }: { nodeId: string }) {
+  const node = ROUTE_NODES.find((n) => n.id === nodeId);
+  const innerRef = useRef<THREE.Mesh>(null);
+  const outerRef = useRef<THREE.Mesh>(null);
+
+  if (!node) return null;
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
+    if (innerRef.current) {
+      const s1 = 1 + Math.sin(t * 2.4) * 0.08;
+      innerRef.current.scale.set(s1, s1, s1);
+    }
+
+    if (outerRef.current) {
+      const s2 = 1 + ((Math.sin(t * 2.4 - 0.8) + 1) / 2) * 0.35;
+      outerRef.current.scale.set(s2, s2, s2);
+
+      const mat = outerRef.current.material as THREE.MeshBasicMaterial;
+      if (mat) {
+        mat.opacity = 0.12 + ((Math.sin(t * 2.4 - 0.8) + 1) / 2) * 0.28;
+      }
+    }
+  });
+
+  return (
+    <group position={node.position}>
+      <mesh
+        ref={innerRef}
+        position={[0, 0.4, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[6.5, 9.5, 48]} />
+        <meshBasicMaterial color="#ff4d4d" transparent opacity={0.85} />
+      </mesh>
+
+      <mesh
+        ref={outerRef}
+        position={[0, 0.42, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[10.5, 12.5, 48]} />
+        <meshBasicMaterial color="#ff8a8a" transparent opacity={0.24} />
+      </mesh>
+    </group>
+  );
+}
+
+function RouteArrowMarker({
+  start,
+  end,
+  initialT = 0.5,
+  delay = 0,
+}: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  initialT?: number;
+  delay?: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  const direction = useMemo(() => {
+    return new THREE.Vector3().subVectors(end, start).normalize();
+  }, [start, end]);
+
+  const length = useMemo(() => {
+    return start.distanceTo(end);
+  }, [start, end]);
+
+  const baseDirection = useMemo(() => new THREE.Vector3(0, 0, -1), []);
+
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    q.setFromUnitVectors(baseDirection, direction);
+    return q;
+  }, [baseDirection, direction]);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+
+    const speed = 0.22;
+    const tRaw = (clock.getElapsedTime() * speed + initialT + delay) % 1;
+    const t = Math.min(Math.max(tRaw, 0.08), 0.92);
+
+    const currentPos = start.clone().lerp(end, t);
+    groupRef.current.position.set(currentPos.x, currentPos.y, currentPos.z);
+
+    groupRef.current.quaternion.copy(quaternion);
+
+    const mat = groupRef.current.children[0] as THREE.Mesh;
+    if (mat?.material) {
+      const material = mat.material as THREE.MeshBasicMaterial;
+      material.opacity = 0.35 + 0.6 * Math.sin(t * Math.PI);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[1.8, 4.2, 3]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.95} />
+      </mesh>
+    </group>
+  );
+}
+
+function RouteArrows({ activeRoute }: { activeRoute: string[] }) {
+  if (!activeRoute || activeRoute.length < 2) return null;
+
+  const nodeMap = new Map(
+    ROUTE_NODES.map((node) => [node.id, node.position] as const)
+  );
+
+  const arrows: React.ReactNode[] = [];
+
+  for (let i = 0; i < activeRoute.length - 1; i++) {
+    const start = nodeMap.get(activeRoute[i]);
+    const end = nodeMap.get(activeRoute[i + 1]);
+
+    if (!start || !end) continue;
+
+    const startVec = new THREE.Vector3(start[0], start[1] + 3.45, start[2]);
+    const endVec = new THREE.Vector3(end[0], end[1] + 3.45, end[2]);
+
+    const segmentLength = startVec.distanceTo(endVec);
+    if (segmentLength < 8) continue;
+
+    const arrowCount = Math.max(1, Math.floor(segmentLength / 16));
+
+    for (let j = 0; j < arrowCount; j++) {
+      arrows.push(
+        <RouteArrowMarker
+          key={`arrow-${i}-${j}`}
+          start={startVec}
+          end={endVec}
+          initialT={(j + 1) / (arrowCount + 1)}
+          delay={j * 0.18 + i * 0.08}
+        />
+      );
+    }
+  }
+
+  return <>{arrows}</>;
 }
 
 function FocusCameraOnRoute({
@@ -1394,6 +1568,76 @@ function FocusCameraOnRoute({
   return null;
 }
 
+function FocusCameraOnCurrentLocation({
+  currentLocationNode,
+  triggerSignal,
+}: {
+  currentLocationNode: string;
+  triggerSignal: number;
+}) {
+  const { camera, controls } = useThree() as any;
+
+  const targetPos = useRef(new THREE.Vector3());
+  const targetLookAt = useRef(new THREE.Vector3());
+  const isAnimating = useRef(false);
+
+  useEffect(() => {
+    if (!controls) return;
+    if (!currentLocationNode) return;
+
+    const node = ROUTE_NODES.find((n) => n.id === currentLocationNode);
+    if (!node) return;
+
+    const center = new THREE.Vector3(
+      node.position[0],
+      node.position[1],
+      node.position[2]
+    );
+
+    // keep current zoom/distance, only move view center
+    const currentOffset = new THREE.Vector3().subVectors(
+      camera.position,
+      controls.target
+    );
+
+    targetLookAt.current.copy(center);
+    targetPos.current.copy(center).add(currentOffset);
+
+    isAnimating.current = true;
+  }, [currentLocationNode, triggerSignal, camera, controls]);
+
+  useEffect(() => {
+    if (!controls) return;
+
+    const stopAnimation = () => {
+      isAnimating.current = false;
+    };
+
+    controls.addEventListener("start", stopAnimation);
+
+    return () => {
+      controls.removeEventListener("start", stopAnimation);
+    };
+  }, [controls]);
+
+  useFrame(() => {
+    if (!isAnimating.current || !controls) return;
+
+    camera.position.lerp(targetPos.current, 0.08);
+    controls.target.lerp(targetLookAt.current, 0.08);
+    controls.update();
+
+    const camDone = camera.position.distanceTo(targetPos.current) < 0.6;
+    const targetDone = controls.target.distanceTo(targetLookAt.current) < 0.6;
+
+    if (camDone && targetDone) {
+      isAnimating.current = false;
+    }
+  });
+
+  return null;
+}
+
 function isEquirectangular(url: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const img = new Image();
@@ -1429,6 +1673,8 @@ export default function CampusMapPage() {
 
   const [currentLocationNode, setCurrentLocationNode] = useState<string>("");
   const [currentLocationLabel, setCurrentLocationLabel] = useState<string>("");
+
+  const [focusCurrentLocationSignal, setFocusCurrentLocationSignal] = useState(0);
 
   const [locationPromptOpen, setLocationPromptOpen] = useState(false);
 
@@ -1699,6 +1945,7 @@ export default function CampusMapPage() {
 
         setCurrentLocationNode(nearestNode.id);
         setCurrentLocationLabel(nearestNode.label);
+        setFocusCurrentLocationSignal((v) => v + 1);
         setIsDetectingLocation(false);
         setLocationPromptOpen(false);
 
@@ -1776,6 +2023,14 @@ export default function CampusMapPage() {
 
     setStartNode(currentLocationNode);
     setEndNode(targetNode);
+
+    // hide info card after showing route
+    setPicked(null);
+
+    if (isMobile) {
+      setMobileSheetOpen(false);
+      setMobileSheetExpanded(false);
+    }
   }
 
   return (
@@ -2700,10 +2955,12 @@ export default function CampusMapPage() {
           <directionalLight position={[30, 50, 30]} intensity={1.2} />
           <directionalLight position={[-30, 30, -20]} intensity={0.6} />
 
-          <RouteLines edges={activeRouteEdges} color="#ec1515" />
+          <RouteLines edges={activeRouteEdges} color="#ff2d2d" />
+          <RouteArrows activeRoute={activeRoute} />
           <RouteDots />
 
           {currentLocationNode && <CurrentLocationPin nodeId={currentLocationNode} />}
+          {endNode && <DestinationPulse nodeId={endNode} />}
 
           <GrassBase rootObject={campusRoot} isMobile={isMobile} />
 
@@ -2786,6 +3043,11 @@ export default function CampusMapPage() {
           <FocusCameraOnRoute
             rootObject={campusRoot}
             activeRoute={activeRoute}
+          />
+
+          <FocusCameraOnCurrentLocation
+            currentLocationNode={currentLocationNode}
+            triggerSignal={focusCurrentLocationSignal}
           />
 
           <ApplyViewMode
