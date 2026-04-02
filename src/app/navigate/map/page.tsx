@@ -9,6 +9,9 @@ import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Html, Edges, Line } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useRouter } from 'next/navigation';
+import { get360RouteId } from '../route_bank/routeMatcher';
+
 interface PannellumViewer {
   destroy?: () => void;
   resize?: () => void;
@@ -1703,6 +1706,8 @@ export default function CampusMapPage() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<PannellumViewer | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     if (!open360 || !picked?.panoUrl || !panoReady || !hostRef.current) return;
 
@@ -1780,6 +1785,11 @@ export default function CampusMapPage() {
   const activeRouteEdges = useMemo(() => {
     return buildEdgesFromPath(activeRoute);
   }, [activeRoute]);
+
+  const selected360RouteId = useMemo(() => {
+    if (!startNode || !endNode || activeRoute.length === 0) return null;
+    return get360RouteId(startNode, endNode);
+  }, [startNode, endNode, activeRoute]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -2153,7 +2163,6 @@ export default function CampusMapPage() {
                   placeholder="Search building, hall, hub..."
                   style={{
                     width: "100%",
-                    // height: isMobile ? 40 : 42,
                     height: isMobile ? 38 : 42,
                     borderRadius: 10,
                     border: "1px solid #cbd5e1",
@@ -2411,6 +2420,84 @@ export default function CampusMapPage() {
         </div>
     )}
 
+        {activeRoute.length > 0 && selected360RouteId && (
+        <button
+          onClick={() => {
+            router.push(`/navigate/super/${selected360RouteId}`);
+          }}
+          style={{
+            position: "absolute",
+            top: isMobile ? 88 : 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 25,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            minWidth: isMobile ? 210 : 220,
+            padding: isMobile ? "10px 14px" : "12px 16px",
+            borderRadius: 999,
+            border: "2px solid rgba(255, 255, 255, 0.95)",
+            background:
+              "linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%)",
+            color: "#ffffff",
+            cursor: "pointer",
+            boxShadow: "0 14px 30px rgba(239,68,68,0.30)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <div
+            style={{
+              width: isMobile ? 38 : 42,
+              height: isMobile ? 38 : 42,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
+              border: "2px solid rgba(255,255,255,0.9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              fontSize: isMobile ? 16 : 18,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            ➜
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              lineHeight: 1.1,
+            }}
+          >
+            <span
+              style={{
+                fontSize: isMobile ? 14 : 15,
+                fontWeight: 800,
+                letterSpacing: 0.1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              View 360 Route
+            </span>
+
+            <span
+              style={{
+                fontSize: isMobile ? 11 : 12,
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.82)",
+                marginTop: 3,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Open guided 360
+            </span>
+          </div>
+        </button>
+      )}
+
         {isMobile && picked && mobileSheetOpen && (
             <div
               style={{
@@ -2619,29 +2706,6 @@ export default function CampusMapPage() {
             </div>
           )}
         
-        {/* {activeLabel && !isMobile && (
-          <div
-            style={{
-              position: "absolute",
-              top: 16,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 20,  //20
-              padding: "8px 14px",
-              borderRadius: 999,
-              background: "rgba(15, 23, 42, 0.9)",
-              color: "#ffffff",
-              fontFamily: "system-ui",
-              fontSize: 14,
-              fontWeight: 600,
-              pointerEvents: "none",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-            }}
-          >
-            {activeLabel}
-          </div>
-        )} */}
-
         <div
           style={{
           position: "absolute",
@@ -2652,16 +2716,6 @@ export default function CampusMapPage() {
           flexDirection: "column",
           gap: 10,
         }}
-          // style={{
-          //   position: "absolute",
-          //   right: 10,
-          //   // bottom: isMobile && picked && mobileSheetOpen ? 240 : 18,
-          //   bottom: isMobile && picked && mobileSheetOpen ? 220 : 72,
-          //   zIndex: 20,
-          //   display: "flex",
-          //   flexDirection: "column",
-          //   gap: 10,
-          // }}
         >
             <button
               onClick={() => setIsMapFullscreen((v) => !v)}
