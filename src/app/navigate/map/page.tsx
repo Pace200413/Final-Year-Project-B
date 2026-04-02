@@ -1650,6 +1650,66 @@ function isEquirectangular(url: string): Promise<boolean> {
   });
 }
 
+function ClampMobilePanBounds({
+  rootObject,
+  enabled,
+}: {
+  rootObject: THREE.Object3D | null;
+  enabled: boolean;
+}) {
+  const { camera, controls } = useThree() as any;
+
+  const boundsRef = useRef<{
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!rootObject) return;
+
+    const box = getCampusBounds(rootObject);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    const padX = size.x * 0.08;
+    const padZ = size.z * 0.08;
+
+    boundsRef.current = {
+      minX: center.x - size.x / 2 - padX,
+      maxX: center.x + size.x / 2 + padX,
+      minZ: center.z - size.z / 2 - padZ,
+      maxZ: center.z + size.z / 2 + padZ,
+    };
+  }, [rootObject]);
+
+  useFrame(() => {
+    if (!enabled || !controls || !boundsRef.current) return;
+
+    const bounds = boundsRef.current;
+
+    const oldTarget = controls.target.clone();
+
+    controls.target.x = THREE.MathUtils.clamp(
+      controls.target.x,
+      bounds.minX,
+      bounds.maxX
+    );
+
+    controls.target.z = THREE.MathUtils.clamp(
+      controls.target.z,
+      bounds.minZ,
+      bounds.maxZ
+    );
+
+    const delta = new THREE.Vector3().subVectors(controls.target, oldTarget);
+    camera.position.sub(delta);
+  });
+
+  return null;
+}
+
 /* ---------- MAIN PAGE ---------- */
 export default function CampusMapPage() {
   const [picked, setPicked] = useState<{
@@ -1696,6 +1756,11 @@ export default function CampusMapPage() {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
   const searchPanelRef = useRef<HTMLDivElement | null>(null);
+
+  const sheetStartYRef = useRef(0);
+  const sheetCurrentYRef = useRef(0);
+  const sheetDraggingRef = useRef(false);
+  const [sheetDragOffset, setSheetDragOffset] = useState(0);
 
   const [mounted, setMounted] = useState(false);
 
@@ -2046,6 +2111,43 @@ export default function CampusMapPage() {
     if (isMobile) {
       setMobileSheetOpen(false);
       setMobileSheetExpanded(false);
+    }
+  }
+
+    function handleSheetTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    sheetDraggingRef.current = true;
+    sheetStartYRef.current = e.touches[0].clientY;
+    sheetCurrentYRef.current = 0;
+  }
+
+  function handleSheetTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!sheetDraggingRef.current) return;
+
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - sheetStartYRef.current;
+
+    // only allow a controlled drag feeling
+    sheetCurrentYRef.current = diff;
+    setSheetDragOffset(diff > 0 ? Math.min(diff, 180) : Math.max(diff, -120));
+  }
+
+  function handleSheetTouchEnd() {
+    if (!sheetDraggingRef.current) return;
+
+    const diff = sheetCurrentYRef.current;
+    sheetDraggingRef.current = false;
+    setSheetDragOffset(0);
+
+    // drag down -> collapse
+    if (diff > 70) {
+      setMobileSheetExpanded(false);
+      return;
+    }
+
+    // drag up -> expand
+    if (diff < -50) {
+      setMobileSheetExpanded(true);
+      return;
     }
   }
 
@@ -2499,35 +2601,44 @@ export default function CampusMapPage() {
       )}
 
         {isMobile && picked && mobileSheetOpen && (
-            <div
-              style={{
-                position: "absolute",
-                left: 12,
-                right: 12,
-                bottom: 12,
-                zIndex: 20, //here there
-                background: "rgba(255,255,255,0.98)",
-                borderRadius: 20,
-                boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
-                overflow: "hidden",
-                fontFamily: "system-ui",
-                transition: "all 0.25s ease",
-                // maxHeight: mobileSheetExpanded ? "62%" : "96px",
-                maxHeight: mobileSheetExpanded ? "82dvh" : "88px",
-                display: "flex",
-                flexDirection: "column",
-                backdropFilter: "blur(10px)",
-              }}
-            >
+        <div
+          style={{
+            position: "absolute",
+            left: 12,
+            right: 12,
+            bottom: 12,
+            zIndex: 20,
+            background: "rgba(255,255,255,0.98)",
+            borderRadius: 20,
+            boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
+            overflow: "hidden",
+            fontFamily: "system-ui",
+            transition: sheetDraggingRef.current ? "none" : "transform 0.22s ease, max-height 0.25s ease",
+            transform: `translateY(${Math.max(0, sheetDragOffset)}px)`,
+            maxHeight: mobileSheetExpanded ? "82dvh" : "88px",
+            display: "flex",
+            flexDirection: "column",
+            backdropFilter: "blur(10px)",
+            touchAction: "none",
+          }}
+        >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "center",
                   paddingTop: 8,
-                  paddingBottom: 4,
-                  cursor: "pointer",
+                  paddingBottom: 8,
+                  cursor: "grab",
+                  touchAction: "none",
                 }}
-                onClick={() => setMobileSheetExpanded((v) => !v)}
+                onClick={() => {
+                  if (Math.abs(sheetCurrentYRef.current) < 8) {
+                    setMobileSheetExpanded((v) => !v);
+                  }
+                }}
+                onTouchStart={handleSheetTouchStart}
+                onTouchMove={handleSheetTouchMove}
+                onTouchEnd={handleSheetTouchEnd}
               >
                 <div
                   style={{
@@ -3118,10 +3229,18 @@ export default function CampusMapPage() {
             resetSignal={resetViewSignal}
           />
 
+          <ClampMobilePanBounds
+            rootObject={campusRoot}
+            enabled={isMobile}
+          />
+
           <OrbitControls
             makeDefault
             enableDamping
-            dampingFactor={0.08}
+            dampingFactor={0.05}
+            rotateSpeed={1.15}
+            zoomSpeed={1.1}
+            panSpeed={1.0}
             enableRotate={viewMode === "3D"}
             minPolarAngle={viewMode === "3D" ? 0.35 : 0.001}
             maxPolarAngle={viewMode === "3D" ? Math.PI / 2 - 0.15 : 0.001}
@@ -3135,8 +3254,14 @@ export default function CampusMapPage() {
               RIGHT: THREE.MOUSE.PAN,
             }}
             touches={{
-              ONE: viewMode === "2D" ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE,
-              TWO: THREE.TOUCH.DOLLY_PAN,
+              ONE: isMobile
+                ? THREE.TOUCH.PAN
+                : viewMode === "2D"
+                ? THREE.TOUCH.PAN
+                : THREE.TOUCH.ROTATE,
+              TWO: isMobile && viewMode === "3D"
+                ? THREE.TOUCH.DOLLY_ROTATE
+                : THREE.TOUCH.DOLLY_PAN,
             }}
           />
         </Canvas>

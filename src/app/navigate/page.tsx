@@ -995,7 +995,7 @@ const CARD_UI: Record<
   },
   study: {
     icon: FaBook,
-    hint: 'Study places, group rooms',
+    hint: 'Study places, group meeting rooms',
     image: '/images/junction1_pic.jpg',
     hours: { open: '00:00', close: '24:00' },
     description: 'Junction, charging area, discussion room.',
