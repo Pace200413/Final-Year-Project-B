@@ -153,7 +153,7 @@ export const lobbyMphRoute: RouteDefinition = {
   nextRouteIds: ['mph-borneo', 'mph-library', 'mph-junction', 'mph-SV', 'mph-hq', 'mph-dining', 'mph-gblock', 'mph-shub'],
 };
 
-// Dininig
+// Dining
 export const lobbyDiningRoute: RouteDefinition = {
   id: 'lobby-dining',
   title: 'Lobby → Dining Hall',
