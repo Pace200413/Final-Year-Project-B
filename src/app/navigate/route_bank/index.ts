@@ -2,7 +2,7 @@
 import type { RouteId, RouteDefinition } from './types';
 
 import {
-    dininigMphRoute,
+    diningMphRoute,
     diningHqRoute,
     diningShubRoute,
     diningGblockRoute,
@@ -10,7 +10,7 @@ import {
     diningJunctionRoute,
     diningLibraryRoute,
     diningSvRoute,
-} from './Dininig_all';
+} from './Dining_all';
 
 
 import {
@@ -126,7 +126,7 @@ export const routeBank: Record<RouteId, RouteDefinition> = {
     'lobby-library': lobbyLibraryRoute,
     'lobby-SV': lobbySvRoute,
 
-    'dining-mph': dininigMphRoute,
+    'dining-mph': diningMphRoute,
     'dining-hq': diningHqRoute,
     'dining-shub': diningShubRoute,
     'dining-gblock':diningGblockRoute,
