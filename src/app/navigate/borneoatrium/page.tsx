@@ -38,9 +38,13 @@ export default function BorneoAtrium360Page() {
   /* NEW: next-destination panel collapsed? (start collapsed like MPH) */
   const [nextPanelCollapsed, setNextPanelCollapsed] = useState(true);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   /* refs to the pannellum viewer + container */
   const viewerRef = useRef<PannellumViewer | null>(null);
   const paneRef = useRef<HTMLDivElement>(null);
+
+  const viewerShellRef = useRef<HTMLDivElement>(null);
 
   const [routeKey, setRouteKey] = useState<RouteId>('lobby-borneo');
   const currentRouteDef = routeBank[routeKey];
@@ -114,8 +118,8 @@ export default function BorneoAtrium360Page() {
       type: 'equirectangular',
       panorama: DEFAULT_PANO,
       autoLoad: true,
-      showZoomCtrl: true,
-      showFullscreenCtrl: true,
+      showZoomCtrl: false,
+      showFullscreenCtrl: false,
       compass: true,
       autoRotate: 1,
       hfov: 100,
@@ -211,9 +215,9 @@ export default function BorneoAtrium360Page() {
       panorama: scene.image,
       autoLoad: true,
       yaw: startYaw,
-      showZoomCtrl: true,
-      showFullscreenCtrl: true,
-      compass: false,
+      showZoomCtrl: false,
+      showFullscreenCtrl: false,
+      compass: true,
       autoRotate: 0,
       hfov: 100,
       minHfov: 60,
@@ -230,6 +234,21 @@ export default function BorneoAtrium360Page() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIdx, routeMode, lastMove]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+
+      setTimeout(() => {
+        viewerRef.current?.resize?.();
+      }, 100);
+    };
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, []);
 
   /* ---------- handlers ---------- */
   const handleStartRoute = () => {
@@ -256,6 +275,21 @@ export default function BorneoAtrium360Page() {
   };
 
   const progressPercent = ((currentIdx + 1) / ROUTE.length) * 100;
+
+  const handleToggleFullscreen = async () => {
+    const el = viewerShellRef.current;
+    if (!el) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await el.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Fullscreen failed:', err);
+    }
+  };
 
   /* ---------- UI ---------- */
   return (
@@ -284,8 +318,28 @@ export default function BorneoAtrium360Page() {
           </header>
 
           {/* Panorama / Viewer shell */}
-          <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden">
-            <div className="relative w-full h-[58vh] md:h-auto md:aspect-[20/9] bg-black">
+          <section
+            ref={viewerShellRef}
+            className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden"
+          >
+            <div
+              className={`relative w-full bg-black ${
+                isFullscreen
+                  ? 'h-[calc(100vh-40px)]'
+                  : 'h-[58vh] md:h-auto md:aspect-[20/9]'
+              }`}
+            >
+
+            {/* Fullscreen button */}
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="absolute bottom-20 right-3 z-30 grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-slate-900 shadow-lg ring-1 ring-black/10 hover:bg-white"
+              aria-label="Toggle fullscreen"
+              title="Fullscreen"
+            >
+              ⛶
+            </button>
               {/* pannellum mounts here */}
               <div
                 ref={paneRef}
@@ -307,7 +361,7 @@ export default function BorneoAtrium360Page() {
 
               {/* pre-start instructions */}
               {!routeMode && (
-                <div className="absolute top-3 right-3 z-20 max-w-xs swin-intro-card">
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-24px)] max-w-xs md:left-auto md:right-3 md:translate-x-0 md:w-auto swin-intro-card">
                   <p className="swin-intro-title">How to use</p>
                   <ul className="swin-intro-list">
                     <li>1. Look around the 360° view.</li>
@@ -316,31 +370,6 @@ export default function BorneoAtrium360Page() {
                   </ul>
                 </div>
               )}
-
-              {/* TOP-LEFT HUD */}
-              {/* {routeMode && (
-                <div className="absolute top-1 left-9 z-20">
-                  <div className="bg-black/55 backdrop-blur-md border border-white/10 rounded-lg px-2 py-1.5 text-white min-w-[160px] md:min-w-[210px]">
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-wide text-slate-200/80 mb-0.5">
-                      You are here
-                    </p>
-                    <p className="text-xs md:text-sm font-semibold line-clamp-1">
-                      {ROUTE[currentIdx].label}
-                    </p>
-                  </div>
-                </div>
-              )} */}
-
-              {/* Step instruction */}
-              {/* {routeMode && (
-                <div className="absolute bottom-3 left-3 z-20 swin-step-box">
-                  <p className="swin-step-label">Next instruction</p>
-                  <p className="swin-step-text">{guidanceText}</p>
-                  <p className="swin-step-meta">
-                    Step {currentIdx + 1} of {ROUTE.length}
-                  </p>
-                </div>
-              )} */}
 
               {/* TOP-CENTER guidance */}
               {routeMode && (

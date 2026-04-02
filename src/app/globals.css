@@ -1601,11 +1601,17 @@ h3 {
   .swin-next-toggle-btn {
     right: auto;
     bottom: auto;
-    left: 2.3rem;
-    top: 0.6rem;
+    left: 50%;
+    top: 0.8rem;
+    transform: translateX(-50%);
+    animation: none;
     font-size: 10px;
     padding: 5px 10px 5px 9px;
     max-width: 72%;
+  }
+
+  .swin-next-toggle-btn:hover {
+    transform: translateX(-50%);
   }
 
   .swin-next-toggle-chevron {

@@ -77,7 +77,7 @@ export const lobbyBorneoRoute: RouteDefinition = {
                 initialYaw: 180,
             },    
   ],
-  nextRouteIds: ['borneo-mph', 'borneo-shub', 'borneo-dining', 'borneo-gblock', 'borneo-hq', 'borneo-junction', 'borneo-library'],
+  nextRouteIds: ['borneo-mph', 'borneo-shub', 'borneo-dining', 'borneo-gblock', 'borneo-hq', 'borneo-junction', 'borneo-library', 'borneo-SV'],
 };
 
 // MPH
