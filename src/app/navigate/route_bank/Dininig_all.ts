@@ -1,6 +1,6 @@
 import type { RouteDefinition } from './types';
 
-export const dininigMphRoute: RouteDefinition = {
+export const diningMphRoute: RouteDefinition = {
   id: 'dining-mph',
   title: 'Dining Hall → MPH',
   fromNode: 'Dining Hall',
@@ -768,7 +768,7 @@ export const diningSvRoute: RouteDefinition = {
 };
 
 export const borneoRoutes = {
-  'dining-mph': dininigMphRoute,
+  'dining-mph': diningMphRoute,
   'dining-hq': diningHqRoute,
   'dining-shub': diningShubRoute,
   'dining-gblock':diningGblockRoute,
