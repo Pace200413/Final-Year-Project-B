@@ -3,9 +3,19 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
+import { PinnedShortcuts } from "@/components/MobileShell";
 import { TileCard } from "@/components/SupportUI";
 import { ServiceStatusBar } from "@/components/SystemLayer";
+import {
+  getDevicePrefsSnapshot,
+  HOME_SCROLL_OBSERVE_IDS,
+  resolveHomeScrollTarget,
+  updateDevicePrefs,
+  useDevicePrefs,
+  type HomeScrollSectionId,
+} from "@/lib/device-prefs";
 import {
   Phone,
   Shield,
@@ -45,7 +55,10 @@ const Wrap = ({ children }: { children: ReactNode }) => (
 
 function TopHeroNavigation() {
   return (
-    <div className="relative overflow-hidden rounded-[28px] ring-1 ring-black/5 shadow-[0_18px_48px_rgba(0,0,0,.18)]">
+    <div
+      id="home-top"
+      className="relative overflow-hidden rounded-[28px] ring-1 ring-black/5 shadow-[0_18px_48px_rgba(0,0,0,.18)]"
+    >
       <div
         aria-hidden
         className="absolute inset-0 [background:radial-gradient(120%_140%_at_16%_10%,#ff8b8b_0%,#D42A30_32%,#8D1116_66%,#120406_100%)]"
@@ -122,6 +135,83 @@ className="inline-flex items-center justify-center rounded-2xl border border-whi
 }
 
 export default function Page() {
+  const pathname = usePathname();
+  const { prefs } = useDevicePrefs();
+
+  function scrollMotion(): ScrollBehavior {
+    return getDevicePrefsSnapshot().reduceMotion ? "auto" : "smooth";
+  }
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const id = requestAnimationFrame(() => {
+      const hash = window.location.hash.replace(/^#/, "");
+      const hashOk =
+        hash && (HOME_SCROLL_OBSERVE_IDS as readonly string[]).includes(hash);
+
+      if (hashOk) {
+        document
+          .getElementById(hash)
+          ?.scrollIntoView({ behavior: scrollMotion(), block: "start" });
+        return;
+      }
+
+      const target = resolveHomeScrollTarget(getDevicePrefsSnapshot());
+      if (target === "top") {
+        window.scrollTo({ top: 0, behavior: scrollMotion() });
+        return;
+      }
+      document
+        .getElementById(target)
+        ?.scrollIntoView({ behavior: scrollMotion(), block: "start" });
+    });
+
+    return () => cancelAnimationFrame(id);
+  }, [
+    pathname,
+    prefs.defaultHomeSection,
+    prefs.rememberLastHomeSection,
+    prefs.lastHomeSection,
+  ]);
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    if (!prefs.rememberLastHomeSection) return;
+
+    let debounce: number | undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const best = entries
+          .filter((e) => e.isIntersecting && e.intersectionRatio >= 0.3)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        const sid = best?.target?.id;
+        if (
+          !sid ||
+          !(HOME_SCROLL_OBSERVE_IDS as readonly string[]).includes(sid)
+        ) {
+          return;
+        }
+        window.clearTimeout(debounce);
+        debounce = window.setTimeout(() => {
+          updateDevicePrefs({ lastHomeSection: sid as HomeScrollSectionId });
+        }, 380);
+      },
+      { threshold: [0, 0.2, 0.3, 0.5, 0.75, 1], rootMargin: "-18% 0px -40% 0px" }
+    );
+
+    HOME_SCROLL_OBSERVE_IDS.forEach((sectionId) => {
+      const el = document.getElementById(sectionId);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      window.clearTimeout(debounce);
+      observer.disconnect();
+    };
+  }, [pathname, prefs.rememberLastHomeSection]);
+
   useEffect(() => {
     const isTypingTarget = (el: HTMLElement | null) => {
       if (!el) return false;
@@ -166,7 +256,10 @@ export default function Page() {
           ev.preventDefault();
 
           if (target.startsWith("#")) {
-            document.querySelector(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            document.querySelector(target)?.scrollIntoView({
+              behavior: getDevicePrefsSnapshot().reduceMotion ? "auto" : "smooth",
+              block: "start",
+            });
             cleanup();
             return;
           }
@@ -193,6 +286,9 @@ export default function Page() {
       <div className={`${CONTAINER} mt-3`}>
         <ServiceStatusBar />
       </div>
+
+      <PinnedShortcuts />
+
 
       <Section id="navigation" title="Campus Navigation">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">

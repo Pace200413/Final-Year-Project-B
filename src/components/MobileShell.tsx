@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type ComponentType } from "react";
 import dynamic from "next/dynamic";
 import { signOut } from "next-auth/react";
+import { homeNavHref, useDevicePrefs } from "@/lib/device-prefs";
+import ExternalSiteLink from "@/components/ExternalSiteLink";
 
 const AssistantChat = dynamic(() => import("./AssistantChat"), { ssr: false });
 
@@ -461,9 +463,11 @@ export function Header() {
 }
 
 function Brand() {
+  const { prefs } = useDevicePrefs();
+
   return (
     <Link
-      href="/"
+      href={homeNavHref(prefs)}
       aria-label="Swinburne home"
       className="flex min-w-0 flex-1 items-center gap-3 pr-2"
     >
@@ -549,12 +553,16 @@ function accentFor(label: string) {
 }
 
 export function PinnedShortcuts() {
+  const { prefs } = useDevicePrefs();
+
+  if (!prefs.showHomeQuickShortcuts) return null;
+
   return (
     <div className="maxw container-px mt-3">
-      <div className="relative overflow-hidden rounded-2xl bg-white/75 shadow-[0_10px_26px_rgba(15,23,42,.06)] ring-1 ring-slate-200/70 backdrop-blur-xl">
+      <div className="relative overflow-hidden rounded-2xl bg-white/75 shadow-[0_10px_26px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/70 backdrop-blur-xl">
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.55] [background:radial-gradient(circle_at_15%_20%,rgba(212,42,48,.10),transparent_45%)]"
+          className="absolute inset-0 opacity-[0.55] [background:radial-gradient(circle_at_15%_20%,rgba(212,42,48,0.10),transparent_45%)]"
         />
 
         <div className="relative px-3 py-2.5">
@@ -582,54 +590,64 @@ export function PinnedShortcuts() {
                     ? "bg-gradient-to-br from-[#D42A30]/18 to-white ring-1 ring-[#D42A30]/18 text-[#B0171E]"
                     : "bg-gradient-to-br from-slate-100 to-white ring-1 ring-slate-200 text-slate-700";
 
-                return (
-                  <Link
+                const shortcutBody = (
+                  <div className={`rounded-full p-[1px] ${outer}`}>
+                    <div
+                      className={[
+                        "group inline-flex items-center gap-2 rounded-full px-3.5 py-2",
+                        "bg-white/90 hover:bg-white",
+                        "ring-1 ring-slate-200/60 shadow-sm",
+                        "hover:shadow-[0_10px_24px_rgba(15,23,42,0.10)] hover:ring-slate-300/70",
+                        "active:scale-[0.99] transition",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2",
+                      ].join(" ")}
+                    >
+                      <span
+                        className={`grid h-8 w-8 place-items-center rounded-2xl ${iconBubble}`}
+                        aria-hidden
+                      >
+                        <span className="text-[15px]">{it.icon}</span>
+                      </span>
+
+                      <span className="whitespace-nowrap text-[13px] font-semibold text-slate-900">
+                        {it.label}
+                      </span>
+
+                      {external ? (
+                        <span
+                          aria-hidden
+                          className="ml-0.5 text-[11px] font-semibold text-slate-400"
+                          title="External site"
+                        >
+                          ↗
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+
+                return external ? (
+                  <ExternalSiteLink
                     key={it.label}
                     href={it.href}
-                    target={external ? "_blank" : undefined}
-                    rel={external ? "noopener noreferrer" : undefined}
+                    titleText={it.label}
                     className="shrink-0 snap-start"
                     aria-label={it.label}
                   >
-                    <div className={`rounded-full p-[1px] ${outer}`}>
-                      <div
-                        className={[
-                          "group inline-flex items-center gap-2 rounded-full px-3.5 py-2",
-                          "bg-white/90 hover:bg-white",
-                          "ring-1 ring-slate-200/60 shadow-sm",
-                          "hover:shadow-[0_10px_24px_rgba(15,23,42,.10)] hover:ring-slate-300/70",
-                          "active:scale-[0.99] transition",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2",
-                        ].join(" ")}
-                      >
-                        <span className={`grid h-8 w-8 place-items-center rounded-2xl ${iconBubble}`} aria-hidden>
-                          <span className="text-[15px]">{it.icon}</span>
-                        </span>
-
-                        <span className="whitespace-nowrap text-[13px] font-semibold text-slate-900">
-                          {it.label}
-                        </span>
-
-                        {external ? (
-                          <span
-                            aria-hidden
-                            className="ml-0.5 text-[11px] font-semibold text-slate-400"
-                            title="Opens in new tab"
-                          >
-                            ↗
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
+                    {shortcutBody}
+                  </ExternalSiteLink>
+                ) : (
+                  <Link
+                    key={it.label}
+                    href={it.href}
+                    className="shrink-0 snap-start"
+                    aria-label={it.label}
+                  >
+                    {shortcutBody}
                   </Link>
                 );
               })}
             </div>
-
-            <div
-              aria-hidden
-              className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white/90 to-transparent"
-            />
           </div>
         </div>
       </div>
@@ -981,6 +999,8 @@ function QuickActionRow({
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { prefs } = useDevicePrefs();
+  const homeHref = homeNavHref(prefs);
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
 
   const [open, setOpen] = useState(false);
@@ -1050,14 +1070,18 @@ export function BottomNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [open]);
 
-  const tabs = [
-    { label: "Home", href: "/", icon: <IconHome /> },
-    { label: "Funding", href: "/scholarships", icon: <IconFunding /> },
-    { label: "Essentials", href: "/student-essentials", icon: <IconEssentials /> },
-    { label: "Break", href: "/study-break", icon: <IconBreak /> },
-  ];
+  const tabs = useMemo(
+    () => [
+      { label: "Home", href: homeHref, icon: <IconHome /> },
+      { label: "Funding", href: "/scholarships", icon: <IconFunding /> },
+      { label: "Essentials", href: "/student-essentials", icon: <IconEssentials /> },
+      { label: "Break", href: "/study-break", icon: <IconBreak /> },
+    ],
+    [homeHref]
+  );
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) =>
+    href === homeHref ? pathname === "/" : pathname.startsWith(href);
 
   const actions: Action[] = useMemo(
     () => [
@@ -1327,6 +1351,15 @@ export function BottomNav() {
           .boomerang-sheet {
             animation: none !important;
           }
+        }
+
+        html.a11y-motion-reduced .animate-backdrop,
+        html.a11y-motion-reduced .boomerang-sheet {
+          animation: none !important;
+        }
+
+        html.a11y-motion-reduced nav .nav-chrome {
+          transition: none !important;
         }
       `}</style>
     </>

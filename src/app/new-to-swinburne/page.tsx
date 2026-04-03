@@ -9,6 +9,7 @@ import {
   Sparkles,
   Wifi,
 } from "lucide-react";
+import ExternalSiteLink from "@/components/ExternalSiteLink";
 
 type CardItem = {
   title: string;
@@ -141,25 +142,23 @@ function CompactHero() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <a
+            <ExternalSiteLink
               href="https://www.swinburne.edu.my/current-students/get-started/enrolment-for-new-students/"
-              target="_blank"
-              rel="noopener noreferrer"
+              titleText="Checklist"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#D42A30] px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(212,42,48,0.22)] transition hover:bg-[#be1f25]"
             >
               Checklist
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </ExternalSiteLink>
 
-            <a
+            <ExternalSiteLink
               href="https://www.swinburne.edu.my/current-students/get-started/o-week/"
-              target="_blank"
-              rel="noopener noreferrer"
+              titleText="O-Week"
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-800 transition hover:bg-slate-50"
             >
               O-Week
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </ExternalSiteLink>
           </div>
         </div>
       </div>
@@ -289,10 +288,9 @@ function SectionHeader({ title }: { title: string }) {
 
 function ResourceCard({ item }: { item: CardItem }) {
   return (
-    <a
+    <ExternalSiteLink
       href={item.href}
-      target="_blank"
-      rel="noopener noreferrer"
+      titleText={item.title}
       className="group block overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.11)]"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
@@ -330,10 +328,9 @@ function ResourceCard({ item }: { item: CardItem }) {
           <ArrowUpRight className="h-4 w-4" />
         </div>
       </div>
-    </a>
+    </ExternalSiteLink>
   );
 }
-
 
 export default function NewToSwinburnePage() {
   return (

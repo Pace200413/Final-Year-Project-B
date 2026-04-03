@@ -21,10 +21,12 @@ import {
   DEFAULT_SUPPORT_PAGE_CONTENT,
   type SupportPageContent,
 } from "@/lib/support-page";
+import { getDevicePrefsSnapshot } from "@/lib/device-prefs";
 
 const API = "/api/support-page";
 
 export default function SupportPage() {
+  const { prefs } = useDevicePrefs();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [content, setContent] = useState<SupportPageContent>(DEFAULT_SUPPORT_PAGE_CONTENT);
   const bcRef = useRef<BroadcastChannel | null>(null);
@@ -67,8 +69,9 @@ export default function SupportPage() {
   const jumpToServices = () => {
     setDrawerOpen(false);
     setTimeout(() => {
+      const reduced = getDevicePrefsSnapshot().reduceMotion;
       document.getElementById("services")?.scrollIntoView({
-        behavior: "smooth",
+        behavior: reduced ? "auto" : "smooth",
         block: "start",
       });
     }, 60);

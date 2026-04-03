@@ -37,6 +37,30 @@ html.a11y-density-compact .container-px {
   padding-right: 0.875rem;
 }
 
+html.a11y-density-compact [data-settings-card] > :first-child {
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+}
+
+html.a11y-density-compact [data-settings-card] > :last-child {
+  padding: 0.875rem 1rem;
+}
+
+html.a11y-density-compact [data-settings-form] select {
+  height: 2.75rem;
+}
+
+html.a11y-density-compact [data-settings-form] .compact-actions button {
+  min-height: 44px;
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+html.a11y-density-compact [data-settings-form] .compact-status {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
 @media (min-width: 768px) {
   html.a11y-density-compact .container-px {
     padding-left: 1.125rem;
