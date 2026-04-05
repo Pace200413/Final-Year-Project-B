@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-import { PinnedShortcuts } from "@/components/MobileShell";
 import { TileCard } from "@/components/SupportUI";
 import { ServiceStatusBar } from "@/components/SystemLayer";
 import {
@@ -119,7 +118,7 @@ function TopHeroNavigation() {
 
           <Link
             href="/navigate/map"
-className="inline-flex items-center justify-center rounded-2xl border border-white/16 bg-white/[0.03]
+            className="inline-flex items-center justify-center rounded-2xl border border-white/16 bg-white/[0.03]
            px-5 py-3 text-sm font-semibold text-white/92
            supports-[backdrop-filter]:backdrop-blur-md
            hover:bg-white/[0.06] hover:border-white/24
@@ -286,9 +285,6 @@ export default function Page() {
       <div className={`${CONTAINER} mt-3`}>
         <ServiceStatusBar />
       </div>
-
-      <PinnedShortcuts />
-
 
       <Section id="navigation" title="Campus Navigation">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
