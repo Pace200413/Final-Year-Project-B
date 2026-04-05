@@ -393,16 +393,7 @@ export default function ProfileSettingsForm({
       >
         <div className="space-y-4">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-[#F2F2F7]">
-          <ToggleRow
-            label="Show quick shortcuts on Home"
-            description="Show the pinned shortcuts row on the Home screen."
-            enabled={devicePrefs.showHomeQuickShortcuts}
-            onToggle={() =>
-              setDevicePrefs({
-                showHomeQuickShortcuts: !devicePrefs.showHomeQuickShortcuts,
-              })
-            }
-          />
+
           <ToggleRow
             label="Compact mode"
             description="Use tighter spacing across the app on this device."
