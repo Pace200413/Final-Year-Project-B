@@ -30,7 +30,7 @@ const DEFAULT_SUPPORT_ROUTING =
 const DEFAULT_SUPPORT_ALERT_PHONE =
   typeof supportSettings.alert?.phone === "string"
     ? supportSettings.alert.phone
-    : "082260607";
+    : "082260991";
 
 const DEFAULT_SUPPORT_ALERT_TEXT =
   typeof supportSettings.alert?.text === "string"

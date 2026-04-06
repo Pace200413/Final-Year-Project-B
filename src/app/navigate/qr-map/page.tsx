@@ -7,14 +7,12 @@ import { FaMapMarkerAlt, FaWalking } from "react-icons/fa";
 
 /* ===== Types & data ===== */
 
-type LocationKey = "lobby" | "atrium" | "library" | "mph" | "gblock";
+type LocationKey = "lobby" | "atrium" | "library" | "mph" | "gblock" | "shq" | "junction" | "shub" | "dining" | "sv";
 
 type Location = {
   key: LocationKey;
   label: string;
   description: string;
-  x: number;
-  y: number;
   routeHref: string;
 };
 
@@ -23,41 +21,61 @@ const LOCATIONS: Location[] = [
     key: "lobby",
     label: "Main Lobby",
     description: "Campus main entrance and reception area.",
-    x: 50.0,
-    y: 58.04,
     routeHref: "/navigate/map?from=lobby&to=lobby",
   },
   {
     key: "atrium",
     label: "Borneo Atrium",
     description: "Event space and open hangout area between Block A and B.",
-    x: 56.5,
-    y: 70.69,
     routeHref: "/navigate/borneoatrium",
   },
   {
     key: "library",
     label: "Library",
     description: "Resources, quiet zones and study rooms.",
-    x: 50.0,
-    y: 48.58,
     routeHref: "/navigate/library",
   },
   {
     key: "mph",
     label: "Multi Purpose Hall",
     description: "Exams, events and large assemblies.",
-    x: 38.7,
-    y: 47.92,
     routeHref: "/navigate/mph",
   },
   {
     key: "gblock",
     label: "G Block (IT & Student Service)",
     description: "IT department, labs and student service counters.",
-    x: 54.22,
-    y: 39.0,
     routeHref: "/navigate/gblock",
+  },
+  {
+    key: "shq",
+    label: "Student HQ",
+    description: "Help desk & services.",
+    routeHref: "/navigate/sHQ",
+  },
+  {
+    key: "shub",
+    label: "Student Hub",
+    description: "Clubs & hangout space.",
+    routeHref: "/navigate/shub",
+  },
+  {
+    key: "junction",
+    label: "Junction & Study Spaces",
+    description: "Study places, group meeting rooms.",
+    routeHref: "/navigate/study",
+  },
+  {
+    key: "dining",
+    label: "Dining Hall",
+    description: "Breakfast and lunch here.",
+    routeHref: "/navigate/dining",
+  },
+  {
+    key: "sv",
+    label: "Student Village",
+    description: "Student accommondation blocks.",
+    routeHref: "/navigate/studentvillage",
   },
 ];
 
@@ -85,23 +103,6 @@ function QrMapInner() {
     [selectedKey]
   );
 
-  // Auto-pick nearest location (only if user didn't pick anything yet)
-  useEffect(() => {
-    if (!startLocation || selectedKey) return;
-
-    const nearest = LOCATIONS.filter((l) => l.key !== startLocation.key).reduce<Location | null>(
-      (best, current) => {
-        if (!best) return current;
-        const dBest = (best.x - startLocation.x) ** 2 + (best.y - startLocation.y) ** 2;
-        const dCur = (current.x - startLocation.x) ** 2 + (current.y - startLocation.y) ** 2;
-        return dCur < dBest ? current : best;
-      },
-      null
-    );
-
-    if (nearest) setSelectedKey(nearest.key);
-  }, [startLocation, selectedKey]);
-
   const destinations = useMemo(
     () => LOCATIONS.filter((l) => l.key !== startLocation.key),
     [startLocation.key]
@@ -118,40 +119,45 @@ function QrMapInner() {
       title="QR Map"
       description="Choose a destination and start navigation."
     >
-      <div className="space-y-4">
-        {/* Start + Selected */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-            <div className="text-xs text-slate-500">Start location</div>
-            <div className="mt-1 text-[15px] font-semibold text-slate-900">{startLocation.label}</div>
-            <div className="mt-1 text-sm text-slate-600">{startLocation.description}</div>
-            <div className="mt-2 text-xs text-slate-500">
-              Coords: ({startLocation.x.toFixed(2)}, {startLocation.y.toFixed(2)})
-            </div>
+      <div className="col-span-full mx-auto w-full max-w-5xl space-y-4 px-4">
+
+        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <FaMapMarkerAlt className="text-[#D42A30]" />
+            <span>You are at</span>
           </div>
 
-          <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
-            <div className="text-xs text-slate-500">Destination</div>
-            <div className="mt-1 text-[15px] font-semibold text-slate-900">
-              {selectedLocation ? selectedLocation.label : "Select a destination"}
-            </div>
-            <div className="mt-1 text-sm text-slate-600">
-              {selectedLocation ? selectedLocation.description : "Pick from the list below."}
-            </div>
+          <div className="mt-1 text-lg font-semibold text-slate-900">
+            {startLocation.label}
+          </div>
 
-            <button
-              onClick={handleStartRoute}
-              disabled={!selectedLocation}
-              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium
-                         bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:text-white/80"
-            >
-              <FaWalking className="h-4 w-4" />
-              Start route
-            </button>
+          <div className="text-sm text-slate-500">
+            Choose where you want to go
+          </div>
+        </div>
 
-            <div className="mt-2 text-xs text-slate-500">
-              Tip: we auto-suggest the nearest place — you can change it anytime.
-            </div>
+        {/* Start + Selected */}
+        <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5">
+          <div className="text-xs text-slate-500">Destination</div>
+          <div className="mt-1 text-[16px] font-semibold text-slate-900">
+            {selectedLocation ? selectedLocation.label : "Select a destination"}
+          </div>
+          <div className="mt-1 text-sm text-slate-600">
+            {selectedLocation ? selectedLocation.description : "Pick from the list below."}
+          </div>
+
+          <button
+            onClick={handleStartRoute}
+            disabled={!selectedLocation}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-medium
+                      bg-[#D42A30] text-white hover:bg-[#b71f26] disabled:bg-slate-300 disabled:text-white/80"
+          >
+            <FaWalking className="h-4 w-4" />
+            Start route
+          </button>
+
+          <div className="mt-2 text-xs text-slate-500">
+            Tip: select a destination to begin your guided route.
           </div>
         </div>
 
@@ -163,24 +169,22 @@ function QrMapInner() {
             {destinations.map((l) => {
               const active = l.key === selectedKey;
               return (
-                <li key={l.key}>
+                <li key={l.key} className="h-full">
                   <button
                     type="button"
                     onClick={() => setSelectedKey(l.key)}
                     className={[
-                      "w-full text-left rounded-2xl p-3 ring-1 transition",
+                      "h-full min-h-[124px] w-full text-left rounded-2xl p-4 hover:shadow-md hover:scale-[1.02] ring-1 transition-transform",
                       active
                         ? "bg-[#D42A30]/5 ring-[#D42A30]/30"
                         : "bg-white ring-slate-200 hover:ring-slate-300",
                     ].join(" ")}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="truncate font-semibold text-slate-900">{l.label}</div>
+                    <div className="flex h-full items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[16px] font-semibold text-slate-900">{l.label}</div>
                         <div className="mt-0.5 text-sm text-slate-600 line-clamp-2">{l.description}</div>
-                        <div className="mt-2 text-xs text-slate-500">
-                          Coords: ({l.x.toFixed(2)}, {l.y.toFixed(2)})
-                        </div>
+                        
                       </div>
                       <span
                         className={[

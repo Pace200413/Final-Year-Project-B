@@ -133,7 +133,7 @@ export const DEFAULT_SECURITY_CONTACT_CONTENT: SecurityContactContent = {
   contactsTitle: "Contacts",
   contactsSubtitle: "Tap a contact to call directly from mobile.",
   contacts: [
-    { name: "Campus Security", phone: "082-260-607", isPrimary: true },
+    { name: "Campus Security", phone: "082-260-991", isPrimary: true },
     { name: "Emergency Services", phone: "999", isPrimary: false },
     { name: "Health Clinic", phone: "082-260-620", isPrimary: false },
   ],

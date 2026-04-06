@@ -61,7 +61,7 @@ export const NAV_DESTINATIONS: NavDestination[] = [
   },
   {
     key: "dining",
-    title: "Dining",
+    title: "Dining Hall",
     href: "/navigate/dining",
     aliases: ["dining", "cafeteria", "food", "restaurant", "canteen", "breakfast", "lunch"],
   },

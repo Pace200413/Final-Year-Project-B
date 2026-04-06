@@ -77,7 +77,7 @@ export const lobbyBorneoRoute: RouteDefinition = {
                 initialYaw: 180,
             },    
   ],
-  nextRouteIds: ['borneo-mph', 'borneo-shub', 'borneo-dining', 'borneo-gblock', 'borneo-hq', 'borneo-junction', 'borneo-library'],
+  nextRouteIds: ['borneo-mph', 'borneo-shub', 'borneo-dining', 'borneo-gblock', 'borneo-hq', 'borneo-junction', 'borneo-library', 'borneo-SV'],
 };
 
 // MPH
@@ -153,7 +153,7 @@ export const lobbyMphRoute: RouteDefinition = {
   nextRouteIds: ['mph-borneo', 'mph-library', 'mph-junction', 'mph-SV', 'mph-hq', 'mph-dining', 'mph-gblock', 'mph-shub'],
 };
 
-// Dininig
+// Dining
 export const lobbyDiningRoute: RouteDefinition = {
   id: 'lobby-dining',
   title: 'Lobby → Dining Hall',
@@ -757,4 +757,3 @@ export const lobbySvRoute: RouteDefinition = {
   ],
   nextRouteIds: ['SV-mph','SV-gblock','SV-library','SV-hq','SV-dining','SV-borneo','SV-junction','SV-shub'],
 };
-

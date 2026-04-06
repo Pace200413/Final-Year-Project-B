@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -9,6 +12,10 @@ import {
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
+import {
+  CMS_PAGE_CONFIG,
+  type ScholarshipsContent,
+} from "@/lib/page-cms";
 
 const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
 
@@ -21,53 +28,8 @@ type FundingItem = {
   description: string;
 };
 
-const FUNDING_ITEMS: FundingItem[] = [
-  {
-    title: "Scholarships for Foundation programs",
-    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-foundation/",
-    image: "/images/scholarships/foundation-programs.jpg",
-    alt: "Foundation scholarship information",
-    tag: "Foundation",
-    description:
-      "Official scholarships for foundation students starting their studies at Swinburne Sarawak.",
-  },
-  {
-    title: "Scholarships for Diploma programs",
-    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-diploma/",
-    image: "/images/scholarships/diploma-programs.jpg",
-    alt: "Diploma scholarship information",
-    tag: "Diploma",
-    description:
-      "Explore available diploma scholarships and official eligibility details for diploma applicants.",
-  },
-  {
-    title: "Scholarships for Undergraduate programs",
-    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-undergraduate/",
-    image: "/images/scholarships/undergraduate-programs.jpg",
-    alt: "Undergraduate scholarship information",
-    tag: "Undergraduate",
-    description:
-      "Official scholarship opportunities for undergraduate students, including tuition support pathways.",
-  },
-  {
-    title: "Scholarships for Postgraduate programs",
-    href: "https://www.swinburne.edu.my/study/study-with-us/scholarships-postgraduate/",
-    image: "/images/scholarships/postgraduate-programs.jpg",
-    alt: "Postgraduate scholarship information",
-    tag: "Postgraduate",
-    description:
-      "Postgraduate scholarship options for advanced study, with official application information and guidance.",
-  },
-  {
-    title: "Instalment Payment Plan",
-    href: "https://www.swinburne.edu.my/study/study-with-us/easy-payment-plan/",
-    image: "/images/scholarships/instalment-payment-plan.jpg",
-    alt: "Instalment payment plan information",
-    tag: "Payment plan",
-    description:
-      "Spread tuition payments into manageable instalments through the official Swinburne payment plan page.",
-  },
-];
+const FALLBACK_CONTENT: ScholarshipsContent =
+  CMS_PAGE_CONFIG.scholarships.defaultContent;
 
 type Meta = {
   icon: LucideIcon;
@@ -124,7 +86,15 @@ function BackgroundDecor() {
   );
 }
 
-function Hero() {
+function Hero({
+  title,
+  subtitle,
+  count,
+}: {
+  title: string;
+  subtitle: string;
+  count: number;
+}) {
   return (
     <section className={`${CONTAINER} pt-3 sm:pt-4`}>
       <nav className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
@@ -144,15 +114,15 @@ function Hero() {
         <div className="relative flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
           <div className="min-w-0">
             <h1 className="text-[24px] font-semibold tracking-tight text-slate-900 sm:text-[28px]">
-              Scholarships & Payment Plans
+              {title}
             </h1>
             <p className="mt-1 text-[13.5px] leading-5 text-slate-600 sm:text-[14px]">
-              Official funding links for every study level.
+              {subtitle}
             </p>
           </div>
 
           <div className="shrink-0 rounded-full border border-[#D42A30]/15 bg-[#D42A30]/6 px-3 py-1 text-[11px] font-semibold text-[#B0171E]">
-            {FUNDING_ITEMS.length} links
+            {count} links
           </div>
         </div>
       </div>
@@ -281,16 +251,44 @@ function FundingCard({
 }
 
 export default function ScholarshipsPage() {
+  const [cms, setCms] = useState<ScholarshipsContent>(FALLBACK_CONTENT);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/cms/scholarships", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!alive) return;
+        setCms((json?.content ?? FALLBACK_CONTENT) as ScholarshipsContent);
+      } catch {}
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const items = cms.items ?? FALLBACK_CONTENT.items;
+
   return (
     <div className="relative min-h-screen overflow-hidden pb-28">
       <BackgroundDecor />
-      <Hero />
+      <Hero
+        title={cms.hero.title}
+        subtitle={cms.hero.subtitle}
+        count={items.length}
+      />
 
       <section className={`${CONTAINER} relative mt-3 sm:mt-4`}>
         <SectionHeader />
 
         <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {FUNDING_ITEMS.map((item, index) => (
+          {items.map((item, index) => (
             <FundingCard key={item.title} item={item} index={index} />
           ))}
         </div>

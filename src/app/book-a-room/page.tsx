@@ -1,11 +1,9 @@
-// src/app/book-a-room/page.tsx
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
-  ArrowUpRight,
   BookOpen,
   Clock3,
   Users,
@@ -19,67 +17,54 @@ import {
   ChevronDown,
   ExternalLink,
 } from "lucide-react";
+import {
+  CMS_PAGE_CONFIG,
+  type BookARoomContent,
+} from "@/lib/page-cms";
 
-const SKEDDA_URL = "https://myvenuehub.skedda.com/";
+const FALLBACK_CONTENT: BookARoomContent =
+  CMS_PAGE_CONFIG["book-a-room"].defaultContent;
 
-const steps = [
-  {
-    icon: LogIn,
-    title: "Sign in",
-    desc: "Log in to Skedda to begin your booking.",
-  },
-  {
-    icon: MapPin,
-    title: "Location",
-    desc: "Select Library discussion rooms.",
-  },
-  {
-    icon: DoorOpen,
-    title: "Pick room",
-    desc: "Choose an available room. Green means available.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Set booking",
-    desc: "Choose date, time, and duration. Maximum is 2 hours.",
-  },
-  {
-    icon: Users,
-    title: "Attendees",
-    desc: "Enter the total number of users.",
-  },
-  {
-    icon: AlertCircle,
-    title: "Unconfirmed",
-    desc: "Mark the booking request as unconfirmed.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Confirm",
-    desc: "Accept the conditions and confirm your booking.",
-  },
-];
-
-const rules = [
-  "Minimum 3 users.",
-  "Maximum 2 hours per booking.",
-  "Check-in is required.",
-  "Unattended rooms for 15 minutes may be terminated.",
-  "Keep noise at a reasonable level.",
-  "Do not move furniture.",
-  "Do not leave belongings unattended.",
-  "Keep the room neat and orderly.",
-];
-
-const quickInfo = [
-  { icon: Clock3, label: "2h max" },
-  { icon: Users, label: "Min 3 users" },
-  { icon: Shield, label: "Check-in required", wide: true },
-];
+const ICONS = {
+  Clock3,
+  Users,
+  Shield,
+  LogIn,
+  MapPin,
+  DoorOpen,
+  CalendarDays,
+  AlertCircle,
+  CheckCircle2,
+};
 
 export default function BookARoomPage() {
+  const [cms, setCms] = useState<BookARoomContent>(FALLBACK_CONTENT);
   const [openStep, setOpenStep] = useState<number | null>(0);
   const [rulesOpen, setRulesOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/cms/book-a-room", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!alive) return;
+        setCms((json?.content ?? FALLBACK_CONTENT) as BookARoomContent);
+      } catch {}
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const quickInfo = cms.quickInfo ?? FALLBACK_CONTENT.quickInfo;
+  const steps = cms.steps ?? FALLBACK_CONTENT.steps;
+  const rules = cms.rules ?? FALLBACK_CONTENT.rules;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.08),transparent_28%),#f8fafc] pb-24">
@@ -102,34 +87,37 @@ export default function BookARoomPage() {
             </div>
 
             <h1 className="mt-4 text-[34px] font-semibold leading-tight tracking-tight text-slate-900">
-              Discussion Room Booking
+              {cms.hero.title}
             </h1>
 
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Book a library discussion room through Skedda.
+              {cms.hero.subtitle}
             </p>
 
-          <a
-            href={SKEDDA_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 flex items-center justify-between rounded-3xl border border-red-100 bg-gradient-to-r from-red-50 to-white px-4 py-4 shadow-sm transition active:scale-[0.99]"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">Book on Skedda</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Open the room booking system
-              </p>
-            </div>
+            <a
+              href={cms.hero.ctaHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-center justify-between rounded-3xl border border-red-100 bg-gradient-to-r from-red-50 to-white px-4 py-4 shadow-sm transition active:scale-[0.99]"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900">
+                  {cms.hero.ctaLabel}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Open the room booking system
+                </p>
+              </div>
 
-            <div className="ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md shadow-red-600/20">
-              <ExternalLink className="h-4 w-4" />
-            </div>
-          </a>
+              <div className="ml-3 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md shadow-red-600/20">
+                <ExternalLink className="h-4 w-4" />
+              </div>
+            </a>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
               {quickInfo.map((item) => {
-                const Icon = item.icon;
+                const Icon = ICONS[item.icon as keyof typeof ICONS] ?? Clock3;
+
                 return (
                   <div
                     key={item.label}
@@ -154,7 +142,7 @@ export default function BookARoomPage() {
 
               <div className="space-y-2.5">
                 {steps.map((step, index) => {
-                  const Icon = step.icon;
+                  const Icon = ICONS[step.icon as keyof typeof ICONS] ?? LogIn;
                   const isOpen = openStep === index;
 
                   return (

@@ -69,77 +69,46 @@ export default async function SettingsPage() {
   return (
     <div className="min-h-screen pb-[calc(env(safe-area-inset-bottom)+84px)]">
       <div className={CONTAINER}>
-        <section className="mb-5 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-          <div className="px-4 pb-4 pt-5 sm:px-5 sm:pt-6">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#F2F2F7] px-3 py-1 text-[11px] font-medium text-slate-700">
-                  <span
-                    className={`h-2 w-2 rounded-full ${
-                      isAuthenticated ? "bg-emerald-500" : "bg-amber-500"
-                    }`}
-                    aria-hidden
-                  />
-                  {isAuthenticated ? "Signed in" : "Guest mode"}
-                </div>
-
-                <h1 className="mt-3 text-[28px] font-semibold tracking-tight text-slate-900">
-                  Settings
-                </h1>
-
-                <p className="mt-1 max-w-[720px] text-sm leading-6 text-slate-600">
-                  Light mode only. Display settings are available for everyone.
-                  Microsoft sign-in unlocks your student details like faculty,
-                  course, and year.
-                </p>
-              </div>
-
-              <Link
-                href={isAuthenticated ? "/profile" : "/"}
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+        <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 gap-y-2">
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-[22px]">
+                Settings
+              </h1>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${
+                  isAuthenticated
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                    : "border-amber-200 bg-amber-50 text-amber-900"
+                }`}
               >
-                {isAuthenticated ? "Back" : "Home"}
-              </Link>
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isAuthenticated ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
+                  aria-hidden
+                />
+                {isAuthenticated ? "Microsoft connected" : "Guest mode"}
+              </span>
             </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <TopStat
-                label="Access"
-                value={isAuthenticated ? "Microsoft connected" : "Not connected"}
-              />
-              <TopStat label="Appearance" value="Light mode only" />
-              <TopStat
-                label="Profile"
-                value={isAuthenticated ? "Can be updated" : "Sign in to unlock"}
-              />
-            </div>
+            <p className="mt-1.5 max-w-[640px] text-sm leading-snug text-slate-600">
+              Your student control centre for Microsoft sign-in, campus details,
+              and how dates and times appear around the app.
+            </p>
           </div>
-        </section>
+          <Link
+            href={isAuthenticated ? "/profile" : "/"}
+            className="shrink-0 self-start rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 sm:mt-0.5"
+          >
+            {isAuthenticated ? "Back" : "Home"}
+          </Link>
+        </header>
 
         <ProfileSettingsForm
           initialProfile={initialProfile}
           isAuthenticated={isAuthenticated}
-          userDisplayName={displayName}
-          userEmail={email}
         />
       </div>
-    </div>
-  );
-}
-
-function TopStat({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-[#F2F2F7] px-4 py-3">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </div>
-      <div className="mt-1 text-sm font-semibold text-slate-900">{value}</div>
     </div>
   );
 }
