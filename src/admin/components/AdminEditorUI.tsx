@@ -1,6 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  InputHTMLAttributes,
+  ReactNode,
+  TextareaHTMLAttributes,
+} from "react";
 
 export type AdminAuditItem = {
   id: number | string;
@@ -48,11 +53,14 @@ export function AdminEditorPage({
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
               {title}
             </h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">{description}</p>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {description}
+            </p>
           </div>
 
           {onSave ? (
             <button
+              type="button"
               onClick={onSave}
               disabled={saving}
               className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
@@ -87,24 +95,29 @@ export function EditorSection({
     <section className="rounded-3xl border border-slate-200 bg-white p-6">
       <div className="mb-5">
         <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-slate-600">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="mt-1 text-sm text-slate-600">{subtitle}</p>
+        ) : null}
       </div>
       {children}
     </section>
   );
 }
 
+type TextFieldProps = {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">;
+
 export function TextField({
   label,
   value,
   onChange,
   placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (next: string) => void;
-  placeholder?: string;
-}) {
+  className = "",
+  ...props
+}: TextFieldProps) {
   return (
     <label className="block">
       <div className="mb-2 text-sm font-medium text-slate-700">{label}</div>
@@ -112,23 +125,27 @@ export function TextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-500"
+        className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-500 ${className}`}
+        {...props}
       />
     </label>
   );
 }
+
+type TextAreaFieldProps = {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "value" | "onChange">;
 
 export function TextAreaField({
   label,
   value,
   onChange,
   rows = 4,
-}: {
-  label: string;
-  value: string;
-  onChange: (next: string) => void;
-  rows?: number;
-}) {
+  className = "",
+  ...props
+}: TextAreaFieldProps) {
   return (
     <label className="block">
       <div className="mb-2 text-sm font-medium text-slate-700">{label}</div>
@@ -136,32 +153,34 @@ export function TextAreaField({
         rows={rows}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-500"
+        className={`w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-500 ${className}`}
+        {...props}
       />
     </label>
   );
 }
 
+type SecondaryButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode;
+  danger?: boolean;
+};
+
 export function SecondaryButton({
   children,
-  onClick,
   danger = false,
   type = "button",
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  danger?: boolean;
-  type?: "button" | "submit" | "reset";
-}) {
+  className = "",
+  ...props
+}: SecondaryButtonProps) {
   return (
     <button
       type={type}
-      onClick={onClick}
-      className={`rounded-2xl border px-4 py-2 text-sm font-medium transition ${
+      className={`rounded-2xl border px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
         danger
           ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
           : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-      }`}
+      } ${className}`}
+      {...props}
     >
       {children}
     </button>
