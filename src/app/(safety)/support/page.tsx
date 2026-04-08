@@ -149,7 +149,7 @@ export default function SupportPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
             >
               <Phone className="h-4 w-4" />
-              {content.browseButtonLabel}
+                Library Help
             </button>
           </div>
         </div>
