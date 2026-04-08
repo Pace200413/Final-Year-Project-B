@@ -1325,7 +1325,7 @@ export function SupportDirectory({
         {services.map((s) => {
           const tel = s.phone ? `tel:${s.phone.replace(/[^0-9]/g, "")}` : null;
           const mail = s.email ? `mailto:${s.email}` : null;
-          const page = `/support/${s.slug}`;
+          const page = s.href || `/support/${s.slug}`;
           const tone = toneForCategory(s.category);
           const Icon = iconForCategory(s.category);
 
