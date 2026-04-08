@@ -44,7 +44,8 @@
       "category": "IT Support",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Accounts, Wi-Fi, Canvas, Student Portal issues.",
-      "email": "servicedesk@swinburne.edu.my"
+      "email": "servicedesk@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/servicedesk/"
     },
     {
       "slug": "facilities-helpdesk",
@@ -52,7 +53,8 @@
       "category": "Facilities",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Air-con, lighting, classroom equipment, maintenance.",
-      "email": "sic@swinburne.edu.my"
+      "email": "sic@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/facilities-services/facilities/"
     },
     {
       "slug": "campus-security",
@@ -60,7 +62,8 @@
       "category": "Safety",
       "hours": "24/7",
       "desc": "Emergencies & safety on campus.",
-      "phone": "082-260991"
+      "phone": "082-260991",
+      "href" : "https://www.swinburne.edu.my/current-students/get-started/how-we-can-support-you/"
     },
     {
       "slug": "student-wellbeing",
@@ -68,7 +71,8 @@
       "category": "Wellbeing",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Counselling, wellbeing support, referrals.",
-      "email": "ecounselling@swinburne.edu.my"
+      "email": "ecounselling@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/student-counselling-support/"
     },
     {
       "slug": "library-help",
@@ -76,7 +80,7 @@
       "category": "Academic",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Library services, research help, referencing.",
-      "href": "/support/library"
+      "href": "https://www.swinburne.edu.my/library/"
     }
   ],
   "faqs": [
