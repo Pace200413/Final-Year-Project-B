@@ -34,6 +34,21 @@ function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
+function formatEmailForMobile(email?: string) {
+  if (!email) return "";
+
+  const [local, domain = ""] = email.split("@");
+  if (!domain) return email;
+
+  if (email.length <= 28) return email;
+
+  if (domain === "students.swinburne.edu.my") {
+    return `${local}@students…edu.my`;
+  }
+
+  return `${local}@…${domain.slice(-6)}`;
+}
+
 export default function ProfileSettingsForm({
   initialProfile,
   isAuthenticated,
@@ -50,9 +65,7 @@ export default function ProfileSettingsForm({
   const [faculty, setFaculty] = useState(initialProfile?.faculty ?? "");
   const [course, setCourse] = useState(initialProfile?.course ?? "");
   const [yearLabel, setYearLabel] = useState(initialProfile?.yearLabel ?? "");
-  const [campus, setCampus] = useState(
-    initialProfile?.campus || "Swinburne Sarawak"
-  );
+  const [campus, setCampus] = useState(initialProfile?.campus || "Swinburne Sarawak");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -129,7 +142,6 @@ export default function ProfileSettingsForm({
     setSaveSuccess(false);
   }
 
-
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -184,7 +196,11 @@ export default function ProfileSettingsForm({
           {isAuthenticated && initialProfile ? (
             <>
               <InfoRow label="Full name" value={initialProfile.fullName} />
-              <InfoRow label="Email" value={initialProfile.email} mono />
+              <InfoRow
+                label="Email"
+                value={formatEmailForMobile(initialProfile.email)}
+                titleValue={initialProfile.email}
+              />
               <InfoRow
                 label="Student ID"
                 value={initialProfile.studentId || "Not on file yet"}
@@ -393,18 +409,17 @@ export default function ProfileSettingsForm({
       >
         <div className="space-y-4">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-[#F2F2F7]">
-
-          <ToggleRow
-            label="Compact mode"
-            description="Use tighter spacing across the app on this device."
-            enabled={devicePrefs.compactMode}
-            onToggle={() =>
-              setDevicePrefs({
-                compactMode: !devicePrefs.compactMode,
-              })
-            }
-            noBorder
-          />
+            <ToggleRow
+              label="Compact mode"
+              description="Use tighter spacing across the app on this device."
+              enabled={devicePrefs.compactMode}
+              onToggle={() =>
+                setDevicePrefs({
+                  compactMode: !devicePrefs.compactMode,
+                })
+              }
+              noBorder
+            />
           </div>
         </div>
       </SettingsCard>
@@ -456,8 +471,6 @@ export default function ProfileSettingsForm({
           </div>
         </div>
       </SettingsCard>
-
-
     </div>
   );
 }
@@ -538,16 +551,16 @@ function PrimarySettingsCard({
 function InfoRow({
   label,
   value,
+  titleValue,
   valueClassName,
   mutedValue,
-  mono,
   last,
 }: {
   label: string;
   value: string;
+  titleValue?: string;
   valueClassName?: string;
   mutedValue?: boolean;
-  mono?: boolean;
   last?: boolean;
 }) {
   return (
@@ -560,17 +573,16 @@ function InfoRow({
       <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
         {label}
       </span>
-    <span
-      title={value}
-      className={cx(
-        "min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-[14px] font-medium leading-snug sm:max-w-[min(100%,24rem)] sm:text-right",
-        mono && "font-mono text-[12px] tracking-tight text-slate-800 sm:text-[13px]",
-        mutedValue ? "text-slate-400" : "text-slate-900",
-        valueClassName
-      )}
-    >
-      {value}
-    </span>
+      <span
+        title={titleValue ?? value}
+        className={cx(
+          "min-w-0 max-w-full overflow-hidden whitespace-nowrap text-left text-[14px] font-medium leading-snug text-slate-900 sm:max-w-[min(100%,24rem)] sm:text-right",
+          mutedValue ? "text-slate-400" : "text-slate-900",
+          valueClassName
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 }
