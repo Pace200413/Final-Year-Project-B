@@ -144,11 +144,11 @@ function ProfileHero({ profile }: { profile: ProfileViewModel }) {
               {profile.fullName}
             </h1>
 
-            <p className="mt-1 text-[13.5px] text-slate-600">
-              {profile.email
-                ? profile.email
-                : "Connect your Swinburne Microsoft account to sync your profile."}
-            </p>
+          <p className="mt-1 max-w-full overflow-hidden break-words text-[13px] leading-snug text-slate-600 sm:text-[13.5px]">
+            {profile.email
+              ? profile.email
+              : "Connect your Swinburne Microsoft account to sync your profile."}
+          </p>
 
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-3 py-1 text-[12px] font-medium text-slate-700 ring-1 ring-slate-200">
