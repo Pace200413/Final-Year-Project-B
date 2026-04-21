@@ -560,16 +560,17 @@ function InfoRow({
       <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
         {label}
       </span>
-      <span
-        className={cx(
-          "min-w-0 text-left text-[15px] font-medium leading-snug sm:max-w-[min(100%,24rem)] sm:text-right",
-          mono && "font-mono text-[13px] tracking-tight text-slate-800",
-          mutedValue ? "text-slate-400" : "text-slate-900",
-          valueClassName
-        )}
-      >
-        {value}
-      </span>
+    <span
+      title={value}
+      className={cx(
+        "min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-[14px] font-medium leading-snug sm:max-w-[min(100%,24rem)] sm:text-right",
+        mono && "font-mono text-[12px] tracking-tight text-slate-800 sm:text-[13px]",
+        mutedValue ? "text-slate-400" : "text-slate-900",
+        valueClassName
+      )}
+    >
+      {value}
+    </span>
     </div>
   );
 }
