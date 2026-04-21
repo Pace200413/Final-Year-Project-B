@@ -54,7 +54,7 @@ export default function RootLayout({
               <BottomNav />
               <ChatLauncher />
               <AppearanceClient />
-              <ServiceWorkerRegistration />
+              {/* <ServiceWorkerRegistration /> */}
             </DeviceMotionConfig>
           </LocaleProvider>
         </ThemeProvider>
