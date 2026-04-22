@@ -44,6 +44,8 @@ export default function BorneoAtrium360Page() {
   const viewerRef = useRef<PannellumViewer | null>(null);
   const paneRef = useRef<HTMLDivElement>(null);
 
+  const [pannellumLoaded, setPannellumLoaded] = useState(false);
+
   const viewerShellRef = useRef<HTMLDivElement>(null);
 
   const [routeKey, setRouteKey] = useState<RouteId>('lobby-borneo');
@@ -79,15 +81,16 @@ export default function BorneoAtrium360Page() {
   /* ---------- inject pannellum script/css ---------- */
   useEffect(() => {
     const w = window as PannellumWindow;
+
     if (w.pannellum) {
-      initViewerDefault();
+      setPannellumLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
-    script.onload = () => initViewerDefault();
+    script.onload = () => setPannellumLoaded(true);
     script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum from CDN.');
     document.body.appendChild(script);
 
@@ -99,7 +102,41 @@ export default function BorneoAtrium360Page() {
     return () => {
       viewerRef.current?.destroy?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!pannellumLoaded || !panoReady || routeMode) return;
+    if (!paneRef.current) return;
+
+    const init = () => {
+      initViewerDefault();
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+
+        setTimeout(() => {
+          viewerRef.current?.resize?.();
+        }, 150);
+      });
+    };
+
+    const raf = requestAnimationFrame(init);
+
+    return () => cancelAnimationFrame(raf);
+  }, [pannellumLoaded, panoReady, routeMode]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      viewerRef.current?.resize?.();
+    };
+
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('load', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('load', handleResize);
+    };
   }, []);
 
   /* ---------- viewer initializers ---------- */
@@ -229,11 +266,18 @@ export default function BorneoAtrium360Page() {
 
   /* ---------- react to routeMode / index changes ---------- */
   useEffect(() => {
-    if (routeMode) {
+    if (!routeMode || !pannellumLoaded || !panoReady) return;
+
+    const raf = requestAnimationFrame(() => {
       initViewerForIndex(currentIdx, lastMove ?? 'forward');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIdx, routeMode, lastMove]);
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [currentIdx, routeMode, lastMove, pannellumLoaded, panoReady]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -261,7 +305,6 @@ export default function BorneoAtrium360Page() {
   const handleExitRoute = () => {
     setRouteMode(false);
     setNextPanelCollapsed(true);
-    setTimeout(() => initViewerDefault(), 300);
   };
 
   const handleNext = () => {
