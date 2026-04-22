@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -9,6 +12,11 @@ import {
   Sparkles,
   Wifi,
 } from "lucide-react";
+import ExternalSiteLink from "@/components/ExternalSiteLink";
+import {
+  CMS_PAGE_CONFIG,
+  type NewToSwinburneContent,
+} from "@/lib/page-cms";
 
 type CardItem = {
   title: string;
@@ -26,84 +34,25 @@ type StepItem = {
   icon: ReactNode;
 };
 
-const topCards: CardItem[] = [
-  {
-    title: "O-Week",
-    href: "https://www.swinburne.edu.my/current-students/get-started/o-week/",
-    image: "/images/new-to-swinburne/o-week.jpg",
-    alt: "O-Week",
-    description: "Orientation activities, first-week information, and campus life.",
-    tag: "Get started",
-    icon: <Sparkles className="h-4 w-4" />,
-  },
-  {
-    title: "Checklist",
-    href: "https://www.swinburne.edu.my/current-students/get-started/enrolment-for-new-students/",
-    image: "/images/new-to-swinburne/checklist.jpg",
-    alt: "Checklist for new students",
-    description: "Important enrolment and onboarding steps for new students.",
-    tag: "Important",
-    icon: <CheckCircle2 className="h-4 w-4" />,
-  },
-  {
-    title: "Program Study Planner",
-    href: "https://www.swinburne.edu.my/current-students/get-started/program-study-planner/",
-    image: "/images/new-to-swinburne/program-study-planner.jpg",
-    alt: "Program study planner",
-    description: "Plan your subjects and understand your study path better.",
-    tag: "Planning",
-    icon: <BookOpen className="h-4 w-4" />,
-  },
-];
+const FALLBACK_CONTENT: NewToSwinburneContent =
+  CMS_PAGE_CONFIG["new-to-swinburne"].defaultContent;
 
-const bottomCards: CardItem[] = [
-  {
-    title: "Wifi, Library and Systems",
-    href: "https://www.swinburne.edu.my/current-students/get-started/access-wi-fi-library-systems/",
-    image: "/images/new-to-swinburne/wifi-library-systems.jpg",
-    alt: "Wifi, library and systems",
-    description: "Access wifi, library resources, and student systems.",
-    tag: "Campus access",
-    icon: <Wifi className="h-4 w-4" />,
-  },
-  {
-    title: "Student Guides",
-    href: "https://www.swinburne.edu.my/current-students/get-started/student-guides/",
-    image: "/images/new-to-swinburne/student-guides.jpg",
-    alt: "Student guides",
-    description: "Official guides for student processes and campus support.",
-    tag: "Guides",
-    icon: <FileText className="h-4 w-4" />,
-  },
-];
-
-const recommendedSteps: StepItem[] = [
-  {
-    title: "Checklist",
-    subtitle: "Complete the main setup steps first.",
-    icon: <CheckCircle2 className="h-4 w-4" />,
-  },
-  {
-    title: "O-Week",
-    subtitle: "Explore orientation and campus life.",
-    icon: <Sparkles className="h-4 w-4" />,
-  },
-  {
-    title: "Wifi & Library",
-    subtitle: "Set up your key student systems.",
-    icon: <Wifi className="h-4 w-4" />,
-  },
-  {
-    title: "Study Planner",
-    subtitle: "Understand your subject pathway.",
-    icon: <BookOpen className="h-4 w-4" />,
-  },
-  {
-    title: "Student Guides",
-    subtitle: "Use official help and process guides.",
-    icon: <FileText className="h-4 w-4" />,
-  },
-];
+function iconNode(name: string) {
+  switch (name) {
+    case "Sparkles":
+      return <Sparkles className="h-4 w-4" />;
+    case "CheckCircle2":
+      return <CheckCircle2 className="h-4 w-4" />;
+    case "BookOpen":
+      return <BookOpen className="h-4 w-4" />;
+    case "Wifi":
+      return <Wifi className="h-4 w-4" />;
+    case "FileText":
+      return <FileText className="h-4 w-4" />;
+    default:
+      return <Sparkles className="h-4 w-4" />;
+  }
+}
 
 function MobileShell({ children }: { children: ReactNode }) {
   return (
@@ -115,7 +64,15 @@ function MobileShell({ children }: { children: ReactNode }) {
   );
 }
 
-function CompactHero() {
+function CompactHero({
+  eyebrow,
+  title,
+  subtitle,
+  primaryCtaLabel,
+  primaryCtaHref,
+  secondaryCtaLabel,
+  secondaryCtaHref,
+}: NewToSwinburneContent["hero"]) {
   return (
     <section className="relative overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.07)]">
       <div
@@ -126,40 +83,38 @@ function CompactHero() {
       <div className="relative p-3.5 sm:p-4">
         <div className="inline-flex items-center gap-2 rounded-full bg-[#D42A30]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#B91C1C]">
           <Sparkles className="h-3 w-3" />
-          Start here
+          {eyebrow}
         </div>
 
         <div className="mt-2.5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-[1.45rem] font-semibold leading-tight tracking-tight text-slate-900 sm:text-[1.8rem]">
-              New to Swinburne
+              {title}
             </h1>
 
             <p className="mt-1 text-[13px] leading-5 text-slate-600 sm:text-sm">
-              Main official links new students usually need first.
+              {subtitle}
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <a
-              href="https://www.swinburne.edu.my/current-students/get-started/enrolment-for-new-students/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <ExternalSiteLink
+              href={primaryCtaHref}
+              titleText={primaryCtaLabel}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#D42A30] px-3.5 py-2 text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(212,42,48,0.22)] transition hover:bg-[#be1f25]"
             >
-              Checklist
+              {primaryCtaLabel}
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </ExternalSiteLink>
 
-            <a
-              href="https://www.swinburne.edu.my/current-students/get-started/o-week/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <ExternalSiteLink
+              href={secondaryCtaHref}
+              titleText={secondaryCtaLabel}
               className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-semibold text-slate-800 transition hover:bg-slate-50"
             >
-              O-Week
+              {secondaryCtaLabel}
               <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
+            </ExternalSiteLink>
           </div>
         </div>
       </div>
@@ -196,7 +151,7 @@ function CurvedConnector() {
   );
 }
 
-function RecommendedFlow() {
+function RecommendedFlow({ steps }: { steps: StepItem[] }) {
   return (
     <section className="mt-5 rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-[0_10px_24px_rgba(15,23,42,0.06)] sm:p-4">
       <div className="mb-3 flex items-center gap-2">
@@ -211,7 +166,7 @@ function RecommendedFlow() {
 
       <div className="-mx-1 overflow-x-auto px-1 pb-1">
         <div className="flex min-w-max items-center">
-          {recommendedSteps.map((step, index) => {
+          {steps.map((step, index) => {
             const styles =
               index === 0
                 ? {
@@ -267,7 +222,7 @@ function RecommendedFlow() {
                   </div>
                 </div>
 
-                {index !== recommendedSteps.length - 1 ? <CurvedConnector /> : null}
+                {index !== steps.length - 1 ? <CurvedConnector /> : null}
               </div>
             );
           })}
@@ -289,10 +244,9 @@ function SectionHeader({ title }: { title: string }) {
 
 function ResourceCard({ item }: { item: CardItem }) {
   return (
-    <a
+    <ExternalSiteLink
       href={item.href}
-      target="_blank"
-      rel="noopener noreferrer"
+      titleText={item.title}
       className="group block overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.11)]"
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
@@ -330,15 +284,63 @@ function ResourceCard({ item }: { item: CardItem }) {
           <ArrowUpRight className="h-4 w-4" />
         </div>
       </div>
-    </a>
+    </ExternalSiteLink>
   );
 }
 
-
 export default function NewToSwinburnePage() {
+  const [cms, setCms] = useState<NewToSwinburneContent>(FALLBACK_CONTENT);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/cms/new-to-swinburne", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!alive) return;
+        setCms((json?.content ?? FALLBACK_CONTENT) as NewToSwinburneContent);
+      } catch {}
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const topCards = useMemo<CardItem[]>(
+    () =>
+      (cms.topCards ?? []).map((item) => ({
+        ...item,
+        icon: iconNode(item.icon),
+      })),
+    [cms.topCards]
+  );
+
+  const bottomCards = useMemo<CardItem[]>(
+    () =>
+      (cms.bottomCards ?? []).map((item) => ({
+        ...item,
+        icon: iconNode(item.icon),
+      })),
+    [cms.bottomCards]
+  );
+
+  const recommendedSteps = useMemo<StepItem[]>(
+    () =>
+      (cms.recommendedSteps ?? []).map((item) => ({
+        ...item,
+        icon: iconNode(item.icon),
+      })),
+    [cms.recommendedSteps]
+  );
+
   return (
     <MobileShell>
-      <CompactHero />
+      <CompactHero {...cms.hero} />
 
       <section className="mt-6">
         <SectionHeader title="Main links" />
@@ -349,7 +351,7 @@ export default function NewToSwinburnePage() {
         </div>
       </section>
 
-      <RecommendedFlow />
+      <RecommendedFlow steps={recommendedSteps} />
 
       <section className="mt-6">
         <SectionHeader title="Campus systems & guides" />

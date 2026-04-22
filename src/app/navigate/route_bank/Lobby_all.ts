@@ -757,4 +757,3 @@ export const lobbySvRoute: RouteDefinition = {
   ],
   nextRouteIds: ['SV-mph','SV-gblock','SV-library','SV-hq','SV-dining','SV-borneo','SV-junction','SV-shub'],
 };
-

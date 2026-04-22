@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   FaComments,
   FaDoorOpen,
@@ -26,13 +26,18 @@ import {
   toTelHref,
 } from "@/components/safety/SafetyUI";
 import {
-  DEFAULT_EMERGENCY_CONTENT,
+  cloneCmsContent,
+  getCmsPageConfig,
   type EmergencyContent,
   type EmergencyMoreHelpCard,
   type EmergencyQuickTile,
-} from "@/lib/emergency";
+} from "@/lib/page-cms";
 
-const API = "/api/emergency";
+const API = "/api/cms/emergency";
+
+const DEFAULT_CONTENT = cloneCmsContent(
+  getCmsPageConfig("emergency")!.defaultContent
+) as EmergencyContent;
 
 function QuickTile({
   href,
@@ -92,41 +97,29 @@ function moreHelpIcon(icon: EmergencyMoreHelpCard["icon"]) {
 }
 
 export default function EmergencyPage() {
-  const [content, setContent] = useState<EmergencyContent>(DEFAULT_EMERGENCY_CONTENT);
-  const bcRef = useRef<BroadcastChannel | null>(null);
-
-  const load = async () => {
-    try {
-      const res = await fetch(API, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setContent(json.content ?? DEFAULT_EMERGENCY_CONTENT);
-    } catch {
-      setContent(DEFAULT_EMERGENCY_CONTENT);
-    }
-  };
+  const [content, setContent] = useState<EmergencyContent>(DEFAULT_CONTENT);
 
   useEffect(() => {
-    load();
+    let alive = true;
 
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("emergency-content");
-      bcRef.current.onmessage = (m) => {
-        if (m?.data?.type === "updated") load();
-      };
+    async function load() {
+      try {
+        const res = await fetch(API, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        if (!alive) return;
+        setContent(json.content ?? DEFAULT_CONTENT);
+      } catch {
+        if (!alive) return;
+        setContent(DEFAULT_CONTENT);
+      }
     }
 
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "emergency:updated") load();
-    };
-
-    window.addEventListener("storage", onStorage);
+    load();
 
     return () => {
-      try {
-        bcRef.current?.close();
-      } catch {}
-      window.removeEventListener("storage", onStorage);
+      alive = false;
     };
   }, []);
 

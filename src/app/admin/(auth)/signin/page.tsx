@@ -1,3 +1,3 @@
-// src/app/admin/(auth)/signin/page.tsx
-import { AdminSignInPage } from "@/admin/AdminHome";
+import AdminSignInPage from "@/admin/pages/AdminHome";
+
 export default AdminSignInPage;

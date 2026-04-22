@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FaComments,
   FaEnvelope,
@@ -22,12 +22,17 @@ import {
   toTelHref,
 } from "@/components/safety/SafetyUI";
 import {
-  DEFAULT_SAFETY_CONTENT,
+  cloneCmsContent,
+  getCmsPageConfig,
   type SafetyContent,
   type SafetyContentSection,
-} from "@/lib/safety";
+} from "@/lib/page-cms";
 
-const API = "/api/safety";
+const API = "/api/cms/safety";
+
+const DEFAULT_CONTENT = cloneCmsContent(
+  getCmsPageConfig("safety")!.defaultContent
+) as SafetyContent;
 
 function groupSections(items: SafetyContentSection[]) {
   return items.reduce<Record<string, SafetyContentSection[]>>((acc, item) => {
@@ -39,41 +44,29 @@ function groupSections(items: SafetyContentSection[]) {
 }
 
 export default function SafetyPage() {
-  const [content, setContent] = useState<SafetyContent>(DEFAULT_SAFETY_CONTENT);
-  const bcRef = useRef<BroadcastChannel | null>(null);
-
-  const load = async () => {
-    try {
-      const res = await fetch(API, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      setContent(json.content ?? DEFAULT_SAFETY_CONTENT);
-    } catch {
-      setContent(DEFAULT_SAFETY_CONTENT);
-    }
-  };
+  const [content, setContent] = useState<SafetyContent>(DEFAULT_CONTENT);
 
   useEffect(() => {
-    load();
+    let alive = true;
 
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("safety-content");
-      bcRef.current.onmessage = (m) => {
-        if (m?.data?.type === "updated") load();
-      };
+    async function load() {
+      try {
+        const res = await fetch(API, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        if (!alive) return;
+        setContent(json.content ?? DEFAULT_CONTENT);
+      } catch {
+        if (!alive) return;
+        setContent(DEFAULT_CONTENT);
+      }
     }
 
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "safety:updated") load();
-    };
-
-    window.addEventListener("storage", onStorage);
+    load();
 
     return () => {
-      try {
-        bcRef.current?.close();
-      } catch {}
-      window.removeEventListener("storage", onStorage);
+      alive = false;
     };
   }, []);
 

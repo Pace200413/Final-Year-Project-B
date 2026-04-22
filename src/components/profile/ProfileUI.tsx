@@ -41,6 +41,21 @@ function displayValue(value?: string, fallback = "Not provided") {
   return clean ? clean : fallback;
 }
 
+function formatEmailForMobile(email?: string) {
+  if (!email) return "";
+
+  const [local, domain = ""] = email.split("@");
+  if (!domain) return email;
+
+  if (email.length <= 28) return email;
+
+  if (domain === "students.swinburne.edu.my") {
+    return `${local}@students…edu.my`;
+  }
+
+  return `${local}@…${domain.slice(-6)}`;
+}
+
 function initialsFromName(name: string) {
   const parts = name.split(" ").filter(Boolean);
   if (parts.length === 0) return "S";
@@ -100,6 +115,7 @@ function Card({
 
 function ProfileHero({ profile }: { profile: ProfileViewModel }) {
   const initials = initialsFromName(profile.fullName);
+  const compactEmail = formatEmailForMobile(profile.email);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,.08)]">
@@ -139,14 +155,21 @@ function ProfileHero({ profile }: { profile: ProfileViewModel }) {
             {initials}
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="truncate text-[24px] font-semibold tracking-tight text-slate-900 sm:text-[28px]">
               {profile.fullName}
             </h1>
 
-            <p className="mt-1 text-[13.5px] text-slate-600">
+            <p
+              title={
+                profile.email
+                  ? profile.email
+                  : "Connect your Swinburne Microsoft account to sync your profile."
+              }
+              className="mt-1 max-w-full overflow-hidden whitespace-nowrap text-[12.5px] leading-tight text-slate-600 sm:text-[13.5px]"
+            >
               {profile.email
-                ? profile.email
+                ? compactEmail
                 : "Connect your Swinburne Microsoft account to sync your profile."}
             </p>
 
@@ -303,7 +326,10 @@ export function ProfileUI({ profile }: { profile: ProfileViewModel }) {
             >
               <div className="space-y-1">
                 <DetailRow label="Support" value="Campus support and account help" />
-                <DetailRow label="Study status" value={displayValue(profile.yearLabel, "Current student")} />
+                <DetailRow
+                  label="Study status"
+                  value={displayValue(profile.yearLabel, "Current student")}
+                />
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">

@@ -1,4 +1,10 @@
-export type SupportCategory = "IT Support" | "Facilities" | "Safety" | "Wellbeing" | "Academic" | "General";
+export type SupportCategory =
+  | "IT Support"
+  | "Facilities"
+  | "Safety"
+  | "Wellbeing"
+  | "Academic"
+  | "General";
 
 export type Service = {
   slug: string;
@@ -9,6 +15,7 @@ export type Service = {
   phone?: string;
   email?: string;
   location?: string;
+  href?: string;
   link?: string;
 };
 
@@ -18,6 +25,6 @@ export type SupportRequest = {
   email: string;
   category: SupportCategory | string;
   message: string;
-  createdAt: string; // ISO
+  createdAt: string;
   status: "new" | "in_progress" | "resolved";
 };

@@ -44,7 +44,8 @@
       "category": "IT Support",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Accounts, Wi-Fi, Canvas, Student Portal issues.",
-      "email": "helpdesk@swin.edu.my"
+      "email": "servicedesk@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/servicedesk/"
     },
     {
       "slug": "facilities-helpdesk",
@@ -52,7 +53,8 @@
       "category": "Facilities",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Air-con, lighting, classroom equipment, maintenance.",
-      "email": "facilities@swin.edu.my"
+      "email": "sic@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/facilities-services/facilities/"
     },
     {
       "slug": "campus-security",
@@ -60,7 +62,8 @@
       "category": "Safety",
       "hours": "24/7",
       "desc": "Emergencies & safety on campus.",
-      "phone": "082-260991"
+      "phone": "082-260991",
+      "href" : "https://www.swinburne.edu.my/current-students/get-started/how-we-can-support-you/"
     },
     {
       "slug": "student-wellbeing",
@@ -68,7 +71,8 @@
       "category": "Wellbeing",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Counselling, wellbeing support, referrals.",
-      "email": "counselling@swin.edu.my"
+      "email": "ecounselling@swinburne.edu.my",
+      "href": "https://www.swinburne.edu.my/student-counselling-support/"
     },
     {
       "slug": "library-help",
@@ -76,7 +80,7 @@
       "category": "Academic",
       "hours": "Mon–Fri 9:00–17:00",
       "desc": "Library services, research help, referencing.",
-      "href": "/support/library"
+      "href": "https://www.swinburne.edu.my/library/"
     }
   ],
   "faqs": [
@@ -102,11 +106,11 @@
     }
   ],
   "routing": {
-    "General": "default@swin.edu.my",
-    "IT Support": "helpdesk@swin.edu.my",
-    "Facilities": "facilities@swin.edu.my",
-    "Safety": "security@swin.edu.my",
-    "Wellbeing": "counselling@swin.edu.my",
-    "Academic": "library@swin.edu.my"
+    "General": "study@swinburne.edu.my",
+    "IT Support": "servicedesk@swinburne.edu.my",
+    "Facilities": "sic@swinburne.edu.my",
+    "Safety": "safercommunity@swinburne.edu.my",
+    "Wellbeing": "ecounselling@swinburne.edu.my",
+    "Academic": "library@swinburne.edu.my"
   }
 }

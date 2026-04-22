@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Phone } from "lucide-react";
 import { getCookie, setCookie, deleteCookie } from "@/lib/client";
+import { useDevicePrefs } from "@/lib/device-prefs";
 
 /* =============================================================================
    EmergencyBanner.tsx
@@ -122,6 +123,16 @@ function Dot({ ok }: { ok: boolean }) {
 }
 
 export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[] }) {
+  const { prefs } = useDevicePrefs();
+
+  const chipClass =
+    "group rounded-[22px] px-3.5 py-2.5 bg-white ring-1 ring-slate-200/80 " +
+    "shadow-[0_8px_18px_rgba(15,23,42,.05)] " +
+    (prefs.reduceMotion
+      ? ""
+      : "transition hover:-translate-y-[1px] hover:shadow-[0_12px_24px_rgba(15,23,42,.08)] hover:ring-slate-300 ") +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2";
+
   return (
     <section aria-label="Service status">
       <div className="grid grid-cols-2 gap-2.5">
@@ -129,12 +140,6 @@ export function ServiceStatusBar({ items = STATUS_ITEMS }: { items?: StatusItem[
           const statusText = it.tip ?? (it.ok ? "Operational" : "Degraded");
           const href = it.href;
           const external = !!href && (it.external || /^https?:\/\//i.test(href));
-
-          const chipClass =
-            "group rounded-[22px] px-3.5 py-2.5 bg-white ring-1 ring-slate-200/80 " +
-            "shadow-[0_8px_18px_rgba(15,23,42,.05)] transition " +
-            "hover:-translate-y-[1px] hover:shadow-[0_12px_24px_rgba(15,23,42,.08)] hover:ring-slate-300 " +
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2";
 
           const content = (
             <div className="flex items-center gap-2.5">

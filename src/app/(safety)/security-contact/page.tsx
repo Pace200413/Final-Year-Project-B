@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaDoorOpen, FaMapMarkedAlt, FaPhoneAlt, FaShieldAlt } from "react-icons/fa";
 import { MdEmergency } from "react-icons/md";
 import {
@@ -18,53 +18,45 @@ import {
   toTelHref,
 } from "@/components/safety/SafetyUI";
 import {
-  DEFAULT_SECURITY_CONTACT_CONTENT,
+  cloneCmsContent,
+  getCmsPageConfig,
   type SecurityContactContent,
-} from "@/lib/security-contact";
+} from "@/lib/page-cms";
 
-const API = "/api/security-contact";
+const API = "/api/cms/security-contact";
+
+const DEFAULT_CONTENT = cloneCmsContent(
+  getCmsPageConfig("security-contact")!.defaultContent
+) as SecurityContactContent;
 
 export default function SecurityContactPage() {
-  const [content, setContent] = useState<SecurityContactContent>(
-    DEFAULT_SECURITY_CONTACT_CONTENT
-  );
+  const [content, setContent] = useState<SecurityContactContent>(DEFAULT_CONTENT);
   const [err, setErr] = useState<string | null>(null);
-  const bcRef = useRef<BroadcastChannel | null>(null);
-
-  const load = async () => {
-    try {
-      const r = await fetch(API, { cache: "no-store" });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      setContent(j.content ?? DEFAULT_SECURITY_CONTACT_CONTENT);
-      setErr(null);
-    } catch (e: any) {
-      setErr(e?.message ?? String(e));
-      setContent(DEFAULT_SECURITY_CONTACT_CONTENT);
-    }
-  };
 
   useEffect(() => {
-    load();
+    let alive = true;
 
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("security-contact-content");
-      bcRef.current.onmessage = (msg) => {
-        if (msg?.data?.type === "updated") load();
-      };
+    async function load() {
+      try {
+        const r = await fetch(API, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const j = await r.json();
+
+        if (!alive) return;
+
+        setContent(j.content ?? DEFAULT_CONTENT);
+        setErr(null);
+      } catch (e: any) {
+        if (!alive) return;
+        setErr(e?.message ?? String(e));
+        setContent(DEFAULT_CONTENT);
+      }
     }
 
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "security-contact:updated") load();
-    };
-
-    window.addEventListener("storage", onStorage);
+    load();
 
     return () => {
-      try {
-        bcRef.current?.close();
-      } catch {}
-      window.removeEventListener("storage", onStorage);
+      alive = false;
     };
   }, []);
 
