@@ -57,15 +57,14 @@ export default function ProfileSettingsForm({
   isAuthenticated: boolean;
 }) {
   const router = useRouter();
-  const {
-    prefs: devicePrefs,
-    setPrefs: setDevicePrefs,
-  } = useDevicePrefs();
+  const { prefs: devicePrefs, setPrefs: setDevicePrefs } = useDevicePrefs();
 
   const [faculty, setFaculty] = useState(initialProfile?.faculty ?? "");
   const [course, setCourse] = useState(initialProfile?.course ?? "");
   const [yearLabel, setYearLabel] = useState(initialProfile?.yearLabel ?? "");
-  const [campus, setCampus] = useState(initialProfile?.campus || "Swinburne Sarawak");
+  const [campus, setCampus] = useState(
+    initialProfile?.campus || "Swinburne Sarawak"
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -98,6 +97,7 @@ export default function ProfileSettingsForm({
 
   useEffect(() => {
     if (!isAuthenticated || !initialProfile) return;
+
     setFaculty(initialProfile.faculty);
     setCourse(initialProfile.course);
     setYearLabel(initialProfile.yearLabel);
@@ -112,7 +112,9 @@ export default function ProfileSettingsForm({
 
   useEffect(() => {
     if (!initialProfile || !isAuthenticated) return;
+
     const currentBaselineCampus = initialProfile.campus || "Swinburne Sarawak";
+
     const matchesBaseline =
       faculty === initialProfile.faculty &&
       course === initialProfile.course &&
@@ -134,6 +136,7 @@ export default function ProfileSettingsForm({
 
   function revertAcademicForm() {
     if (!initialProfile) return;
+
     setFaculty(initialProfile.faculty);
     setCourse(initialProfile.course);
     setYearLabel(initialProfile.yearLabel);
@@ -211,6 +214,7 @@ export default function ProfileSettingsForm({
                 valueClassName="text-emerald-800"
                 last
               />
+
               <p className="border-t border-slate-100 py-4 text-xs leading-relaxed text-slate-500">
                 <span className="font-semibold text-slate-600">
                   Managed by Microsoft sign-in.
@@ -231,6 +235,7 @@ export default function ProfileSettingsForm({
                 valueClassName="text-amber-800"
                 last
               />
+
               <p className="border-t border-slate-100 py-4 text-xs leading-relaxed text-slate-500">
                 <span className="font-semibold text-slate-600">
                   Managed by Microsoft sign-in.
@@ -247,8 +252,8 @@ export default function ProfileSettingsForm({
         title="Student Details"
         subtitle={
           isAuthenticated
-            ? "Update your academic profile. Changes are saved to your campus record."
-            : "Sign in with Microsoft to edit school, course, year, and campus."
+            ? "Update your academic school, course, current year/status, and campus."
+            : "Sign in with Microsoft to edit academic school, course, current year/status, and campus."
         }
         icon={<GraduationCap className="h-5 w-5" />}
       >
@@ -257,13 +262,16 @@ export default function ProfileSettingsForm({
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
               <Lock className="h-6 w-6" strokeWidth={1.75} />
             </span>
+
             <p className="mt-4 max-w-sm text-sm font-medium text-slate-900">
               Academic profile is locked
             </p>
+
             <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600">
-              Sign in with your Swinburne Microsoft account to choose your school,
-              course, year, and campus.
+              Sign in with your Swinburne Microsoft account to choose your
+              academic school, course, current year/status, and campus.
             </p>
+
             <Link
               href="/login"
               className="mt-6 inline-flex w-full max-w-xs items-center justify-center rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
@@ -282,6 +290,7 @@ export default function ProfileSettingsForm({
                   className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600"
                   aria-hidden
                 />
+
                 <div>
                   <p className="font-semibold text-emerald-900">Profile saved</p>
                   <p className="mt-0.5 text-emerald-800/90">
@@ -301,6 +310,7 @@ export default function ProfileSettingsForm({
                 <option value="" disabled>
                   Select academic school
                 </option>
+
                 {FACULTIES.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -316,7 +326,7 @@ export default function ProfileSettingsForm({
                   ? `${availableCourses.length} option${
                       availableCourses.length === 1 ? "" : "s"
                     } available`
-                  : "Choose school first"
+                  : "Choose academic school first"
               }
             >
               <select
@@ -328,6 +338,7 @@ export default function ProfileSettingsForm({
                 <option value="" disabled>
                   {faculty ? "Select course" : "Select academic school first"}
                 </option>
+
                 {availableCourses.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -336,15 +347,19 @@ export default function ProfileSettingsForm({
               </select>
             </Field>
 
-            <Field label="Year / status">
+            <Field
+              label="Current year / status"
+              hint="Shows your current stage"
+            >
               <select
                 value={yearLabel}
                 onChange={(e) => setYearLabel(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-slate-300"
               >
                 <option value="" disabled>
-                  Select year / status
+                  Select current year / status
                 </option>
+
                 {YEAR_LABELS.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -357,7 +372,7 @@ export default function ProfileSettingsForm({
               <select
                 value={campus}
                 onChange={(e) => setCampus(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none focus:border-slate-300"
               >
                 {CAMPUSES.map((item) => (
                   <option key={item} value={item}>
@@ -383,6 +398,7 @@ export default function ProfileSettingsForm({
                   >
                     {saving ? "Saving…" : "Save changes"}
                   </button>
+
                   <button
                     type="button"
                     onClick={revertAcademicForm}
@@ -439,6 +455,7 @@ export default function ProfileSettingsForm({
                 Campus app web build
               </div>
             </div>
+
             <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
               v0.1.0
             </span>
@@ -496,6 +513,7 @@ function SettingsCard({
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#F2F2F7] text-slate-700">
             {icon}
           </span>
+
           <div className="min-w-0">
             <h2 className="text-base font-semibold text-slate-900">{title}</h2>
             {subtitle ? (
@@ -531,6 +549,7 @@ function PrimarySettingsCard({
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-900 text-white shadow-sm">
             {icon}
           </span>
+
           <div className="min-w-0">
             <h2 className="text-lg font-semibold tracking-tight text-slate-900">
               {title}
@@ -543,6 +562,7 @@ function PrimarySettingsCard({
           </div>
         </div>
       </div>
+
       <div className="p-4 sm:p-6">{children}</div>
     </section>
   );
@@ -573,10 +593,11 @@ function InfoRow({
       <span className="shrink-0 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500">
         {label}
       </span>
+
       <span
         title={titleValue ?? value}
         className={cx(
-          "min-w-0 max-w-full overflow-hidden whitespace-nowrap text-left text-[14px] font-medium leading-snug text-slate-900 sm:max-w-[min(100%,24rem)] sm:text-right",
+          "min-w-0 max-w-full overflow-hidden whitespace-nowrap text-left text-[14px] font-medium leading-snug sm:max-w-[min(100%,24rem)] sm:text-right",
           mutedValue ? "text-slate-400" : "text-slate-900",
           valueClassName
         )}
@@ -602,6 +623,7 @@ function Field({
         <span className="text-sm font-medium text-slate-700">{label}</span>
         {hint ? <span className="text-xs text-slate-500">{hint}</span> : null}
       </div>
+
       {children}
     </label>
   );
