@@ -27,6 +27,7 @@ type HotSpot = {
 
 export default function StudentHQ360Page() {
   const [panoReady, setPanoReady] = useState(false);
+  const [pannellumLoaded, setPannellumLoaded] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [routeMode, setRouteMode] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -68,16 +69,18 @@ export default function StudentHQ360Page() {
   /** inject pannellum */
   useEffect(() => {
     const w = window as PannellumWindow;
+
     if (w.pannellum) {
-      initViewerDefault();
+      setPannellumLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
-    script.onload = () => initViewerDefault();
-    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum from CDN.');
+    script.onload = () => setPannellumLoaded(true);
+    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum.');
+
     document.body.appendChild(script);
 
     const link = document.createElement('link');
@@ -85,9 +88,31 @@ export default function StudentHQ360Page() {
     link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
     document.head.appendChild(link);
 
-    return () => viewerRef.current?.destroy?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      viewerRef.current?.destroy?.();
+    };
   }, []);
+
+  useEffect(() => {
+      if (!pannellumLoaded || !panoReady || routeMode) return;
+      if (!paneRef.current) return;
+  
+      const init = () => {
+        initViewerDefault();
+  
+        requestAnimationFrame(() => {
+          viewerRef.current?.resize?.();
+  
+          setTimeout(() => {
+            viewerRef.current?.resize?.();
+          }, 150);
+        });
+      };
+  
+      const raf = requestAnimationFrame(init);
+  
+      return () => cancelAnimationFrame(raf);
+    }, [pannellumLoaded, panoReady, routeMode]);
 
   /** default viewer */
   const initViewerDefault = () => {
@@ -206,8 +231,18 @@ export default function StudentHQ360Page() {
 
   /** watcher */
   useEffect(() => {
-    if (routeMode) initViewerForIndex(currentIdx, lastMove ?? 'forward');
-  }, [routeMode, currentIdx, lastMove]);
+    if (!routeMode || !pannellumLoaded || !panoReady) return;
+
+    const raf = requestAnimationFrame(() => {
+      initViewerForIndex(currentIdx, lastMove ?? 'forward');
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [currentIdx, routeMode, lastMove, pannellumLoaded, panoReady]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -235,7 +270,6 @@ export default function StudentHQ360Page() {
   const handleExitRoute = () => {
     setRouteMode(false);
     setNextPanelCollapsed(true);
-    setTimeout(() => initViewerDefault(), 300);
   };
 
   const handleNext = () => {

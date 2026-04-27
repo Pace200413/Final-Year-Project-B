@@ -27,6 +27,8 @@ type HotSpot = {
 
 export default function Dining360Page() {
   const [panoReady, setPanoReady] = useState(false);
+
+  const [pannellumLoaded, setPannellumLoaded] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // navigation states
@@ -80,16 +82,18 @@ export default function Dining360Page() {
   // load pannellum (default viewer)
   useEffect(() => {
     const w = window as PannellumWindow;
+
     if (w.pannellum) {
-      initViewerDefault();
+      setPannellumLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
-    script.onload = () => initViewerDefault();
-    script.onerror = () => setErrorMsg('⚠ Failed to load Pannellum from CDN.');
+    script.onload = () => setPannellumLoaded(true);
+    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum.');
+
     document.body.appendChild(script);
 
     const link = document.createElement('link');
@@ -97,9 +101,29 @@ export default function Dining360Page() {
     link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
     document.head.appendChild(link);
 
-    return () => viewerRef.current?.destroy?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      viewerRef.current?.destroy?.();
+    };
   }, []);
+
+  useEffect(() => {
+    if (!pannellumLoaded || !panoReady || routeMode) return;
+    if (!paneRef.current) return;
+
+    const raf = requestAnimationFrame(() => {
+      initViewerDefault();
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+
+        setTimeout(() => {
+          viewerRef.current?.resize?.();
+        }, 150);
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [pannellumLoaded, panoReady, routeMode]);
 
   const initViewerDefault = () => {
     const w = window as PannellumWindow;
@@ -268,12 +292,18 @@ export default function Dining360Page() {
 
   // update viewer when route changes
   useEffect(() => {
-    if (routeMode) {
-      // if lastMove is null (first time), treat as forward
+    if (!routeMode || !pannellumLoaded || !panoReady) return;
+
+    const raf = requestAnimationFrame(() => {
       initViewerForIndex(currentIdx, lastMove ?? 'forward');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIdx, routeMode, lastMove]);
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [currentIdx, routeMode, lastMove, pannellumLoaded, panoReady]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -300,7 +330,7 @@ export default function Dining360Page() {
   const handleExitRoute = () => {
     setRouteMode(false);
     setNextPanelCollapsed(true);
-    setTimeout(() => initViewerDefault(), 300);
+    
   };
 
   const handleNext = () => {

@@ -28,6 +28,7 @@ type HotSpot = {
 export default function Library360Page() {
   /* pano / viewer state */
   const [panoReady, setPanoReady] = useState(false);
+  const [pannellumLoaded, setPannellumLoaded] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   /* route state */
@@ -72,15 +73,16 @@ export default function Library360Page() {
   /* inject pannellum */
   useEffect(() => {
     const w = window as PannellumWindow;
+
     if (w.pannellum) {
-      initViewerDefault();
+      setPannellumLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
-    script.onload = () => initViewerDefault();
+    script.onload = () => setPannellumLoaded(true);
     script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum from CDN.');
     document.body.appendChild(script);
 
@@ -89,9 +91,29 @@ export default function Library360Page() {
     link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
     document.head.appendChild(link);
 
-    return () => viewerRef.current?.destroy?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      viewerRef.current?.destroy?.();
+    };
   }, []);
+
+  useEffect(() => {
+    if (!pannellumLoaded || !panoReady || routeMode) return;
+    if (!paneRef.current) return;
+
+    const raf = requestAnimationFrame(() => {
+      initViewerDefault();
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+
+        setTimeout(() => {
+          viewerRef.current?.resize?.();
+        }, 150);
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [pannellumLoaded, panoReady, routeMode]);
 
   /* viewer initializers */
   const initViewerDefault = () => {
@@ -206,9 +228,18 @@ export default function Library360Page() {
 
   /* handle route change */
   useEffect(() => {
-    if (routeMode) initViewerForIndex(currentIdx, lastMove ?? 'forward');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIdx, routeMode, lastMove]);
+    if (!routeMode || !pannellumLoaded || !panoReady) return;
+
+    const raf = requestAnimationFrame(() => {
+      initViewerForIndex(currentIdx, lastMove ?? 'forward');
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [currentIdx, routeMode, lastMove, pannellumLoaded, panoReady]);
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -236,7 +267,6 @@ export default function Library360Page() {
   const handleExitRoute = () => {
     setRouteMode(false);
     setNextPanelCollapsed(true);
-    setTimeout(() => initViewerDefault(), 300);
   };
   const handleNext = () => {
     setLastMove('forward');
