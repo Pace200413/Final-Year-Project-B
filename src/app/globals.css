@@ -1036,23 +1036,38 @@ h3 {
 }
 
 .viewer-body {
-  position: relative;
-  flex: 1;
-  min-height: 700px;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden;
+  pointer-events: auto !important;
 }
 
-.viewer-body > .pnlm-container {
+.viewer-body .pnlm-container,
+.viewer-body .pnlm-render-container {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: auto !important;
+}
+
+.viewer-body canvas {
   width: 100% !important;
   height: 100% !important;
 }
 
-.viewer-body > .pnlm-container,
-.viewer-body > .pnlm-container > .pnlm-render-container,
-.viewer-body > .pnlm-container > .pnlm-ui {
+.viewer-body .pnlm-dragfix {
   position: absolute !important;
   inset: 0 !important;
-  width: auto !important;
+  width: 100% !important;
   height: 100% !important;
+}
+
+.viewer-body .pnlm-orientation-button,
+.viewer-body .pnlm-controls {
+  pointer-events: auto !important;
 }
 
 .viewer-badge {

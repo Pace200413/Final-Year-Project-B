@@ -1,6 +1,5 @@
 'use client';
 
-import Head from 'next/head';
 import Script from 'next/script';
 import Link from 'next/link';
 import React from 'react';
@@ -15,6 +14,8 @@ import { get360RouteId } from '../route_bank/routeMatcher';
 interface PannellumViewer {
   destroy?: () => void;
   resize?: () => void;
+  startOrientation?: () => void;
+  stopOrientation?: () => void;
 }
 
 type PannellumApi = {
@@ -1765,19 +1766,107 @@ export default function CampusMapPage() {
   const [mounted, setMounted] = useState(false);
 
   const [open360, setOpen360] = useState(false);
-  const [panoReady, setPanoReady] = useState(false);
+  const [viewerKey, setViewerKey] = useState(0);
+
+  const [isGyroOn, setIsGyroOn] = useState(false);
+
+  const toggleGyro = async () => {
+    if (!viewerRef.current) return;
+
+    if (!window.isSecureContext) {
+      alert("Motion View needs HTTPS to work on mobile.");
+      return;
+    }
+
+    const DeviceOrientation = window.DeviceOrientationEvent as any;
+
+    if (
+      typeof DeviceOrientation !== "undefined" &&
+      typeof DeviceOrientation.requestPermission === "function"
+    ) {
+      const permission = await DeviceOrientation.requestPermission();
+
+      if (permission !== "granted") {
+        alert("Motion permission was not allowed.");
+        return;
+      }
+    }
+
+    if (isGyroOn) {
+      viewerRef.current.stopOrientation?.();
+      setIsGyroOn(false);
+    } else {
+      viewerRef.current.startOrientation?.();
+      setIsGyroOn(true);
+    }
+  };
+
+  const toggle360Fullscreen = async () => {
+    if (!viewerBoxRef.current) return;
+
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await viewerBoxRef.current.requestFullscreen();
+    }
+
+    setTimeout(() => {
+      viewerRef.current?.resize?.();
+    }, 300);
+  };
+
+  const [panoScriptReady, setPanoScriptReady] = useState(false);
+  const [panoCssReady, setPanoCssReady] = useState(false);
   const [panoError, setPanoError] = useState("");
 
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const viewerBoxRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<PannellumViewer | null>(null);
 
   const router = useRouter();
 
+  const panoAssetsReady = panoScriptReady && panoCssReady;
   useEffect(() => {
-    if (!open360 || !picked?.panoUrl || !panoReady || !hostRef.current) return;
+    const w = window as PannellumWindow;
+
+    if (w.pannellum) {
+      setPanoScriptReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const existing = document.querySelector(
+      'link[data-pannellum-css="true"]'
+    ) as HTMLLinkElement | null;
+
+    if (existing) {
+      setPanoCssReady(true);
+      return;
+    }
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css";
+    link.dataset.pannellumCss = "true";
+    link.onload = () => setPanoCssReady(true);
+    link.onerror = () => {
+      console.error("Failed to load Pannellum CSS.");
+      setPanoCssReady(false);
+    };
+
+    document.head.appendChild(link);
+  }, []);
+
+  useEffect(() => {
+    if (!open360 || !picked?.panoUrl || !panoAssetsReady || !hostRef.current) return;
 
     const w = window as PannellumWindow;
     if (!w.pannellum) return;
+
+    let removeResize: (() => void) | undefined;
+    let createTimer: number | undefined;
+    let cancelled = false;
 
     try {
       viewerRef.current?.destroy?.();
@@ -1787,46 +1876,82 @@ export default function CampusMapPage() {
 
     hostRef.current.innerHTML = "";
 
-    let removeResize: (() => void) | undefined;
-
     (async () => {
       setPanoError("");
 
       const ok = await isEquirectangular(picked.panoUrl!);
-      if (!ok) {
-        setPanoError("This image is not a real 360 panorama.");
+      if (!ok || cancelled) {
+        if (!ok) setPanoError("This image is not a real 360 panorama.");
         return;
       }
 
-      viewerRef.current = w.pannellum!.viewer(hostRef.current!, {
-        type: "equirectangular",
-        panorama: picked.panoUrl,
-        autoLoad: true,
-        showFullscreenCtrl: true,
-        showZoomCtrl: true,
-        compass: false,
-        hfov: 100,
-        minHfov: 60,
-        maxHfov: 120,
-      });
+      createTimer = window.setTimeout(() => {
+        if (cancelled || !hostRef.current) return;
 
-      const resize = () => viewerRef.current?.resize?.();
-      resize();
-      requestAnimationFrame(resize);
-      window.addEventListener("resize", resize);
-      removeResize = () => window.removeEventListener("resize", resize);
+        try {
+          viewerRef.current?.destroy?.();
+        } catch {
+          // ignore
+        }
+
+        hostRef.current.innerHTML = "";
+
+        viewerRef.current = w.pannellum!.viewer(hostRef.current, {
+          type: "equirectangular",
+          panorama: picked.panoUrl,
+          autoLoad: true,
+          showFullscreenCtrl: false,
+          showZoomCtrl: true,
+          compass: false,
+          hfov: 100,
+          minHfov: 60,
+          maxHfov: 120,
+          draggable: true,
+          mouseZoom: true,
+          keyboardZoom: true,
+          orientationOnByDefault: false,
+          ignoreGPanoXMP: true,
+          haov: 360,
+          vaov: 180,
+          vOffset: 0,
+        });
+
+        const resize = () => viewerRef.current?.resize?.();
+
+        const t1 = window.setTimeout(resize, 100);
+        const t2 = window.setTimeout(resize, 300);
+        const t3 = window.setTimeout(resize, 600);
+        const t4 = window.setTimeout(resize, 1000);
+
+        window.addEventListener("resize", resize);
+
+        removeResize = () => {
+          window.removeEventListener("resize", resize);
+          window.clearTimeout(t1);
+          window.clearTimeout(t2);
+          window.clearTimeout(t3);
+          window.clearTimeout(t4);
+        };
+      }, 250);
     })();
-
     return () => {
+      cancelled = true;
+
+      if (createTimer) {
+        window.clearTimeout(createTimer);
+      }
+
       removeResize?.();
+
       try {
         viewerRef.current?.destroy?.();
       } catch {
         // ignore
       }
+
       viewerRef.current = null;
     };
-  }, [open360, picked?.panoUrl, panoReady]);
+  }, [open360, picked?.panoUrl, panoAssetsReady, viewerKey]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -2153,21 +2278,18 @@ export default function CampusMapPage() {
 
   return (
     <>
-      <Head>
-        <title>Campus Map</title>
-        <link rel="stylesheet" href="/vendor/pannellum/pannellum.css" />
-      </Head>
-
       <Script
-        src="/vendor/pannellum/pannellum.js"
+        src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"
         strategy="afterInteractive"
-        onLoad={() => setPanoReady(true)}
+        onLoad={() => {
+          const w = window as PannellumWindow;
+          if (w.pannellum) {
+            setPanoScriptReady(true);
+          }
+        }}
         onError={() => {
-          const s = document.createElement("script");
-          s.src = "https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js";
-          s.onload = () => setPanoReady(true);
-          s.onerror = () => console.error("Failed to load Pannellum.");
-          document.body.appendChild(s);
+          console.error("Failed to load Pannellum JS.");
+          setPanoScriptReady(false);
         }}
       />
 
@@ -2384,6 +2506,7 @@ export default function CampusMapPage() {
                       disabled={!picked.panoUrl}
                       onClick={() => {
                         if (picked.panoUrl) {
+                          setViewerKey((prev) => prev + 1);
                           setOpen360(true);
                         }
                       }}
@@ -2762,6 +2885,7 @@ export default function CampusMapPage() {
                     disabled={!picked.panoUrl}
                     onClick={() => {
                       if (picked.panoUrl) {
+                        setViewerKey((prev) => prev + 1);
                         setOpen360(true);
                       }
                     }}
@@ -3285,7 +3409,8 @@ export default function CampusMapPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: isMobile ? 8 : 24,
+            // padding: isMobile ? 8 : 24,
+            padding: isMobile ? "46px 0 0 0" : 24,
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen360(false);
@@ -3293,11 +3418,17 @@ export default function CampusMapPage() {
         >
           <div
             style={{
-              width: "100%",
-              maxWidth: 1100,
+              // width: "100%",
+              // maxWidth: 1100,
+              // background: "#020617",
+              // border: "1px solid rgba(255,255,255,0.08)",
+              // borderRadius: 20,
+              width: isMobile ? "100vw" : "90vw",
+              height: isMobile ? "calc(100dvh - 46px)" : "85vh",
+              maxWidth: "none",
               background: "#020617",
               border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 20,
+              borderRadius: isMobile ? 0 : 20,
               overflow: "hidden",
               boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
               position: "relative",
@@ -3323,7 +3454,11 @@ export default function CampusMapPage() {
               </div>
 
               <button
-                onClick={() => setOpen360(false)}
+                onClick={() => {
+                  viewerRef.current?.stopOrientation?.();
+                  setIsGyroOn(false);
+                  setOpen360(false);
+                }}
                 style={{
                   padding: "8px 12px",
                   borderRadius: 10,
@@ -3339,20 +3474,82 @@ export default function CampusMapPage() {
             </div>
 
             <div
+              ref={viewerBoxRef}
               style={{
                 position: "relative",
                 width: "100%",
-                aspectRatio: "16 / 9",
+                height: "calc(100% - 65px)",
                 background: "#000",
               }}
             >
               <div
+                key={viewerKey}
                 ref={hostRef}
+                className="viewer-body"
                 style={{
                   position: "absolute",
                   inset: 0,
+                  width: "100%",
+                  height: "100%",
                 }}
               />
+
+              {isMobile && (
+                <button
+                  onClick={toggleGyro}
+                  title="Motion View"
+                  style={{
+                    position: "absolute",
+                    right: 14,
+                    bottom: 18,
+                    zIndex: 80,
+                    width: 46,
+                    height: 46,
+                    borderRadius: "999px",
+                    border: "1px solid rgba(255,255,255,0.65)",
+                    background: isGyroOn
+                      ? "rgba(34,197,94,0.95)"
+                      : "rgba(15,23,42,0.88)",
+                    color: "#fff",
+                    fontSize: 22,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 22px rgba(0,0,0,0.35)",
+                    backdropFilter: "blur(6px)",
+                  }}
+                >
+                  🧭
+                </button>
+              )}
+
+              <button
+                onClick={toggle360Fullscreen}
+                title="Enlarge 360 View"
+                style={{
+                  position: "absolute",
+                  right: 14,          
+                  bottom: 74,         
+                  zIndex: 80,
+                  width: 46,
+                  height: 46,
+                  borderRadius: "999px",
+                  border: "1px solid rgba(255,255,255,0.65)",
+                  background: "rgba(255,255,255,0.9)",
+                  color: "#111827",
+                  fontSize: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: "0 8px 22px rgba(0,0,0,0.35)",
+                }}
+              >
+                ⛶
+              </button>
+
+              
 
               {panoError && (
                 <div
@@ -3371,7 +3568,7 @@ export default function CampusMapPage() {
                 </div>
               )}
 
-              {!panoReady && !panoError && (
+              {!panoAssetsReady && !panoError && (
                 <div
                   style={{
                     position: "absolute",
