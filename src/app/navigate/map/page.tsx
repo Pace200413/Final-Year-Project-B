@@ -3549,8 +3549,6 @@ export default function CampusMapPage() {
                 ⛶
               </button>
 
-              
-
               {panoError && (
                 <div
                   style={{
