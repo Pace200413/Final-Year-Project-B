@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { resolveOrCreateProfile } from "@/lib/db";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
@@ -31,6 +32,10 @@ type EditableProfile = {
 
 export default async function SettingsPage() {
   const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
 
   const email = session?.user?.email?.trim() ?? "";
   const isAuthenticated = Boolean(session?.user && email);

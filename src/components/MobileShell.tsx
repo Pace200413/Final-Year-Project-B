@@ -281,6 +281,7 @@ export function ProfileMenu({
   className = "",
   srLabel = "Open account menu",
 }: ProfileMenuProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [name, setName] = useState<string | null>(null);
@@ -431,7 +432,8 @@ export function ProfileMenu({
             role="menuitem"
             onClick={async () => {
               setOpen(false);
-              await signOut({ callbackUrl: "/login" });
+              await signOut({ redirect: false });
+              router.replace("/login");
             }}
           >
             Sign out
