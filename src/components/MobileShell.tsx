@@ -679,14 +679,25 @@ const AssistantLauncherIcon = ({
 );
 
 export function ChatLauncher() {
+  const pathname = usePathname();
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (isAdminRoute) {
+      setOpen(false);
+      document.body.style.overflow = "unset";
+      return;
+    }
+
     document.body.style.overflow = open ? "hidden" : "unset";
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [open]);
+  }, [open, isAdminRoute]);
+
+  if (isAdminRoute) return null;
 
   return (
     <>

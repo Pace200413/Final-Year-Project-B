@@ -46,23 +46,29 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const fullName =
     session.user.name?.trim() || prettifyNameFromEmail(email) || "Campus Student";
 
-  const dbProfile: AppProfile = await resolveOrCreateProfile({
-    authUserId,
-    email,
-    fullName,
-    avatarUrl: session.user.image ?? null,
-  });
+  let dbProfile: AppProfile | null = null;
 
-  const isAdmin = (dbProfile.role ?? "").toLowerCase() === "admin";
+  try {
+    dbProfile = await resolveOrCreateProfile({
+      authUserId,
+      email,
+      fullName,
+      avatarUrl: session.user.image ?? null,
+    });
+  } catch (error) {
+    console.error("Profile bootstrap failed:", error);
+  }
+
+  const isAdmin = (dbProfile?.role ?? "").toLowerCase() === "admin";
 
   const profile: ProfileViewModel = {
-    fullName: dbProfile.full_name?.trim() || fullName,
-    email: dbProfile.email || email,
-    studentId: dbProfile.student_id?.trim() || "Not synced yet",
-    faculty: dbProfile.faculty?.trim() || "Will appear after account sync",
-    course: dbProfile.course?.trim() || "Will appear after account sync",
-    yearLabel: dbProfile.year_label?.trim() || "Current student",
-    campus: dbProfile.campus?.trim() || "Swinburne Sarawak",
+    fullName: dbProfile?.full_name?.trim() || fullName,
+    email: dbProfile?.email || email,
+    studentId: dbProfile?.student_id?.trim() || "Not synced yet",
+    faculty: dbProfile?.faculty?.trim() || "Will appear after account sync",
+    course: dbProfile?.course?.trim() || "Will appear after account sync",
+    yearLabel: dbProfile?.year_label?.trim() || "Current student",
+    campus: dbProfile?.campus?.trim() || "Swinburne Sarawak",
     roleLabel: isAdmin ? "Student account · Admin access" : "Student account",
     microsoftConnected: true,
     isAdmin,

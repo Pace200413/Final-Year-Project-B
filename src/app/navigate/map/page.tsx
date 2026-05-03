@@ -9,6 +9,9 @@ import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Html, Edges, Line } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useRouter } from 'next/navigation';
+import { get360RouteId } from '../route_bank/routeMatcher';
+
 interface PannellumViewer {
   destroy?: () => void;
   resize?: () => void;
@@ -490,6 +493,32 @@ function buildEdgesFromPath(path: string[]): [string, string][] {
   return edges;
 }
 
+function getCampusBounds(root: THREE.Object3D) {
+  const box = new THREE.Box3();
+  let hasMesh = false;
+
+  root.traverse((obj: any) => {
+    if (!obj?.isMesh) return;
+
+    const kind = obj.userData?.kind;
+    if (kind !== "building" && kind !== "road" && kind !== "ground") return;
+
+    obj.updateWorldMatrix(true, false);
+
+    const meshBox = new THREE.Box3().setFromObject(obj);
+    if (!meshBox.isEmpty()) {
+      box.union(meshBox);
+      hasMesh = true;
+    }
+  });
+
+  if (!hasMesh) {
+    return new THREE.Box3().setFromObject(root);
+  }
+
+  return box;
+}
+
 /* ---------- CAMERA FIT ---------- */
 function FitCameraToObject({
   object,
@@ -507,7 +536,7 @@ function FitCameraToObject({
     if (!object || didFit.current) return;
     didFit.current = true;
 
-    const box = new THREE.Box3().setFromObject(object);
+    const box = getCampusBounds(object);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
@@ -517,9 +546,9 @@ function FitCameraToObject({
       camera.position.set(center.x, center.y + maxDim * 2.2, center.z);
     } else {
       const d = maxDim * 1.2 * distanceMultiplier;
-      const h = maxDim * 0.9 * distanceMultiplier;
+      const h = maxDim * 1.6 * distanceMultiplier;
 
-      camera.position.set(center.x - d * 4.2, center.y + h, center.z + d);
+      camera.position.set(center.x - d * 1.5, center.y + h, center.z + d * 1.5);
     }
 
     camera.lookAt(center);
@@ -668,23 +697,23 @@ function ApplyViewMode({
   useEffect(() => {
     if (!rootObject || !controls) return;
 
-    const box = new THREE.Box3().setFromObject(rootObject);
+    const box = getCampusBounds(rootObject);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
 
     if (viewMode === "2D") {
-      const topHeight = maxDim * 1.1;
+      const topHeight = maxDim * 2.5;
 
       camera.position.set(center.x, center.y + topHeight, center.z);
       controls.target.copy(center);
       controls.update();
     } else {
-      const d = maxDim * 1.2 * 0.34;
-      const h = maxDim * 1.9 * 0.34;
+      const d = maxDim * 0.42;
+      const h = maxDim * 0.42;
 
-      camera.position.set(center.x - d * 2.0, center.y + h, center.z + d);
-      controls.target.copy(center);
+      camera.position.set(center.x - d, center.y + h, center.z + d);
+      controls.target.set(center.x, center.y, center.z);
       controls.update();
     }
 
@@ -696,15 +725,9 @@ function ApplyViewMode({
 
 /* ---------- CAMPUS MODEL ---------- */
 function CampusModel({
-  pickedUuid,
-  hoveredUuid,
   onPick,
-  onHover,
-  onHoverOut,
   onReadyRoot,
 }: {
-  pickedUuid?: string | null;
-  hoveredUuid?: string | null;
   onPick?: (payload: {
     name: string;
     uuid: string;
@@ -714,8 +737,6 @@ function CampusModel({
     category: string;
     has360View: boolean;
   }) => void;
-  onHover?: (payload: { name: string; uuid: string }) => void;
-  onHoverOut?: () => void;
   onReadyRoot?: (obj: THREE.Object3D) => void;
 }) {
   const { scene } = useGLTF("/maps/topoexport_3D_modeling.glb");
@@ -843,39 +864,27 @@ function CampusModel({
     });
   }, [scene]);
 
-  /* Highlight hovered / selected building only */
+  /* Apply outline-only building materials */
   useEffect(() => {
     const applyMaterialState = (
       mat: any,
-      state: "selected" | "hovered" | "normal",
       baseColor?: THREE.Color | null,
       isBuilding?: boolean
     ) => {
       if (!mat) return;
 
-      if (state === "selected") {
-        if (mat.color) mat.color.set("#ff8c42");
-        if (mat.emissive) mat.emissive.set("#331100");
+      if (mat.emissive) mat.emissive.set("#000000");
+
+      if (isBuilding) {
+        if (mat.color) mat.color.set("#ffffff");
+        mat.transparent = true;
+        mat.opacity = 0;
+        mat.depthWrite = false;
+      } else {
+        if (mat.color && baseColor) mat.color.copy(baseColor);
         mat.transparent = false;
         mat.opacity = 1;
         mat.depthWrite = true;
-      } else if (state === "hovered") {
-        if (mat.color && baseColor) mat.color.copy(baseColor);
-        if (mat.emissive) mat.emissive.set("#000000");
-      } else {
-        if (mat.color && baseColor) mat.color.copy(baseColor);
-        if (mat.emissive) mat.emissive.set("#000000");
-
-        if (isBuilding) {
-          if (mat.color) mat.color.set("#f8fafc");
-          mat.transparent = true;
-          mat.opacity = 0.32;
-          mat.depthWrite = false;
-        } else {
-          mat.transparent = false;
-          mat.opacity = 1;
-          mat.depthWrite = true;
-        }
       }
 
       mat.needsUpdate = true;
@@ -885,37 +894,20 @@ function CampusModel({
       if (!obj?.isMesh) return;
 
       const isBuilding = obj.userData.kind === "building";
-      const isSelected = isBuilding && obj.uuid === pickedUuid;
-      const isHovered = isBuilding && obj.uuid === hoveredUuid;
 
-      // ⭐ ADD THIS PART
-      if (isBuilding) {
-        if (isSelected) {
-          obj.scale.set(1.01, 1.01, 1.01);
-        } else if (isHovered) {
-          obj.scale.set(1.015, 1.015, 1.015);
-        } else {
-          obj.scale.set(1, 1, 1);
-        }
-      }
+      obj.scale.set(1, 1, 1);
 
       if (Array.isArray(obj.material)) {
         obj.material.forEach((mat: any, index: number) => {
           const baseColor = obj.userData.baseColors?.[index] ?? null;
-
-          applyMaterialState(mat, "normal", baseColor, isBuilding);
+          applyMaterialState(mat, baseColor, isBuilding);
         });
       } else {
         const baseColor = obj.userData.baseColor ?? null;
-
-        if (isHovered) {
-          applyMaterialState(obj.material, "hovered", baseColor, isBuilding);
-        } else {
-          applyMaterialState(obj.material, "normal", baseColor, isBuilding);
-        }
+        applyMaterialState(obj.material, baseColor, isBuilding);
       }
     });
-  }, [scene, pickedUuid, hoveredUuid]);
+  }, [scene]);
 
   /* Rotate + center model */
   useEffect(() => {
@@ -936,42 +928,6 @@ function CampusModel({
   return (
     <group
       ref={groupRef}
-      onPointerMove={(e) => {
-        e.stopPropagation();
-
-        if (pointerDownRef.current) {
-          const dx = e.clientX - pointerDownRef.current.x;
-          const dy = e.clientY - pointerDownRef.current.y;
-          const moved = Math.sqrt(dx * dx + dy * dy);
-
-          if (moved > DRAG_THRESHOLD) {
-            isDraggingRef.current = true;
-          }
-        }
-
-        const obj: any = e.object;
-        if (!obj?.isMesh) return;
-        if (!obj.userData.clickable) return;
-
-        const buildingInfo = getBuildingInfo(obj.name);
-
-        document.body.style.cursor = "pointer";
-
-        onHover?.({
-          name: buildingInfo.label,
-          uuid: obj.uuid,
-        });
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation();
-
-        document.body.style.cursor = "default";
-        onHoverOut?.();
-
-        if (!pointerDownRef.current) {
-          isDraggingRef.current = false;
-        }
-      }}
       onPointerDown={(e) => {
         e.stopPropagation();
 
@@ -1008,6 +964,16 @@ function CampusModel({
         const downData = pointerDownRef.current;
 
         if (!downData) return;
+
+        const dx = e.clientX - downData.x;
+        const dy = e.clientY - downData.y;
+        const moved = Math.sqrt(dx * dx + dy * dy);
+
+        if (moved > DRAG_THRESHOLD) {
+          pointerDownRef.current = null;
+          isDraggingRef.current = false;
+          return;
+        }
 
         const sameObject = downData.uuid === obj.uuid;
 
@@ -1050,8 +1016,8 @@ function CampusModel({
                 position={obj.position}
                 rotation={obj.rotation}
                 scale={obj.scale}
-                color="#475569"
-                lineWidth={1.5}
+                color="#414e60"
+                lineWidth={3}
                 threshold={15}
               />
             );
@@ -1064,7 +1030,7 @@ function CampusModel({
         <FitCameraToObject
           object={rootObj}
           view="angled"
-          distanceMultiplier={0.34}
+          distanceMultiplier={1.9}
         />
       )}
     </group>
@@ -1087,7 +1053,7 @@ function GrassBase({
   useEffect(() => {
     if (!rootObject) return;
 
-    const box = new THREE.Box3().setFromObject(rootObject);
+    const box = getCampusBounds(rootObject);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
@@ -1320,7 +1286,7 @@ function CurrentLocationPin({ nodeId }: { nodeId: string }) {
 
 function RouteLines({
   edges,
-  color = "#ec1515",
+  color = "#ff2d2d",
 }: {
   edges: [string, string][];
   color?: string;
@@ -1337,20 +1303,194 @@ function RouteLines({
 
         if (!start || !end) return null;
 
+        const y = 3.2;
+
         return (
-          <Line
-            key={`${startId}-${endId}-${index}`}
-            points={[
-              [start[0], start[1] + 3, start[2]],
-              [end[0], end[1] + 3, end[2]],
-            ]}
-            color={color}
-            lineWidth={7}
-          />
+          <group key={`${startId}-${endId}-${index}`}>
+            {/* Outer soft base */}
+            <Line
+              points={[
+                [start[0], start[1] + y, start[2]],
+                [end[0], end[1] + y, end[2]],
+              ]}
+              color="#ff9a9a"
+              lineWidth={14}
+              transparent
+              opacity={0.35}
+            />
+
+            {/* Middle glow */}
+            <Line
+              points={[
+                [start[0], start[1] + y + 0.02, start[2]],
+                [end[0], end[1] + y + 0.02, end[2]],
+              ]}
+              color="#ff5a5a"
+              lineWidth={10}
+              transparent
+              opacity={0.75}
+            />
+
+            {/* Main sharp route */}
+            <Line
+              points={[
+                [start[0], start[1] + y + 0.05, start[2]],
+                [end[0], end[1] + y + 0.05, end[2]],
+              ]}
+              color={color}
+              lineWidth={6}
+            />
+          </group>
         );
       })}
     </>
   );
+}
+
+function DestinationPulse({ nodeId }: { nodeId: string }) {
+  const node = ROUTE_NODES.find((n) => n.id === nodeId);
+  const innerRef = useRef<THREE.Mesh>(null);
+  const outerRef = useRef<THREE.Mesh>(null);
+
+  if (!node) return null;
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+
+    if (innerRef.current) {
+      const s1 = 1 + Math.sin(t * 2.4) * 0.08;
+      innerRef.current.scale.set(s1, s1, s1);
+    }
+
+    if (outerRef.current) {
+      const s2 = 1 + ((Math.sin(t * 2.4 - 0.8) + 1) / 2) * 0.35;
+      outerRef.current.scale.set(s2, s2, s2);
+
+      const mat = outerRef.current.material as THREE.MeshBasicMaterial;
+      if (mat) {
+        mat.opacity = 0.12 + ((Math.sin(t * 2.4 - 0.8) + 1) / 2) * 0.28;
+      }
+    }
+  });
+
+  return (
+    <group position={node.position}>
+      <mesh
+        ref={innerRef}
+        position={[0, 0.4, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[6.5, 9.5, 48]} />
+        <meshBasicMaterial color="#ff4d4d" transparent opacity={0.85} />
+      </mesh>
+
+      <mesh
+        ref={outerRef}
+        position={[0, 0.42, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[10.5, 12.5, 48]} />
+        <meshBasicMaterial color="#ff8a8a" transparent opacity={0.24} />
+      </mesh>
+    </group>
+  );
+}
+
+function RouteArrowMarker({
+  start,
+  end,
+  initialT = 0.5,
+  delay = 0,
+}: {
+  start: THREE.Vector3;
+  end: THREE.Vector3;
+  initialT?: number;
+  delay?: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  const direction = useMemo(() => {
+    return new THREE.Vector3().subVectors(end, start).normalize();
+  }, [start, end]);
+
+  const length = useMemo(() => {
+    return start.distanceTo(end);
+  }, [start, end]);
+
+  const baseDirection = useMemo(() => new THREE.Vector3(0, 0, -1), []);
+
+  const quaternion = useMemo(() => {
+    const q = new THREE.Quaternion();
+    q.setFromUnitVectors(baseDirection, direction);
+    return q;
+  }, [baseDirection, direction]);
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+
+    const speed = 0.22;
+    const tRaw = (clock.getElapsedTime() * speed + initialT + delay) % 1;
+    const t = Math.min(Math.max(tRaw, 0.08), 0.92);
+
+    const currentPos = start.clone().lerp(end, t);
+    groupRef.current.position.set(currentPos.x, currentPos.y, currentPos.z);
+
+    groupRef.current.quaternion.copy(quaternion);
+
+    const mat = groupRef.current.children[0] as THREE.Mesh;
+    if (mat?.material) {
+      const material = mat.material as THREE.MeshBasicMaterial;
+      material.opacity = 0.35 + 0.6 * Math.sin(t * Math.PI);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[1.8, 4.2, 3]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.95} />
+      </mesh>
+    </group>
+  );
+}
+
+function RouteArrows({ activeRoute }: { activeRoute: string[] }) {
+  if (!activeRoute || activeRoute.length < 2) return null;
+
+  const nodeMap = new Map(
+    ROUTE_NODES.map((node) => [node.id, node.position] as const)
+  );
+
+  const arrows: React.ReactNode[] = [];
+
+  for (let i = 0; i < activeRoute.length - 1; i++) {
+    const start = nodeMap.get(activeRoute[i]);
+    const end = nodeMap.get(activeRoute[i + 1]);
+
+    if (!start || !end) continue;
+
+    const startVec = new THREE.Vector3(start[0], start[1] + 3.45, start[2]);
+    const endVec = new THREE.Vector3(end[0], end[1] + 3.45, end[2]);
+
+    const segmentLength = startVec.distanceTo(endVec);
+    if (segmentLength < 8) continue;
+
+    const arrowCount = Math.max(1, Math.floor(segmentLength / 16));
+
+    for (let j = 0; j < arrowCount; j++) {
+      arrows.push(
+        <RouteArrowMarker
+          key={`arrow-${i}-${j}`}
+          start={startVec}
+          end={endVec}
+          initialT={(j + 1) / (arrowCount + 1)}
+          delay={j * 0.18 + i * 0.08}
+        />
+      );
+    }
+  }
+
+  return <>{arrows}</>;
 }
 
 function FocusCameraOnRoute({
@@ -1431,6 +1571,76 @@ function FocusCameraOnRoute({
   return null;
 }
 
+function FocusCameraOnCurrentLocation({
+  currentLocationNode,
+  triggerSignal,
+}: {
+  currentLocationNode: string;
+  triggerSignal: number;
+}) {
+  const { camera, controls } = useThree() as any;
+
+  const targetPos = useRef(new THREE.Vector3());
+  const targetLookAt = useRef(new THREE.Vector3());
+  const isAnimating = useRef(false);
+
+  useEffect(() => {
+    if (!controls) return;
+    if (!currentLocationNode) return;
+
+    const node = ROUTE_NODES.find((n) => n.id === currentLocationNode);
+    if (!node) return;
+
+    const center = new THREE.Vector3(
+      node.position[0],
+      node.position[1],
+      node.position[2]
+    );
+
+    // keep current zoom/distance, only move view center
+    const currentOffset = new THREE.Vector3().subVectors(
+      camera.position,
+      controls.target
+    );
+
+    targetLookAt.current.copy(center);
+    targetPos.current.copy(center).add(currentOffset);
+
+    isAnimating.current = true;
+  }, [currentLocationNode, triggerSignal, camera, controls]);
+
+  useEffect(() => {
+    if (!controls) return;
+
+    const stopAnimation = () => {
+      isAnimating.current = false;
+    };
+
+    controls.addEventListener("start", stopAnimation);
+
+    return () => {
+      controls.removeEventListener("start", stopAnimation);
+    };
+  }, [controls]);
+
+  useFrame(() => {
+    if (!isAnimating.current || !controls) return;
+
+    camera.position.lerp(targetPos.current, 0.08);
+    controls.target.lerp(targetLookAt.current, 0.08);
+    controls.update();
+
+    const camDone = camera.position.distanceTo(targetPos.current) < 0.6;
+    const targetDone = controls.target.distanceTo(targetLookAt.current) < 0.6;
+
+    if (camDone && targetDone) {
+      isAnimating.current = false;
+    }
+  });
+
+  return null;
+}
+
 function isEquirectangular(url: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const img = new Image();
@@ -1438,6 +1648,66 @@ function isEquirectangular(url: string): Promise<boolean> {
     img.onerror = () => resolve(false);
     img.src = url;
   });
+}
+
+function ClampMobilePanBounds({
+  rootObject,
+  enabled,
+}: {
+  rootObject: THREE.Object3D | null;
+  enabled: boolean;
+}) {
+  const { camera, controls } = useThree() as any;
+
+  const boundsRef = useRef<{
+    minX: number;
+    maxX: number;
+    minZ: number;
+    maxZ: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!rootObject) return;
+
+    const box = getCampusBounds(rootObject);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+
+    const padX = size.x * 0.08;
+    const padZ = size.z * 0.08;
+
+    boundsRef.current = {
+      minX: center.x - size.x / 2 - padX,
+      maxX: center.x + size.x / 2 + padX,
+      minZ: center.z - size.z / 2 - padZ,
+      maxZ: center.z + size.z / 2 + padZ,
+    };
+  }, [rootObject]);
+
+  useFrame(() => {
+    if (!enabled || !controls || !boundsRef.current) return;
+
+    const bounds = boundsRef.current;
+
+    const oldTarget = controls.target.clone();
+
+    controls.target.x = THREE.MathUtils.clamp(
+      controls.target.x,
+      bounds.minX,
+      bounds.maxX
+    );
+
+    controls.target.z = THREE.MathUtils.clamp(
+      controls.target.z,
+      bounds.minZ,
+      bounds.maxZ
+    );
+
+    const delta = new THREE.Vector3().subVectors(controls.target, oldTarget);
+    camera.position.sub(delta);
+  });
+
+  return null;
 }
 
 /* ---------- MAIN PAGE ---------- */
@@ -1455,12 +1725,7 @@ export default function CampusMapPage() {
     hours?: string;
     poiId?: string;
   } | null>(null);
-
-  const [hovered, setHovered] = useState<{
-    name: string;
-    uuid: string;
-  } | null>(null);
-
+  
   const [campusRoot, setCampusRoot] = useState<THREE.Object3D | null>(null);
   const [resetViewSignal, setResetViewSignal] = useState(0);
   const [viewMode, setViewMode] = useState<"2D" | "3D">("3D");
@@ -1472,6 +1737,10 @@ export default function CampusMapPage() {
   const [currentLocationNode, setCurrentLocationNode] = useState<string>("");
   const [currentLocationLabel, setCurrentLocationLabel] = useState<string>("");
 
+  const [focusCurrentLocationSignal, setFocusCurrentLocationSignal] = useState(0);
+
+  const [locationPromptOpen, setLocationPromptOpen] = useState(false);
+
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [locationError, setLocationError] = useState("");
   // const [detectedCoords, setDetectedCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -1480,12 +1749,18 @@ export default function CampusMapPage() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(false);
+
   // const [locationPanelOpen, setLocationPanelOpen] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [mobileSheetExpanded, setMobileSheetExpanded] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
   const searchPanelRef = useRef<HTMLDivElement | null>(null);
+
+  const sheetStartYRef = useRef(0);
+  const sheetCurrentYRef = useRef(0);
+  const sheetDraggingRef = useRef(false);
+  const [sheetDragOffset, setSheetDragOffset] = useState(0);
 
   const [mounted, setMounted] = useState(false);
 
@@ -1495,6 +1770,8 @@ export default function CampusMapPage() {
 
   const hostRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<PannellumViewer | null>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!open360 || !picked?.panoUrl || !panoReady || !hostRef.current) return;
@@ -1574,6 +1851,11 @@ export default function CampusMapPage() {
     return buildEdgesFromPath(activeRoute);
   }, [activeRoute]);
 
+  const selected360RouteId = useMemo(() => {
+    if (!startNode || !endNode || activeRoute.length === 0) return null;
+    return get360RouteId(startNode, endNode);
+  }, [startNode, endNode, activeRoute]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -1648,14 +1930,6 @@ export default function CampusMapPage() {
       .slice(0, 8);
   }, [searchText, searchableBuildings]);
 
-  const overlayText = useMemo(() => {
-    if (picked) return `Picked: ${picked.name} (${picked.uuid.slice(0, 8)}...)`;
-    if (hovered) return `Hovering: ${hovered.name}`;
-    return "Click a building/block to test picking";
-  }, [picked, hovered]);
-
-  const activeLabel = picked?.name || hovered?.name || null;
-
   const handleSearchSelect = (meshName: string, poiId?: string) => {
     if (!campusRoot) return;
 
@@ -1683,7 +1957,6 @@ export default function CampusMapPage() {
         poiId: poi.id,
       });
 
-      setHovered(null);
       setSearchText(poi.label);
       setSearchOpen(false); //false
 
@@ -1711,7 +1984,6 @@ export default function CampusMapPage() {
       hours: info.hours,
     });
 
-    setHovered(null);
     setSearchText(info.label); 
     setSearchOpen(false); //false
 
@@ -1748,11 +2020,10 @@ export default function CampusMapPage() {
 
         setCurrentLocationNode(nearestNode.id);
         setCurrentLocationLabel(nearestNode.label);
+        setFocusCurrentLocationSignal((v) => v + 1);
         setIsDetectingLocation(false);
+        setLocationPromptOpen(false);
 
-        // if (isMobile) {
-        //   setLocationPanelOpen(false);
-        // }
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
@@ -1775,9 +2046,20 @@ export default function CampusMapPage() {
     );
   }
 
+  function handlePromptDetectLocation() {
+    setLocationPromptOpen(false);
+    handleDetectCurrentLocation();
+  }
+
   function handleClearCurrentLocation() {
     setCurrentLocationNode("");
     setCurrentLocationLabel("");
+    setStartNode("");
+    setEndNode("");
+    setActiveRoute([]);
+  }
+
+  function handleClearRoute() {
     setStartNode("");
     setEndNode("");
     setActiveRoute([]);
@@ -1787,7 +2069,7 @@ export default function CampusMapPage() {
     if (!picked) return;
 
     if (!currentLocationNode) {
-      alert("Please set your current location first.");
+      setLocationPromptOpen(true);
       return;
     }
 
@@ -1822,6 +2104,51 @@ export default function CampusMapPage() {
 
     setStartNode(currentLocationNode);
     setEndNode(targetNode);
+
+    // hide info card after showing route
+    setPicked(null);
+
+    if (isMobile) {
+      setMobileSheetOpen(false);
+      setMobileSheetExpanded(false);
+    }
+  }
+
+    function handleSheetTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    sheetDraggingRef.current = true;
+    sheetStartYRef.current = e.touches[0].clientY;
+    sheetCurrentYRef.current = 0;
+  }
+
+  function handleSheetTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!sheetDraggingRef.current) return;
+
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - sheetStartYRef.current;
+
+    // only allow a controlled drag feeling
+    sheetCurrentYRef.current = diff;
+    setSheetDragOffset(diff > 0 ? Math.min(diff, 180) : Math.max(diff, -120));
+  }
+
+  function handleSheetTouchEnd() {
+    if (!sheetDraggingRef.current) return;
+
+    const diff = sheetCurrentYRef.current;
+    sheetDraggingRef.current = false;
+    setSheetDragOffset(0);
+
+    // drag down -> collapse
+    if (diff > 70) {
+      setMobileSheetExpanded(false);
+      return;
+    }
+
+    // drag up -> expand
+    if (diff < -50) {
+      setMobileSheetExpanded(true);
+      return;
+    }
   }
 
   return (
@@ -1844,72 +2171,61 @@ export default function CampusMapPage() {
         }}
       />
 
-      <main className="flex flex-col h-[100dvh] overflow-hidden">
-      <div className={`w-full mx-auto ${isMobile ? "px-0" : "px-2 md:px-4"} py-2 md:py-4 flex-1 min-h-0 flex flex-col`}>
+      <main className="main-shell maxw container-px flex min-h-screen flex-col">
+        <div className={`w-full flex-1 min-h-0 flex flex-col ${isMapFullscreen ? "" : "py-4"}`}>
           {/* Header */}
-          <header className="flex items-center gap-3 p-3 md:p-3 mb-3 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200 flex-shrink-0">
-            <Link
-              href="/navigate"
-              aria-label="Back"
-              className="grid place-items-center w-10 h-10 border border-slate-300 rounded-xl bg-white text-slate-900 hover:bg-slate-100 transition"
-            >
-              ←
-            </Link>
-            <div>
-              <h1 className="text-lg font-extrabold text-slate-900">Campus Map</h1>
-              <p className="text-sm text-slate-500 mt-0.5">3D campus view</p>
-            </div>
-          </header>
+          {!isMapFullscreen && (
+            <header className="flex items-center gap-3 p-3 md:p-3 mb-3 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200 flex-shrink-0">
+              <Link
+                href="/navigate"
+                aria-label="Back"
+                className="grid place-items-center w-10 h-10 border border-slate-300 rounded-xl bg-white text-slate-900 hover:bg-slate-100 transition"
+              >
+                ←
+              </Link>
+              <div>
+                <h1 className="text-lg font-extrabold text-slate-900">Campus Map</h1>
+                <p className="text-sm text-slate-500 mt-0.5">3D campus view</p>
+              </div>
+            </header>
+          )}
       <div
+        className={[
+          "flex-1 min-h-0 overflow-hidden bg-slate-50",
+          isMapFullscreen
+            ? "fixed inset-0 z-[99999] rounded-none border-0 shadow-none"
+            : "relative rounded-2xl border border-slate-200 shadow-[0_12px_30px_rgba(0,0,0,0.12)]",
+        ].join(" ")}
         style={{
           width: isMapFullscreen ? "100vw" : "100%",
-          margin: "0 auto",
-          // maxWidth: isMapFullscreen ? "100vw" : 1400,
-          maxWidth: "100%",
-          flex: 1,
-          minHeight: 0,
-          height: isMapFullscreen ? "100dvh" : "100%",
-          position: isMapFullscreen ? "fixed" : "relative",
-          top: isMapFullscreen ? 0 : undefined,
-          left: isMapFullscreen ? 0 : undefined,
-          zIndex: isMapFullscreen ? 9999 : "auto",
-
-          border: isMapFullscreen
-            ? "none"
+          height: isMapFullscreen
+            ? "100dvh"
             : isMobile
-            ? "none"
-            : "3px solid red",
-
-          borderRadius: isMapFullscreen ? 0 : isMobile ? 0 : 20,
-
-          background: isMapFullscreen
-            ? "#f8fafc"
-            : isMobile
-            ? "#f8fafc"
-            : "linear-gradient(to bottom, #1e293b, #0b1220)",
-
-          boxShadow: isMapFullscreen
-            ? "none"
-            : isMobile
-            ? "none"
-            : "0 12px 30px rgba(0,0,0,0.12)",
-
-          overflow: "hidden",
+            ? "calc(100dvh - 140px)"
+            : "calc(100dvh - 200px)",
+          minHeight: isMapFullscreen ? "100dvh" : isMobile ? "60dvh" : "70dvh",
         }}
       >
         {mounted && (
+        <div
+          style={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            zIndex: 10,
+            pointerEvents: "auto",
+            width: isMobile ? "calc(100% - 24px)" : 420,
+            maxWidth: isMobile ? "calc(100% - 24px)" : 420,
+          }}
+        >
           <div
             ref={searchPanelRef}
             style={{
-              position: "absolute",
-              top: 12,
-              left: 12,
-              zIndex: 10,
-              width: isMobile ? "calc(100% - 24px)" : 340,
-              maxWidth: isMobile ? "calc(100% - 24px)" : 340,
-              borderRadius: isMobile ? 14 : 16,
+              width: "100%",
+              borderRadius: 16,
               background: "rgba(255,255,255,0.96)",
-              boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+              border: "1px solid rgba(15,23,42,0.08)",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
               overflow: "hidden",
               fontFamily: "system-ui",
               backdropFilter: "blur(8px)",
@@ -1949,7 +2265,6 @@ export default function CampusMapPage() {
                   placeholder="Search building, hall, hub..."
                   style={{
                     width: "100%",
-                    // height: isMobile ? 40 : 42,
                     height: isMobile ? 38 : 42,
                     borderRadius: 10,
                     border: "1px solid #cbd5e1",
@@ -1969,7 +2284,6 @@ export default function CampusMapPage() {
                       setSearchText("");
                       setSearchOpen(false);
                       setPicked(null);
-                      setHovered(null);
                     }}
                     style={{
                       position: "absolute",
@@ -2205,38 +2519,126 @@ export default function CampusMapPage() {
               </div>
             ) : null}
           </div>
-        )}
+        </div>
+    )}
 
-        {isMobile && picked && mobileSheetOpen && (
-            <div
+        {activeRoute.length > 0 && selected360RouteId && (
+        <button
+          onClick={() => {
+            router.push(`/navigate/super/${selected360RouteId}`);
+          }}
+          style={{
+            position: "absolute",
+            top: isMobile ? 88 : 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 25,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            minWidth: isMobile ? 210 : 220,
+            padding: isMobile ? "10px 14px" : "12px 16px",
+            borderRadius: 999,
+            border: "2px solid rgba(255, 255, 255, 0.95)",
+            background:
+              "linear-gradient(135deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%)",
+            color: "#ffffff",
+            cursor: "pointer",
+            boxShadow: "0 14px 30px rgba(239,68,68,0.30)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <div
+            style={{
+              width: isMobile ? 38 : 42,
+              height: isMobile ? 38 : 42,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.18)",
+              border: "2px solid rgba(255,255,255,0.9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              fontSize: isMobile ? 16 : 18,
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.18)",
+            }}
+          >
+            ➜
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              lineHeight: 1.1,
+            }}
+          >
+            <span
               style={{
-                position: "absolute",
-                left: 12,
-                right: 12,
-                bottom: 12,
-                zIndex: 20, //here there
-                background: "rgba(255,255,255,0.98)",
-                borderRadius: 20,
-                boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
-                overflow: "hidden",
-                fontFamily: "system-ui",
-                transition: "all 0.25s ease",
-                // maxHeight: mobileSheetExpanded ? "62%" : "96px",
-                maxHeight: mobileSheetExpanded ? "82dvh" : "88px",
-                display: "flex",
-                flexDirection: "column",
-                backdropFilter: "blur(10px)",
+                fontSize: isMobile ? 14 : 15,
+                fontWeight: 800,
+                letterSpacing: 0.1,
+                whiteSpace: "nowrap",
               }}
             >
+              View 360 Route
+            </span>
+
+            <span
+              style={{
+                fontSize: isMobile ? 11 : 12,
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.82)",
+                marginTop: 3,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Open guided 360
+            </span>
+          </div>
+        </button>
+      )}
+
+        {isMobile && picked && mobileSheetOpen && (
+        <div
+          style={{
+            position: "absolute",
+            left: 12,
+            right: 12,
+            bottom: 12,
+            zIndex: 20,
+            background: "rgba(255,255,255,0.98)",
+            borderRadius: 20,
+            boxShadow: "0 16px 36px rgba(0,0,0,0.22)",
+            overflow: "hidden",
+            fontFamily: "system-ui",
+            transition: sheetDraggingRef.current ? "none" : "transform 0.22s ease, max-height 0.25s ease",
+            transform: `translateY(${Math.max(0, sheetDragOffset)}px)`,
+            maxHeight: mobileSheetExpanded ? "82dvh" : "88px",
+            display: "flex",
+            flexDirection: "column",
+            backdropFilter: "blur(10px)",
+            touchAction: "none",
+          }}
+        >
               <div
                 style={{
                   display: "flex",
                   justifyContent: "center",
                   paddingTop: 8,
-                  paddingBottom: 4,
-                  cursor: "pointer",
+                  paddingBottom: 8,
+                  cursor: "grab",
+                  touchAction: "none",
                 }}
-                onClick={() => setMobileSheetExpanded((v) => !v)}
+                onClick={() => {
+                  if (Math.abs(sheetCurrentYRef.current) < 8) {
+                    setMobileSheetExpanded((v) => !v);
+                  }
+                }}
+                onTouchStart={handleSheetTouchStart}
+                onTouchMove={handleSheetTouchMove}
+                onTouchEnd={handleSheetTouchEnd}
               >
                 <div
                   style={{
@@ -2415,40 +2817,16 @@ export default function CampusMapPage() {
             </div>
           )}
         
-        {activeLabel && !isMobile && (
-          <div
-            style={{
-              position: "absolute",
-              top: 16,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 20,  //20
-              padding: "8px 14px",
-              borderRadius: 999,
-              background: "rgba(15, 23, 42, 0.9)",
-              color: "#ffffff",
-              fontFamily: "system-ui",
-              fontSize: 14,
-              fontWeight: 600,
-              pointerEvents: "none",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-            }}
-          >
-            {activeLabel}
-          </div>
-        )}
-
         <div
           style={{
-            position: "absolute",
-            right: 10,
-            // bottom: isMobile && picked && mobileSheetOpen ? 240 : 18,
-            bottom: isMobile && picked && mobileSheetOpen ? 220 : 72,
-            zIndex: 20,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
+          position: "absolute",
+          right: 12,
+          bottom: isMobile && picked && mobileSheetOpen ? 220 : 12,
+          zIndex: 20,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
         >
             <button
               onClick={() => setIsMapFullscreen((v) => !v)}
@@ -2464,7 +2842,7 @@ export default function CampusMapPage() {
                 fontSize: 24,
                 fontWeight: 700,
                 cursor: "pointer",
-                boxShadow: "0 10px 24px rgba(0,0,0,0.18)",
+                boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -2474,12 +2852,11 @@ export default function CampusMapPage() {
               {isMapFullscreen ? "🗗" : "⛶"}
             </button>
 
-            {/* Clear Current Location */}
-            {currentLocationNode && (
+            {activeRoute.length > 0 && (
               <button
-                onClick={handleClearCurrentLocation}
-                title="Clear current location"
-                aria-label="Clear current location"
+                onClick={handleClearRoute}
+                title="Clear route"
+                aria-label="Clear route"
                 style={{
                   width: 52,
                   height: 52,
@@ -2487,7 +2864,7 @@ export default function CampusMapPage() {
                   border: "none",
                   background: "rgba(255,255,255,0.95)",
                   color: "#dc2626",
-                  fontSize: 30,
+                  fontSize: 24,
                   fontWeight: 700,
                   cursor: "pointer",
                   boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2505,12 +2882,16 @@ export default function CampusMapPage() {
             <button
               onClick={() => {
                 setPicked(null);
-                setHovered(null);
-                handleDetectCurrentLocation();
+
+                if (currentLocationNode) {
+                  handleClearCurrentLocation();
+                } else {
+                  handleDetectCurrentLocation();
+                }
               }}
               disabled={isDetectingLocation}
-              title="Detect my location"
-              aria-label="Detect my location"
+              title={currentLocationNode ? "Remove current location" : "Detect my location"}
+              aria-label={currentLocationNode ? "Remove current location" : "Detect my location"}
               style={{
                 width: 52,
                 height: 52,
@@ -2518,7 +2899,7 @@ export default function CampusMapPage() {
                 border: "none",
                 background: "rgba(255,255,255,0.95)",
                 color: isDetectingLocation ? "#94a3b8" : "#080808",
-                fontSize: 40,
+                fontSize: 25,
                 fontWeight: 700,
                 cursor: isDetectingLocation ? "not-allowed" : "pointer",
                 boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2528,7 +2909,7 @@ export default function CampusMapPage() {
                 backdropFilter: "blur(8px)",
               }}
             >
-              {isDetectingLocation ? "…" : "⌖"}
+              {isDetectingLocation ? "…" : currentLocationNode ? "📍" : "⌖"}
             </button>
           {locationError && (
             <div
@@ -2555,7 +2936,6 @@ export default function CampusMapPage() {
           <button
             onClick={() => {
               setPicked(null);
-              setHovered(null);
               setResetViewSignal((v) => v + 1);
             }}
             title="Reset view"
@@ -2583,7 +2963,6 @@ export default function CampusMapPage() {
           <button
             onClick={() => {
               setPicked(null);
-              setHovered(null);
               setViewMode((v) => (v === "3D" ? "2D" : "3D"));
             }}
             title={`Switch to ${viewMode === "3D" ? "2D" : "3D"} view`}
@@ -2595,7 +2974,7 @@ export default function CampusMapPage() {
               border: "none",
               background: "rgba(255,255,255,0.95)",
               color: "#0f172a",
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 800,
               cursor: "pointer",
               boxShadow: "0 10px 24px rgba(0,0,0,0.22)",
@@ -2610,37 +2989,127 @@ export default function CampusMapPage() {
           </button>
         </div>
 
-        {/* <button
-          onClick={() => setIsMapFullscreen((v) => !v)}
-          title={isMapFullscreen ? "Exit full screen" : "Enlarge map"}
-          aria-label={isMapFullscreen ? "Exit full screen" : "Enlarge map"}
+        {locationPromptOpen && (
+        <div
           style={{
             position: "absolute",
-            top: 12,
-            right: 12,
-            zIndex: 30,
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
-            border: "none",
-            background: "rgba(255,255,255,0.95)",
-            color: "#0f172a",
-            fontSize: 22,
-            fontWeight: 700,
-            cursor: "pointer",
-            boxShadow: "0 10px 24px rgba(0,0,0,0.18)",
+            inset: 0,
+            zIndex: 40,
+            background: "rgba(15,23,42,0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backdropFilter: "blur(8px)",
+            padding: 16,
+            backdropFilter: "blur(4px)",
           }}
+          onClick={() => setLocationPromptOpen(false)}
         >
-          {isMapFullscreen ? "✕" : "⤢"}
-        </button> */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              maxWidth: isMobile ? "92%" : 420,
+              background: "#ffffff",
+              borderRadius: 20,
+              padding: isMobile ? 18 : 22,
+              boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+              border: "1px solid rgba(15,23,42,0.08)",
+              fontFamily: "system-ui",
+            }}
+          >
+            <div
+              style={{
+                fontSize: isMobile ? 20 : 22,
+                fontWeight: 800,
+                color: "#0f172a",
+                marginBottom: 8,
+              }}
+            >
+              Current location required
+            </div>
+
+            <div
+              style={{
+                fontSize: isMobile ? 14 : 15,
+                color: "#475569",
+                lineHeight: 1.6,
+                marginBottom: 16,
+              }}
+            >
+              Please track your current location first before starting navigation.
+            </div>
+
+            {locationError && (
+              <div
+                style={{
+                  marginBottom: 14,
+                  padding: "10px 12px",
+                  borderRadius: 12,
+                  background: "#fef2f2",
+                  color: "#b91c1c",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                {locationError}
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                gap: 10,
+              }}
+            >
+              <button
+                onClick={handlePromptDetectLocation}
+                disabled={isDetectingLocation}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: isDetectingLocation ? "#94a3b8" : "#0ea5e9",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: isDetectingLocation ? "not-allowed" : "pointer",
+                }}
+              >
+                {isDetectingLocation ? "Detecting location..." : "Track Current Location"}
+              </button>
+
+              <button
+                onClick={() => setLocationPromptOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  border: "1px solid #cbd5e1",
+                  background: "#ffffff",
+                  color: "#0f172a",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         <Canvas
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            display: "block",
+          }}
           camera={{ fov: 50 }}
-          // style={{ height: "80%" }}
           onCreated={({ camera, gl, scene }) => {
             gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -2661,10 +3130,12 @@ export default function CampusMapPage() {
           <directionalLight position={[30, 50, 30]} intensity={1.2} />
           <directionalLight position={[-30, 30, -20]} intensity={0.6} />
 
-          <RouteLines edges={activeRouteEdges} color="#ec1515" />
+          <RouteLines edges={activeRouteEdges} color="#ff2d2d" />
+          <RouteArrows activeRoute={activeRoute} />
           <RouteDots />
 
           {currentLocationNode && <CurrentLocationPin nodeId={currentLocationNode} />}
+          {endNode && <DestinationPulse nodeId={endNode} />}
 
           <GrassBase rootObject={campusRoot} isMobile={isMobile} />
 
@@ -2693,7 +3164,6 @@ export default function CampusMapPage() {
                 poiId: poi.id,
               });
 
-              setHovered(null);
               setSearchText(poi.label);
               setSearchOpen(false);
 
@@ -2701,20 +3171,16 @@ export default function CampusMapPage() {
                 setMobileSheetOpen(true);
                 setMobileSheetExpanded(true);
               }
-              // if (isMobile) {
-              //   setLocationPanelOpen(false);
-              //   setMobileSheetOpen(true);
-              //   setMobileSheetExpanded(true);
-              // }
             }}
           />
 
           <CampusModel
-            pickedUuid={picked?.uuid ?? null}
-            hoveredUuid={hovered?.uuid ?? null}
             onPick={(p) => {
               if (picked?.uuid === p.uuid) {
                 setPicked(null);
+                setSearchText("");
+                setSearchOpen(false);
+
                 if (isMobile) {
                   setMobileSheetOpen(false);
                   setMobileSheetExpanded(false);
@@ -2733,15 +3199,8 @@ export default function CampusMapPage() {
                   setMobileSheetOpen(true);
                   setMobileSheetExpanded(true);
                 }
-                // if (isMobile) {
-                //   setLocationPanelOpen(false);
-                //   setMobileSheetOpen(true);
-                //   setMobileSheetExpanded(true);
-                // }
               }
             }}
-            onHover={(p) => setHovered(p)}
-            onHoverOut={() => setHovered(null)}
             onReadyRoot={(obj) => setCampusRoot(obj)}
           />
 
@@ -2759,21 +3218,34 @@ export default function CampusMapPage() {
             activeRoute={activeRoute}
           />
 
+          <FocusCameraOnCurrentLocation
+            currentLocationNode={currentLocationNode}
+            triggerSignal={focusCurrentLocationSignal}
+          />
+
           <ApplyViewMode
             rootObject={campusRoot}
             viewMode={viewMode}
             resetSignal={resetViewSignal}
           />
 
+          <ClampMobilePanBounds
+            rootObject={campusRoot}
+            enabled={isMobile}
+          />
+
           <OrbitControls
             makeDefault
             enableDamping
-            dampingFactor={0.08}
+            dampingFactor={0.05}
+            rotateSpeed={1.15}
+            zoomSpeed={1.1}
+            panSpeed={1.0}
             enableRotate={viewMode === "3D"}
             minPolarAngle={viewMode === "3D" ? 0.35 : 0.001}
             maxPolarAngle={viewMode === "3D" ? Math.PI / 2 - 0.15 : 0.001}
-            minDistance={80}
-            maxDistance={600}
+            minDistance={viewMode === "2D" ? 80 : 20}
+            maxDistance={viewMode === "2D" ? 500 : 300}
             enablePan={true}
             screenSpacePanning={true}
             mouseButtons={{
@@ -2782,21 +3254,24 @@ export default function CampusMapPage() {
               RIGHT: THREE.MOUSE.PAN,
             }}
             touches={{
-              ONE: viewMode === "2D" ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE,
-              TWO: THREE.TOUCH.DOLLY_PAN,
+              ONE: isMobile
+                ? THREE.TOUCH.PAN
+                : viewMode === "2D"
+                ? THREE.TOUCH.PAN
+                : THREE.TOUCH.ROTATE,
+              TWO: isMobile && viewMode === "3D"
+                ? THREE.TOUCH.DOLLY_ROTATE
+                : THREE.TOUCH.DOLLY_PAN,
             }}
           />
         </Canvas>
       </div>
 
-      {!isMobile && (
+      {!isMobile && !isMapFullscreen && (
         <p className="mt-3 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
           🖱️ Click + drag to look around • 🔍 Scroll to zoom
         </p>
       )}
-      {/* <p className="mt-4 p-3 bg-white rounded-xl text-center text-slate-500 text-sm border border-slate-200">
-        🖱️ Click + drag to look around • 🔍 Scroll to zoom
-      </p> */}
         </div>
 
         {open360 && picked?.panoUrl && (
@@ -2804,7 +3279,7 @@ export default function CampusMapPage() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 20000,
+            zIndex: 200000,
             background: "rgba(0,0,0,0.55)",
             backdropFilter: "blur(4px)",
             display: "flex",

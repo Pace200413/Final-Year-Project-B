@@ -29,13 +29,24 @@ export async function GET() {
     });
   }
 
-  const profile = await getProfileByAuthUserId(authUserId);
-  const isAdmin = (profile?.role ?? "").toLowerCase() === "admin";
+  try {
+    const profile = await getProfileByAuthUserId(authUserId);
+    const isAdmin = (profile?.role ?? "").toLowerCase() === "admin";
 
-  return NextResponse.json({
-    authenticated: true,
-    isAdmin,
-    name: session.user.name ?? null,
-    email: session.user.email ?? null,
-  });
+    return NextResponse.json({
+      authenticated: true,
+      isAdmin,
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+    });
+  } catch (error) {
+    console.error("Profile API GET failed:", error);
+
+    return NextResponse.json({
+      authenticated: true,
+      isAdmin: false,
+      name: session.user.name ?? null,
+      email: session.user.email ?? null,
+    });
+  }
 }

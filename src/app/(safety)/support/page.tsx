@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mail, Phone, X } from "lucide-react";
 import { FaDoorOpen, FaPhoneAlt, FaShieldAlt } from "react-icons/fa";
@@ -18,51 +18,44 @@ import {
   toTelHref,
 } from "@/components/safety/SafetyUI";
 import {
-  DEFAULT_SUPPORT_PAGE_CONTENT,
+  cloneCmsContent,
+  getCmsPageConfig,
   type SupportPageContent,
-} from "@/lib/support-page";
-import { getDevicePrefsSnapshot } from "@/lib/device-prefs";
+} from "@/lib/page-cms";
+import { getDevicePrefsSnapshot, useDevicePrefs } from "@/lib/device-prefs";
 
-const API = "/api/support-page";
+const API = "/api/cms/support";
+
+const DEFAULT_CONTENT = cloneCmsContent(
+  getCmsPageConfig("support")!.defaultContent
+) as SupportPageContent;
 
 export default function SupportPage() {
   const { prefs } = useDevicePrefs();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [content, setContent] = useState<SupportPageContent>(DEFAULT_SUPPORT_PAGE_CONTENT);
-  const bcRef = useRef<BroadcastChannel | null>(null);
-
-  const load = async () => {
-    try {
-      const r = await fetch(API, { cache: "no-store" });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const json = await r.json();
-      setContent(json.content ?? DEFAULT_SUPPORT_PAGE_CONTENT);
-    } catch {
-      setContent(DEFAULT_SUPPORT_PAGE_CONTENT);
-    }
-  };
+  const [content, setContent] = useState<SupportPageContent>(DEFAULT_CONTENT);
 
   useEffect(() => {
-    load();
+    let alive = true;
 
-    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      bcRef.current = new BroadcastChannel("support-page-content");
-      bcRef.current.onmessage = (msg) => {
-        if (msg?.data?.type === "updated") load();
-      };
+    async function load() {
+      try {
+        const r = await fetch(API, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const json = await r.json();
+
+        if (!alive) return;
+        setContent(json.content ?? DEFAULT_CONTENT);
+      } catch {
+        if (!alive) return;
+        setContent(DEFAULT_CONTENT);
+      }
     }
 
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "support-page:updated") load();
-    };
-
-    window.addEventListener("storage", onStorage);
+    load();
 
     return () => {
-      try {
-        bcRef.current?.close();
-      } catch {}
-      window.removeEventListener("storage", onStorage);
+      alive = false;
     };
   }, []);
 
@@ -156,7 +149,7 @@ export default function SupportPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200 focus-visible:ring-offset-2"
             >
               <Phone className="h-4 w-4" />
-              {content.browseButtonLabel}
+                Library Help
             </button>
           </div>
         </div>

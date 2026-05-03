@@ -48,7 +48,7 @@ export const COURSES_BY_FACULTY: Record<FacultyOption, readonly string[]> = {
     "Computer Science",
     "Cyber Security",
     "Data Science",
-    "Software",
+    "Software Engineering",
     "Information Technology [Master]",
     "Information Technology [Graduate Diploma]",
     "Information Technology [Graduate Certificate]",
@@ -93,14 +93,20 @@ export const COURSES_BY_FACULTY: Record<FacultyOption, readonly string[]> = {
 };
 
 export const YEAR_LABELS = [
-  "Foundation",
-  "Diploma",
-  "Degree",
-  "Master & PhD",
-  "Graduate Diploma",
-  "Graduate Certificate",
-  "Final Semester",
-  "Alumni",
+  "Foundation Studies",
+  "Diploma – Year 1",
+  "Diploma – Year 2",
+  "Degree – Year 1",
+  "Degree – Year 2",
+  "Degree – Year 3",
+  "Degree – Year 4 / Honours",
+  "Master – Coursework",
+  "Master – Research",
+  "PhD",
+  "English Language Programme",
+  "Exchange / Study Abroad",
+  "Deferred / On leave",
+  "Alumni / Graduated",
 ] as const;
 
 export const CAMPUSES = ["Swinburne Sarawak"] as const;

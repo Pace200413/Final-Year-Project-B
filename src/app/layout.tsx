@@ -3,7 +3,8 @@ import "./globals.css";
 
 import { DeviceMotionConfig } from "@/components/DeviceMotionConfig";
 import { DeviceDensityConfig } from "@/components/DeviceDensityConfig";
-import { Header, BottomNav } from "@/components/MobileShell";
+import { Header, BottomNav, ChatLauncher } from "@/components/MobileShell";
+import ServiceWorkerCleanup from "@/components/ServiceWorkerCleanup";
 import {
   AppearanceClient,
   ServiceWorkerRegistration,
@@ -51,9 +52,10 @@ export default function RootLayout({
                 {children}
               </main>
 
-              <BottomNav />
-              <AppearanceClient />
-              <ServiceWorkerRegistration />
+            <BottomNav />
+            <ChatLauncher />
+            <AppearanceClient />
+            <ServiceWorkerCleanup />
             </DeviceMotionConfig>
           </LocaleProvider>
         </ThemeProvider>

@@ -226,7 +226,8 @@ export function SubpageLayout({
 }) {
   return (
     <div className="min-h-screen">
-      <div className="maxw container-px py-8">
+      <div className="maxw container-px py-5">  
+      {/* <div className="maxw container-px py-8">   */}
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
           {icon} {title}
         </h1>
@@ -1248,6 +1249,40 @@ function DirectorySkeleton() {
   );
 }
 
+const SERVICE_HREF_BY_SLUG: Record<string, string> = {
+  "it-service-desk": "https://www.swinburne.edu.my/servicedesk/",
+  it: "https://www.swinburne.edu.my/servicedesk/",
+
+  "facilities-helpdesk":
+    "https://www.swinburne.edu.my/facilities-services/facilities/",
+  facilities: "https://www.swinburne.edu.my/facilities-services/facilities/",
+
+  "campus-security":
+    "https://www.swinburne.edu.my/current-students/get-started/how-we-can-support-you/",
+
+  "student-wellbeing":
+    "https://www.swinburne.edu.my/student-counselling-support/",
+  wellbeing: "https://www.swinburne.edu.my/student-counselling-support/",
+
+  "library-help": "https://www.swinburne.edu.my/library/",
+  library: "https://www.swinburne.edu.my/library/",
+};
+
+function getServicePage(s: Service & { href?: string; link?: string }) {
+  const slug = String(s.slug || "");
+  const fallback = SERVICE_HREF_BY_SLUG[slug];
+
+  const raw = String(s.href || s.link || "").trim();
+
+  // If CMS still contains old internal /support/... links, ignore them
+  // and use the official Swinburne external link from the slug map.
+  if (raw && !raw.startsWith("/support/")) {
+    return raw;
+  }
+
+  return fallback || raw || "/support";
+}
+
 export function SupportDirectory({
   services,
 }: {
@@ -1324,7 +1359,8 @@ export function SupportDirectory({
         {services.map((s) => {
           const tel = s.phone ? `tel:${s.phone.replace(/[^0-9]/g, "")}` : null;
           const mail = s.email ? `mailto:${s.email}` : null;
-          const page = `/support/${s.slug}`;
+          const page = getServicePage(s);
+          const isExternalPage = page.startsWith("http");
           const tone = toneForCategory(s.category);
           const Icon = iconForCategory(s.category);
 
@@ -1376,13 +1412,15 @@ export function SupportDirectory({
                     </div>
                   </div>
 
-                  <Link
+                  <a
                     href={page}
+                    target={isExternalPage ? "_blank" : undefined}
+                    rel={isExternalPage ? "noopener noreferrer" : undefined}
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-500 ring-1 ring-slate-200 transition group-hover:bg-[#D42A30]/8 group-hover:text-[#D42A30]"
                     aria-label={`Open ${s.name}`}
                   >
                     <ArrowUpRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </div>
 
                 <p className="relative mt-4 text-[14px] leading-6 text-slate-600">
@@ -1410,13 +1448,15 @@ export function SupportDirectory({
                     </a>
                   ) : null}
 
-                  <Link
+                  <a
                     href={page}
+                    target={isExternalPage ? "_blank" : undefined}
+                    rel={isExternalPage ? "noopener noreferrer" : undefined}
                     className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-2 text-[12px] font-semibold text-white shadow-sm transition hover:opacity-95"
                   >
                     Open service
                     <ArrowUpRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </div>
               </div>
             </motion.div>

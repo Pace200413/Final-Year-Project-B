@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { routeBank, type RouteId, type RouteScene } from '../route_bank';
 import { useRouter } from 'next/navigation';
+import { SubpageLayout } from '@/components/SupportUI';
 
 /** Minimal Pannellum types */
 interface PannellumViewer {
@@ -26,6 +27,7 @@ type HotSpot = {
 
 export default function StudentHQ360Page() {
   const [panoReady, setPanoReady] = useState(false);
+  const [pannellumLoaded, setPannellumLoaded] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [routeMode, setRouteMode] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -33,8 +35,12 @@ export default function StudentHQ360Page() {
 
   const [nextPanelCollapsed, setNextPanelCollapsed] = useState(true);
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const viewerRef = useRef<PannellumViewer | null>(null);
   const paneRef = useRef<HTMLDivElement>(null);
+
+  const viewerShellRef = useRef<HTMLDivElement>(null);
 
   const [routeKey, setRouteKey] = useState<RouteId>('lobby-hq');
   const currentRouteDef = routeBank[routeKey];
@@ -63,16 +69,18 @@ export default function StudentHQ360Page() {
   /** inject pannellum */
   useEffect(() => {
     const w = window as PannellumWindow;
+
     if (w.pannellum) {
-      initViewerDefault();
+      setPannellumLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
     script.async = true;
-    script.onload = () => initViewerDefault();
-    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum from CDN.');
+    script.onload = () => setPannellumLoaded(true);
+    script.onerror = () => setErrorMsg('⚠️ Failed to load Pannellum.');
+
     document.body.appendChild(script);
 
     const link = document.createElement('link');
@@ -80,9 +88,31 @@ export default function StudentHQ360Page() {
     link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
     document.head.appendChild(link);
 
-    return () => viewerRef.current?.destroy?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      viewerRef.current?.destroy?.();
+    };
   }, []);
+
+  useEffect(() => {
+      if (!pannellumLoaded || !panoReady || routeMode) return;
+      if (!paneRef.current) return;
+  
+      const init = () => {
+        initViewerDefault();
+  
+        requestAnimationFrame(() => {
+          viewerRef.current?.resize?.();
+  
+          setTimeout(() => {
+            viewerRef.current?.resize?.();
+          }, 150);
+        });
+      };
+  
+      const raf = requestAnimationFrame(init);
+  
+      return () => cancelAnimationFrame(raf);
+    }, [pannellumLoaded, panoReady, routeMode]);
 
   /** default viewer */
   const initViewerDefault = () => {
@@ -96,8 +126,8 @@ export default function StudentHQ360Page() {
       type: 'equirectangular',
       panorama: DEFAULT_PANO,
       autoLoad: true,
-      showZoomCtrl: true,
-      showFullscreenCtrl: true,
+      showZoomCtrl: false,
+      showFullscreenCtrl: false,
       compass: true,
       autoRotate: 1,
       hfov: 100,
@@ -187,9 +217,9 @@ export default function StudentHQ360Page() {
       panorama: scene.image,
       autoLoad: true,
       yaw: startYaw,
-      showZoomCtrl: true,
-      showFullscreenCtrl: true,
-      compass: false,
+      showZoomCtrl: false,
+      showFullscreenCtrl: false,
+      compass: true,
       autoRotate: 0,
       hfov: 100,
       minHfov: 60,
@@ -201,8 +231,33 @@ export default function StudentHQ360Page() {
 
   /** watcher */
   useEffect(() => {
-    if (routeMode) initViewerForIndex(currentIdx, lastMove ?? 'forward');
-  }, [routeMode, currentIdx, lastMove]);
+    if (!routeMode || !pannellumLoaded || !panoReady) return;
+
+    const raf = requestAnimationFrame(() => {
+      initViewerForIndex(currentIdx, lastMove ?? 'forward');
+
+      requestAnimationFrame(() => {
+        viewerRef.current?.resize?.();
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [currentIdx, routeMode, lastMove, pannellumLoaded, panoReady]);
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+
+      setTimeout(() => {
+        viewerRef.current?.resize?.();
+      }, 100);
+    };
+
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, []);
 
   /** handlers */
   const handleStartRoute = () => {
@@ -215,7 +270,6 @@ export default function StudentHQ360Page() {
   const handleExitRoute = () => {
     setRouteMode(false);
     setNextPanelCollapsed(true);
-    setTimeout(() => initViewerDefault(), 300);
   };
 
   const handleNext = () => {
@@ -230,6 +284,21 @@ export default function StudentHQ360Page() {
 
   const progressPercent = ((currentIdx + 1) / ROUTE.length) * 100;
 
+  const handleToggleFullscreen = async () => {
+    const el = viewerShellRef.current;
+    if (!el) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await el.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.error('Fullscreen failed:', err);
+    }
+  };
+
   /** ---------- UI ---------- */
   return (
     <>
@@ -237,8 +306,8 @@ export default function StudentHQ360Page() {
         <title>Student HQ • 360° Route</title>
       </Head>
 
-      <main className="flex flex-col h-auto">
-        <div className="w-full mx-auto px-2 md:px-4 flex-1">
+      <SubpageLayout icon="" title="" description="">
+        <div className="col-span-full">
           {/* Header */}
           <header className="flex items-center gap-3 p-3 mb-4 bg-white border-2 border-red-700 rounded-2xl shadow-md shadow-red-200">
             <Link
@@ -249,7 +318,7 @@ export default function StudentHQ360Page() {
               ←
             </Link>
             <div>
-              <h1 className="text-lg font-extrabold text-slate-900">Multi Purpose Hall</h1>
+              <h1 className="text-lg font-extrabold text-slate-900">Student HQ</h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 360° guided route: {currentRouteDef.title}
               </p>
@@ -257,8 +326,28 @@ export default function StudentHQ360Page() {
           </header>
 
           {/* Viewer */}
-          <section className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden">
-            <div className="relative w-full h-[58vh] md:h-auto md:aspect-[20/9] bg-black">
+          <section
+            ref={viewerShellRef}
+            className="relative border border-slate-200 rounded-2xl bg-slate-950 shadow-xl overflow-hidden"
+          >
+            <div
+              className={`relative w-full bg-black ${
+                isFullscreen
+                  ? 'h-[calc(100vh-40px)]'
+                  : 'h-[58vh] md:h-auto md:aspect-[20/9]'
+              }`}
+            >
+
+            {/* Fullscreen button */}
+            <button
+              type="button"
+              onClick={handleToggleFullscreen}
+              className="absolute bottom-20 right-3 z-30 grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-slate-900 shadow-lg ring-1 ring-black/10 hover:bg-white"
+              aria-label="Toggle fullscreen"
+              title="Fullscreen"
+            >
+              ⛶
+            </button>
               <div
                 ref={paneRef}
                 className={`absolute inset-0 z-0 transition-opacity duration-500 ${
@@ -280,7 +369,7 @@ export default function StudentHQ360Page() {
 
               {/* Pre-start instruction card */}
               {!routeMode && (
-                <div className="absolute top-3 right-3 z-20 max-w-xs swin-intro-card">
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-24px)] max-w-xs md:left-auto md:right-3 md:translate-x-0 md:w-auto swin-intro-card">
                   <p className="swin-intro-title">How to use</p>
                   <ul className="swin-intro-list">
                     <li>1. Look around the 360° view.</li>
@@ -301,18 +390,52 @@ export default function StudentHQ360Page() {
 
               {/* Start vs controls */}
               {!routeMode ? (
-                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 flex flex-col gap-3 items-center">
-                  <button
-                    onClick={handleStartRoute}
-                    className="px-6 py-2 rounded-full font-semibold bg-red-600 text-white shadow-lg hover:bg-red-700 active:scale-95 transition"
-                  >
-                    Navigate here
-                  </button>
-                  <p className="hidden md:block text-xs text-white/80 bg-black/30 rounded-full px-3 py-1">
-                    We will guide you through the atrium
-                  </p>
-                </div>
-              ) : (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+                <button
+                  onClick={handleStartRoute}
+                  className="
+                    group relative overflow-hidden
+                    rounded-2xl
+                    bg-gradient-to-r from-red-600 via-red-500 to-red-600
+                    px-5 py-3 md:px-6 md:py-3.5
+                    text-white shadow-[0_12px_30px_rgba(220,38,38,0.35)]
+                    ring-1 ring-white/20
+                    transition-all duration-300
+                    hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(220,38,38,0.45)]
+                    active:scale-95
+                  "
+                  aria-label="Start guided route"
+                >
+                  <span className="absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                  <span className="relative flex items-center gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/18 backdrop-blur-sm ring-1 ring-white/20">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M5 12h14" strokeLinecap="round" />
+                        <path d="M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+
+                    <span className="flex flex-col items-start text-left leading-tight">
+                      <span className="text-base font-bold md:text-lg">Start Route</span>
+                      <span className="text-[11px] text-white/85 md:text-xs">
+                        Guided 360° navigation
+                      </span>
+                    </span>
+                  </span>
+                </button>
+
+                <p className="mt-2 rounded-full bg-black/35 px-3 py-1 text-[11px] text-white/85 backdrop-blur-sm">
+                  Tap to begin step-by-step walkthrough
+                </p>
+              </div>
+            ) : (
                 <div
                   className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-2
                           bg-white/10 backdrop-blur-md px-3 py-2 rounded-full shadow-lg
@@ -487,7 +610,7 @@ export default function StudentHQ360Page() {
             📱 Tap the arrows or hotspots to move
           </p>
         </div>
-      </main>
+      </SubpageLayout>
     </>
   );
 }

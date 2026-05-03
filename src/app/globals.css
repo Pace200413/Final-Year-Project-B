@@ -76,7 +76,9 @@ html.a11y-density-compact [data-settings-form] .compact-status {
 }
 
 .main-shell {
-  padding-top: 1.5rem;
+  /* padding-top: 1.5rem; */
+  padding-top: 0.7rem;
+
 }
 
 html.a11y-density-compact .main-shell {
@@ -1623,11 +1625,17 @@ h3 {
   .swin-next-toggle-btn {
     right: auto;
     bottom: auto;
-    left: 2.3rem;
-    top: 0.6rem;
+    left: 50%;
+    top: 0.8rem;
+    transform: translateX(-50%);
+    animation: none;
     font-size: 10px;
     padding: 5px 10px 5px 9px;
     max-width: 72%;
+  }
+
+  .swin-next-toggle-btn:hover {
+    transform: translateX(-50%);
   }
 
   .swin-next-toggle-chevron {

@@ -1,275 +1,114 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ArrowUpRight, GraduationCap } from "lucide-react";
 import {
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  CreditCard,
-  FileCheck2,
-  Globe2,
-  GraduationCap,
-  Info,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react";
-import {
-  STUDENT_ESSENTIALS,
-  type StudentEssentialItem,
-} from "@/data/student-essentials";
+  CMS_PAGE_CONFIG,
+  type StudentEssentialsContent,
+} from "@/lib/page-cms";
 
-const CONTAINER = "mx-auto w-full max-w-[1280px] px-4 sm:px-6";
-
-type Meta = {
-  category: string;
-  summary: string;
-  icon: LucideIcon;
-  pillClass: string;
-};
-
-function getMeta(title: string): Meta {
-  switch (title) {
-    case "Student Information":
-      return {
-        category: "Information",
-        summary:
-          "Important student-facing information and official academic guidance.",
-        icon: Info,
-        pillClass: "border-slate-200 bg-white/90 text-slate-700",
-      };
-    case "International Student Services":
-      return {
-        category: "International",
-        summary:
-          "Support, services, and key guidance for international students.",
-        icon: Globe2,
-        pillClass: "border-sky-200/80 bg-sky-50/95 text-sky-700",
-      };
-    case "Managing Your Enrolment":
-      return {
-        category: "Enrolment",
-        summary:
-          "Study load decisions, admin tasks, and enrolment-related processes.",
-        icon: FileCheck2,
-        pillClass: "border-violet-200/80 bg-violet-50/95 text-violet-700",
-      };
-    case "Safer Community":
-      return {
-        category: "Safety",
-        summary:
-          "Official resources and guidance that support a safer campus community.",
-        icon: ShieldCheck,
-        pillClass: "border-emerald-200/80 bg-emerald-50/95 text-emerald-700",
-      };
-    case "Paying Your Fees":
-      return {
-        category: "Finance",
-        summary:
-          "Fee payment options and related student finance information.",
-        icon: CreditCard,
-        pillClass: "border-amber-200/80 bg-amber-50/95 text-amber-700",
-      };
-    case "Exams, Results and Student Progression":
-      return {
-        category: "Assessment",
-        summary:
-          "Exam information, results, progression, and academic milestones.",
-        icon: BookOpen,
-        pillClass: "border-rose-200/80 bg-rose-50/95 text-rose-700",
-      };
-    case "Graduation and Course Completion":
-      return {
-        category: "Graduation",
-        summary:
-          "Graduation requirements, course completion steps, and official updates.",
-        icon: GraduationCap,
-        pillClass: "border-indigo-200/80 bg-indigo-50/95 text-indigo-700",
-      };
-    default:
-      return {
-        category: "Resource",
-        summary: "Official student resource.",
-        icon: Info,
-        pillClass: "border-slate-200 bg-white/90 text-slate-700",
-      };
-  }
-}
-
-function BackgroundDecor() {
-  return (
-    <>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(58%_34%_at_0%_0%,rgba(212,42,48,.09),transparent_60%),radial-gradient(36%_24%_at_100%_4%,rgba(15,23,42,.05),transparent_56%),linear-gradient(180deg,#f8fafc_0%,#f4f6fb_100%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[240px] [background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,0))]"
-      />
-    </>
-  );
-}
-
-function Hero() {
-  return (
-    <section className={`${CONTAINER} pt-3 sm:pt-4`}>
-      <nav className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-        <Link href="/" className="transition hover:text-slate-800">
-          Home
-        </Link>
-        <span aria-hidden>›</span>
-        <span className="font-medium text-slate-800">Student Essentials</span>
-      </nav>
-
-      <div className="relative overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_12px_28px_rgba(15,23,42,.05)]">
-        <div
-          aria-hidden
-          className="absolute inset-0 [background:radial-gradient(circle_at_top_left,rgba(212,42,48,.07),transparent_24%),linear-gradient(180deg,rgba(255,255,255,.99),rgba(248,250,252,.98))]"
-        />
-
-        <div className="relative flex items-center justify-between gap-3 px-4 py-4 sm:px-5">
-          <div className="min-w-0">
-            <h1 className="text-[24px] font-semibold tracking-tight text-slate-900 sm:text-[28px]">
-              Student Essentials
-            </h1>
-            <p className="mt-1 text-[13.5px] leading-5 text-slate-600 sm:text-[14px]">
-              Fees, enrolment, exams, support, and graduation.
-            </p>
-          </div>
-
-          <div className="shrink-0 rounded-full border border-[#D42A30]/15 bg-[#D42A30]/6 px-3 py-1 text-[11px] font-semibold text-[#B0171E]">
-            {STUDENT_ESSENTIALS.length} links
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SectionHeader() {
-  return (
-    <div className="mb-3">
-      <h2 className="text-[18px] font-semibold tracking-tight text-slate-900 sm:text-[20px]">
-        Quick access
-      </h2>
-    </div>
-  );
-}
-
-function EssentialsCard({
-  item,
-  index,
-}: {
-  item: StudentEssentialItem;
-  index: number;
-}) {
-  const meta = getMeta(item.title);
-  const Icon = meta.icon;
-  const featured = index === 0;
-
-  return (
-    <Link
-      href={item.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={[
-        "group relative isolate overflow-hidden rounded-[26px] border border-slate-200/80 bg-white",
-        "shadow-[0_14px_34px_rgba(15,23,42,.055)] transition duration-300",
-        "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_20px_48px_rgba(15,23,42,.10)]",
-        featured ? "md:col-span-2" : "",
-      ].join(" ")}
-    >
-      <div
-        aria-hidden
-        className="absolute -left-1/3 top-0 z-10 h-full w-1/3 -skew-x-12 bg-white/20 opacity-0 blur-xl transition duration-700 group-hover:translate-x-[420%] group-hover:opacity-100"
-      />
-
-      <div
-        className={[
-          "relative overflow-hidden bg-slate-100",
-          featured ? "aspect-[16/9]" : "aspect-[16/10]",
-        ].join(" ")}
-      >
-        <Image
-          src={item.image}
-          alt={item.alt}
-          fill
-          className="object-cover transition duration-500 group-hover:scale-[1.03]"
-        />
-
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-900/12 to-transparent"
-        />
-
-        <div className="absolute left-4 top-4 flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.08em] backdrop-blur ${meta.pillClass}`}
-          >
-            {meta.category}
-          </span>
-        </div>
-
-        <div className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-2xl border border-white/25 bg-white/15 text-white backdrop-blur-md">
-          <Icon className="h-[18px] w-[18px]" />
-        </div>
-
-        <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/25 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-md">
-          <span className="font-semibold">{String(index + 1).padStart(2, "0")}</span>
-          <span className="h-1 w-1 rounded-full bg-white/70" aria-hidden />
-          <span>Official page</span>
-        </div>
-      </div>
-
-      <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4">
-          <h3
-            className={[
-              "font-semibold leading-tight tracking-tight text-slate-900",
-              featured ? "text-[23px] sm:text-[27px]" : "text-[19px] sm:text-[22px]",
-            ].join(" ")}
-          >
-            {item.title}
-          </h3>
-
-          <span className="mt-0.5 shrink-0 rounded-full bg-slate-100 p-2 text-slate-500 transition group-hover:bg-[#D42A30]/8 group-hover:text-[#D42A30]">
-            <ArrowUpRight className="h-4 w-4" />
-          </span>
-        </div>
-
-        <p className="mt-2.5 text-[13.5px] leading-6 text-slate-600">
-          {meta.summary}
-        </p>
-
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#D42A30]">
-            <span>Open resource</span>
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-          </div>
-
-          <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-500 sm:inline-flex">
-            Swinburne verified
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
+const FALLBACK_CONTENT: StudentEssentialsContent =
+  CMS_PAGE_CONFIG["student-essentials"].defaultContent;
 
 export default function StudentEssentialsPage() {
+  const [cms, setCms] = useState<StudentEssentialsContent>(FALLBACK_CONTENT);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/cms/student-essentials", {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!alive) return;
+        setCms((json?.content ?? FALLBACK_CONTENT) as StudentEssentialsContent);
+      } catch {}
+    }
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const items = cms.items ?? FALLBACK_CONTENT.items;
+
   return (
-    <div className="relative min-h-screen overflow-hidden pb-28">
-      <BackgroundDecor />
-      <Hero />
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)]">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-4 sm:px-6">
+        <section className="relative overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.07)]">
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,42,48,0.10),transparent_24%)]"
+          />
+          <div className="relative p-4 sm:p-5">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#D42A30]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#B91C1C]">
+              <GraduationCap className="h-3.5 w-3.5" />
+              Student resources
+            </div>
 
-      <section className={`${CONTAINER} relative mt-3 sm:mt-4`}>
-        <SectionHeader />
+            <h1 className="mt-3 text-[1.8rem] font-semibold leading-tight tracking-tight text-slate-900 sm:text-[2.1rem]">
+              Student Essentials
+            </h1>
 
-        <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {STUDENT_ESSENTIALS.map((item: StudentEssentialItem, index: number) => (
-            <EssentialsCard key={item.title} item={item} index={index} />
-          ))}
-        </div>
-      </section>
-    </div>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Main official links students commonly need during the semester.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-6">
+          <div className="mb-3">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+              Quick access
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {items.map((item) => (
+              <a
+                key={item.title}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.11)]"
+              >
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+                  <Image
+                    src={item.image}
+                    alt={item.alt}
+                    fill
+                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                  />
+                </div>
+
+                <div className="p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-semibold leading-tight tracking-tight text-slate-900 sm:text-xl">
+                      {item.title}
+                    </h3>
+
+                    <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#D42A30]/10 text-[#D42A30] transition group-hover:bg-[#D42A30] group-hover:text-white">
+                      <ArrowUpRight className="h-4.5 w-4.5" />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#D42A30]">
+                    <span>Open resource</span>
+                    <ArrowUpRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

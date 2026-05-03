@@ -75,7 +75,7 @@ function EventCard({ event }: { event: CampusEvent }) {
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm transition active:scale-[0.99]"
+      className="group block overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-sm transition active:scale-[0.99]"
     >
       <div className="relative">
         {image ? (
@@ -96,7 +96,7 @@ function EventCard({ event }: { event: CampusEvent }) {
         </div>
 
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-900/30 to-transparent p-4">
-          <div className="inline-flex rounded-2xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm backdrop-blur">
+          <div className="inline-flex rounded-full bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-slate-900 shadow-sm backdrop-blur">
             {formatTimeRange(event.date, event.endDate)}
           </div>
         </div>
@@ -173,9 +173,14 @@ export default function EventsPage() {
     };
   }, []);
 
-  const grouped = useMemo(
-    () => Object.entries(groupByDay(content.events)),
+  const visibleEvents = useMemo(
+    () => (content.events ?? []).filter((event) => event.isPublished !== false),
     [content.events]
+  );
+
+  const grouped = useMemo(
+    () => Object.entries(groupByDay(visibleEvents)),
+    [visibleEvents]
   );
 
   return (
@@ -205,7 +210,7 @@ export default function EventsPage() {
         />
       </div>
 
-      {content.events.length === 0 ? (
+      {visibleEvents.length === 0 ? (
         <SafetyCard className="mt-4">
           <SectionTitle
             title={content.emptyHeading}
@@ -216,16 +221,13 @@ export default function EventsPage() {
         <div className="mt-4 space-y-6">
           {grouped.map(([group, items]) => (
             <section key={group}>
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3">
                 <h2 className="text-sm font-semibold text-slate-900">
                   {formatDayLabel(group)}
                 </h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
-                  {items.length} event{items.length === 1 ? "" : "s"}
-                </span>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 lg:grid-cols-2">
                 {items.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
