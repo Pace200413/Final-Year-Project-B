@@ -3501,7 +3501,7 @@ export default function CampusMapPage() {
                   style={{
                     position: "absolute",
                     right: 14,
-                    bottom: 18,
+                    bottom: 74,
                     zIndex: 80,
                     width: 46,
                     height: 46,
@@ -3529,8 +3529,8 @@ export default function CampusMapPage() {
                 title="Enlarge 360 View"
                 style={{
                   position: "absolute",
-                  right: 14,          
-                  bottom: 74,         
+                  right: 14,
+                  bottom: 18,
                   zIndex: 80,
                   width: 46,
                   height: 46,
