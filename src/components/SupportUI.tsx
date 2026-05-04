@@ -1079,16 +1079,28 @@ export function SupportFAQ({ items: provided }: { items?: FAQ[] }) {
    SupportRequestForm
 ============================================================================ */
 
-const FORM_CATS = ["General", "IT Support", "Facilities", "Safety", "Wellbeing", "Academic"] as const;
+const FORM_CATS = [
+  "General",
+  "IT Support",
+  "Facilities",
+  "Safety",
+  "Wellbeing",
+  "Academic",
+] as const;
+
 type FormCat = (typeof FORM_CATS)[number];
+
+const SUPPORT_REQUEST_EMAIL = "safercommunity@swinburne.edu.my";
 
 function suggestCategory(msg: string): FormCat {
   const m = msg.toLowerCase();
+
   if (/(login|password|canvas|portal|wifi|wi-?fi)/.test(m)) return "IT Support";
   if (/(projector|air.?con|ac|classroom|maintenance|facility)/.test(m)) return "Facilities";
   if (/(emergency|security|theft|injur|harass)/.test(m)) return "Safety";
   if (/(counsel|wellbeing|mental|stress)/.test(m)) return "Wellbeing";
   if (/(library|reference|loan)/.test(m)) return "Academic";
+
   return "General";
 }
 
@@ -1097,55 +1109,69 @@ export function SupportRequestForm() {
   const [okId, setOkId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
+
   const suggestion = useMemo(() => suggestCategory(msg), [msg]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     setLoading(true);
     setErr(null);
     setOkId(null);
 
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const payload = Object.fromEntries(fd.entries()) as Record<string, string>;
 
+    const name = (payload.name || "").trim();
     const email = (payload.email || "").trim();
-    if (!/@swin\.edu\.my$/i.test(email)) {
+    const category = (payload.category || "General").trim();
+    const message = (payload.message || "").trim();
+
+    const isSwinburneEmail =
+      /@swin\.edu\.my$/i.test(email) ||
+      /@students\.swinburne\.edu\.my$/i.test(email);
+
+    if (!isSwinburneEmail) {
       setLoading(false);
-      setErr("Please use your @swin.edu.my email.");
+      setErr("Please use your Swinburne student or staff email.");
       return;
     }
 
-    const res = await fetch("/api/support", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    const subject = encodeURIComponent(`Support request: ${category}`);
 
-    const j = await res.json().catch(() => ({} as any));
-    if (!res.ok) setErr(j?.error || "Something went wrong.");
-    else {
-      setOkId(j.id);
-      (e.target as HTMLFormElement).reset();
-      setMsg("");
-    }
+    const body = encodeURIComponent(
+      `Name: ${name}\n` +
+        `Email: ${email}\n` +
+        `Category: ${category}\n\n` +
+        `Message:\n${message}`
+    );
+
+    window.location.href = `mailto:${SUPPORT_REQUEST_EMAIL}?subject=${subject}&body=${body}`;
+
+    setOkId("opened");
+    form.reset();
+    setMsg("");
     setLoading(false);
   }
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <h4 className="mb-1 text-sm font-semibold">After-hours request</h4>
+
       <p className="mb-3 text-xs text-slate-500">
         We’ll respond within <strong>1 business day</strong>.
       </p>
 
       <div aria-live="polite" className="space-y-2">
         {okId && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm">
-            Request received. Reference <span className="font-mono">{okId}</span>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Email draft opened. Please press send in your email app.
           </div>
         )}
+
         {err && (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm">
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
             {err}
           </div>
         )}
@@ -1154,12 +1180,23 @@ export function SupportRequestForm() {
       <form onSubmit={onSubmit} className="mt-3 grid grid-cols-1 gap-3">
         <div className="grid gap-1">
           <label className="text-xs font-medium">Name *</label>
-          <input name="name" required className="input" placeholder="Your name" />
+          <input
+            name="name"
+            required
+            className="input"
+            placeholder="Your name"
+          />
         </div>
 
         <div className="grid gap-1">
           <label className="text-xs font-medium">Email *</label>
-          <input name="email" type="email" required className="input" placeholder="you@swin.edu.my" />
+          <input
+            name="email"
+            type="email"
+            required
+            className="input"
+            placeholder="you@students.swinburne.edu.my"
+          />
         </div>
 
         <div className="grid gap-1">
@@ -1169,6 +1206,7 @@ export function SupportRequestForm() {
               <option key={c}>{c}</option>
             ))}
           </select>
+
           <p className="text-[11px] text-slate-500">
             Suggested: <span className="font-medium">{suggestion}</span>
           </p>
@@ -1188,10 +1226,11 @@ export function SupportRequestForm() {
         </div>
 
         <button
+          type="submit"
           disabled={loading}
           className="mt-1 rounded-xl bg-slate-900 px-4 py-2 text-white disabled:opacity-50"
         >
-          {loading ? "Sending…" : "Send request"}
+          {loading ? "Opening email…" : "Send request"}
         </button>
       </form>
     </div>
