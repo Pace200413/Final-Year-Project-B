@@ -170,10 +170,10 @@ export default function SupportPage() {
 
       <EmergencyFAB phone={content.alertPhone} />
 
-      <AnimatePresence>
+            <AnimatePresence>
         {drawerOpen ? (
           <motion.div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[100]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -192,7 +192,7 @@ export default function SupportPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 260, damping: 30 }}
-              className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-auto rounded-t-[28px] bg-white p-4 shadow-xl ring-1 ring-black/5"
+              className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-auto rounded-t-[28px] bg-white p-4 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] shadow-xl ring-1 ring-black/5"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
