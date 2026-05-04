@@ -18,6 +18,22 @@ interface PannellumViewer {
   stopOrientation?: () => void;
 }
 
+function MaximizeIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function MinimizeIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 type PannellumApi = {
   viewer: (el: HTMLElement, opts: Record<string, unknown>) => PannellumViewer;
 };
@@ -1756,6 +1772,8 @@ export default function CampusMapPage() {
   const [mobileSheetExpanded, setMobileSheetExpanded] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
 
+  const [is360Fullscreen, setIs360Fullscreen] = useState(false);
+
   const searchPanelRef = useRef<HTMLDivElement | null>(null);
 
   const sheetStartYRef = useRef(0);
@@ -1804,10 +1822,20 @@ export default function CampusMapPage() {
   const toggle360Fullscreen = async () => {
     if (!viewerBoxRef.current) return;
 
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
+    const canUseFullscreen =
+      typeof viewerBoxRef.current.requestFullscreen === "function";
+
+    if (canUseFullscreen) {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        setIs360Fullscreen(false);
+      } else {
+        await viewerBoxRef.current.requestFullscreen();
+        setIs360Fullscreen(true);
+      }
     } else {
-      await viewerBoxRef.current.requestFullscreen();
+      // iPhone Safari fallback
+      setIs360Fullscreen((prev) => !prev);
     }
 
     setTimeout(() => {
@@ -2973,7 +3001,7 @@ export default function CampusMapPage() {
                 backdropFilter: "blur(8px)",
               }}
             >
-              {isMapFullscreen ? "🗗" : "⛶"}
+              {isMapFullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
             </button>
 
             {activeRoute.length > 0 && (
@@ -3457,6 +3485,7 @@ export default function CampusMapPage() {
                 onClick={() => {
                   viewerRef.current?.stopOrientation?.();
                   setIsGyroOn(false);
+                  setIs360Fullscreen(false);
                   setOpen360(false);
                 }}
                 style={{
@@ -3476,10 +3505,12 @@ export default function CampusMapPage() {
             <div
               ref={viewerBoxRef}
               style={{
-                position: "relative",
-                width: "100%",
-                height: "calc(100% - 65px)",
+                position: is360Fullscreen ? "fixed" : "relative",
+                inset: is360Fullscreen ? 0 : undefined,
+                width: is360Fullscreen ? "100vw" : "100%",
+                height: is360Fullscreen ? "100dvh" : "calc(100% - 65px)",
                 background: "#000",
+                zIndex: is360Fullscreen ? 9999 : undefined,
               }}
             >
               <div
@@ -3546,7 +3577,7 @@ export default function CampusMapPage() {
                   boxShadow: "0 8px 22px rgba(0,0,0,0.35)",
                 }}
               >
-                ⛶
+                {is360Fullscreen ? <MinimizeIcon /> : <MaximizeIcon />}
               </button>
 
               {panoError && (
